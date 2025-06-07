@@ -1,0 +1,33 @@
+{
+	"name": "gnome-shell-extension",
+	"description": "GNOME Shell extension",
+	"version": "1.0.0",
+	"keywords": [],
+	"scripts": {
+		"start": "./cli dev",
+		"clean": "./cli clean",
+		"build": "./cli build",
+		"pack": "./cli pack"
+	},
+	"author": "ExposedCat",
+	"license": "LGPL-3.0-or-later",
+	"devDependencies": {
+		"@girs/gda-5.0": "^5.0.0-4.0.0-beta.14",
+		"@types/node": "^22.4.0",
+		"typescript": "^5.5.3"
+	},
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ExposedCat/gnome-shell-extension.git"
+	},
+	"bugs": {
+		"url": "https://github.com/ExposedCat/gnome-shell-extension/issues"
+	},
+	"homepage": "https://github.com/ExposedCat/gnome-shell-extension#readme",
+	"sideEffects": false,
+	"dependencies": {
+		"@girs/gjs": "^4.0.0-beta.7",
+		"@girs/gnome-shell": "^46.0.1"
+	}
+}

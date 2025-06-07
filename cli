@@ -1,0 +1,45 @@
+#!/bin/bash
+
+NAME="gnome-extension-template"
+DOMAIN="exposedcat"
+
+SLUG="$NAME@$DOMAIN"
+EXTENSIONS="/home/$USER/.local/share/gnome-shell/extensions"
+
+build() {
+  npx tsc
+  cp -r metadata.json src/styles schemas dist
+  glib-compile-schemas ./dist/schemas
+}
+
+install() {
+  mkdir -p "$EXTENSIONS"
+  rm -rf "${EXTENSIONS:?}/$SLUG"
+  mv dist "$EXTENSIONS/$SLUG"
+}
+
+case $1 in
+clean)
+  rm -rf dist node_modules $NAME.zip
+  ;;
+build)
+  build
+  ;;
+pack)
+  rm -f $NAME.zip
+  pushd dist || exit
+  zip "../$NAME.zip" -9r ./*.js ./*.css ./**/*.js ./**/*.css metadata.json
+  popd || exit
+  ;;
+install)
+  install
+  ;;
+dev)
+  build
+  install
+  dbus-run-session -- gnome-shell --nested --wayland
+  ;;
+*)
+  echo "Unknown command '$1'"
+  ;;
+esac

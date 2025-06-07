@@ -1,0 +1,9 @@
+{
+	"name": "Gnome Shell Extension",
+	"description": "GNOME Shell extension",
+	"uuid": "gnome-extension-template@exposedcat",
+	"settings-schema": "org.gnome.shell.extensions.extension",
+	"shell-version": [
+		"47"
+	]
+}
