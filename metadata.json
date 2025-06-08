@@ -1,9 +1,7 @@
 {
-	"name": "Gnome Shell Extension",
-	"description": "GNOME Shell extension",
-	"uuid": "gnome-extension-template@exposedcat",
-	"settings-schema": "org.gnome.shell.extensions.extension",
-	"shell-version": [
-		"47"
-	]
+  "name": "Notification Configurator",
+  "description": "GNOME Shell notification configurator",
+  "uuid": "notification-configurator@exposedcat",
+  "settings-schema": "org.gnome.shell.extensions.notification-configurator",
+  "shell-version": ["47", "48"]
 }
