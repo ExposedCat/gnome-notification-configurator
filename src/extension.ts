@@ -52,13 +52,10 @@ export default class GnomeShellExtension extends Extension {
         lastNotification &&
         Date.now() - lastNotification < NOTIFICATION_THRESHOLD
       ) {
-        console.log(
-          `Notification from ${notification.title} was sent too fast - hiding (${Date.now() - lastNotification}s / ${NOTIFICATION_THRESHOLD}s)`,
-        );
         notification.acknowledged = true;
       } else {
+        console.log(Object.keys(notification), notification);
         timings[notification.title] = Date.now();
-        console.log(`Notification from ${notification.title} - showing`);
       }
       originalProcessNotification.call(this, notification, ...rest);
     };

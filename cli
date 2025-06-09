@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME="gnome-extension-template"
+NAME="notification-configurator"
 DOMAIN="exposedcat"
 
 SLUG="$NAME@$DOMAIN"
