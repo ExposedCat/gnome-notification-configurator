@@ -32,11 +32,11 @@ pack)
   popd || exit
   ;;
 install)
-    install
-    ;;
+  install
+  ;;
 uninstall)
-    rm -rf "${EXTENSIONS:?}/$SLUG"
-    ;;
+  rm -rf "${EXTENSIONS:?}/$SLUG"
+  ;;
 dev)
   build
   install

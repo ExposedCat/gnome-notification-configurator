@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.notification-configurator" path="/org/gnome/shell/extensions/notification-configurator/">
+    
+    <!-- Notification threshold in milliseconds -->
+    <key name="notification-threshold" type="i">
+      <default>5000</default>
+      <summary>Notification threshold</summary>
+      <description>Time in milliseconds before allowing duplicate notifications from the same source</description>
+      <range min="100" max="60000"/>
+    </key>
+    
+    <!-- App colors mapping stored as JSON string -->
+    <key name="app-colors" type="s">
+      <default>'{"telegram": "#0e1621"}'</default>
+      <summary>Application color mappings</summary>
+      <description>JSON object mapping application names to their notification colors</description>
+    </key>
+    
+    <!-- Individual color settings for common apps -->
+    <key name="telegram-color" type="s">
+      <default>"#0e1621"</default>
+      <summary>Telegram notification color</summary>
+      <description>Background color for Telegram notifications</description>
+    </key>
+    
+    <key name="discord-color" type="s">
+      <default>"#2c2f33"</default>
+      <summary>Discord notification color</summary>
+      <description>Background color for Discord notifications</description>
+    </key>
+    
+    <key name="slack-color" type="s">
+      <default>"#4a154b"</default>
+      <summary>Slack notification color</summary>
+      <description>Background color for Slack notifications</description>
+    </key>
+    
+    <key name="firefox-color" type="s">
+      <default>"#ff9500"</default>
+      <summary>Firefox notification color</summary>
+      <description>Background color for Firefox notifications</description>
+    </key>
+    
+    <key name="chrome-color" type="s">
+      <default>"#4285f4"</default>
+      <summary>Chrome notification color</summary>
+      <description>Background color for Chrome notifications</description>
+    </key>
+    
+    <!-- Enable/disable features -->
+    <key name="enable-rate-limiting" type="b">
+      <default>true</default>
+      <summary>Enable notification rate limiting</summary>
+      <description>Whether to enable rate limiting for duplicate notifications</description>
+    </key>
+    
+    <key name="enable-custom-colors" type="b">
+      <default>true</default>
+      <summary>Enable custom notification colors</summary>
+      <description>Whether to apply custom colors to notifications based on application</description>
+    </key>
+    
+  </schema>
+</schemalist>
