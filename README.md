@@ -1,6 +1,6 @@
 <h1 align="center">
   GNOME Notification Configurator<br>
-  <!-- <img style="width:512px" src="./assets/preview.png" alt="Screenshot"> -->
+  <img style="width:512px" src="./assets/preview.png" alt="Screenshot">
 </h1>
 <p align="center"><strong>Advanced GNOME notification capabilities including rate limiting, custom color theming per application, and notification positioning</strong></p>
 
