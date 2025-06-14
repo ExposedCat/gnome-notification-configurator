@@ -2,7 +2,7 @@
   GNOME Notification Configurator<br>
   <!-- <img style="width:512px" src="./assets/preview.png" alt="Screenshot"> -->
 </h1>
-<p align="center"><strong>Advanced GNOME notification capabilities including rate limiting and custom color theming per application</strong></p>
+<p align="center"><strong>Advanced GNOME notification capabilities including rate limiting, custom color theming per application, and notification positioning</strong></p>
 
 <div align="center">
 
@@ -11,6 +11,14 @@
 </div>
 
 <br>
+
+## Features
+
+- **Notification Rate Limiting** - Prevent frequent notifications from the same app within a configurable time threshold
+- **Custom Color Themes** - Set custom colors for notifications per application (background, title, body, app name, time)
+- **Notification Positioning** - Control where notifications appear on screen (fill, left, center, right)
+- **Test Notifications** - Send test notifications to preview your settings instantly
+- **Real-time Configuration** - Changes take effect immediately without requiring restarts
 
 ## Installation
 
@@ -91,6 +99,13 @@ The extension patches GNOME Shell's notification processing system:
 - Blocks duplicate notifications within the configured threshold (default: 5 seconds)
 - Sets `notification.acknowledged = true` to prevent display of rate-limited notifications
 
+#### Notification Positioning
+The positioning system allows you to control where notifications appear on screen:
+- Sets the `bannerAlignment` property of the message tray
+- Supports four positions: Fill Screen, Left, Center (default), and Right
+- Uses Clutter alignment constants for consistent positioning
+- Changes take effect immediately without requiring extension restart
+
 #### Custom Theming
 The theming system works by:
 - Monitoring the message tray container for new notifications using the `child-added` signal
@@ -155,6 +170,7 @@ The extension uses the following GSettings keys:
 - `enable-rate-limiting` (boolean) - Toggle notification rate limiting
 - `enable-custom-colors` (boolean) - Toggle custom notification colors
 - `notification-threshold` (integer) - Rate limit threshold in milliseconds (100-60000)
+- `notification-position` (string) - Notification position: 'fill', 'left', 'center', or 'right'
 - `app-themes` (string) - JSON mapping of app names to color themes
 
 ## License
