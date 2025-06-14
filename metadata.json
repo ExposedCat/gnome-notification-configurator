@@ -1,7 +1,7 @@
 {
-  "name": "Notification Configurator",
-  "description": "GNOME Shell notification configurator",
-  "uuid": "notification-configurator@exposedcat",
-  "settings-schema": "org.gnome.shell.extensions.notification-configurator",
-  "shell-version": ["47", "48"]
+	"name": "Notification Configurator",
+	"description": "GNOME Shell notification configurator",
+	"uuid": "notification-configurator@exposedcat",
+	"settings-schema": "org.gnome.shell.extensions.notification-configurator",
+	"shell-version": ["47", "48"]
 }
