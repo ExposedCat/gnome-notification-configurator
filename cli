@@ -8,7 +8,7 @@ EXTENSIONS="/home/$USER/.local/share/gnome-shell/extensions"
 
 build() {
   npx tsc
-  cp -r metadata.json src/styles schemas dist
+  cp -r metadata.json schemas dist
   glib-compile-schemas ./dist/schemas
 }
 

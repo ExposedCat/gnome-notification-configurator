@@ -122,8 +122,6 @@ src/
 │   ├── themes.ts        # Custom color theming system
 │   ├── settings.ts      # GSettings management
 │   └── event-emitter.ts # Type-safe event system
-├── styles/
-│   └── stylesheet.css   # Extension styles (currently empty)
 └── types/
     ├── ambient.d.ts     # Ambient type declarations
     └── internals.d.ts   # GNOME Shell internal types
