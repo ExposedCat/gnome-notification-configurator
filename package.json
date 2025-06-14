@@ -7,6 +7,7 @@
 		"start": "./cli dev",
 		"clean": "./cli clean",
 		"build": "./cli build",
+		"inject": "./cli inject",
 		"pack": "./cli pack"
 	},
 	"author": "ExposedCat",

@@ -31,7 +31,7 @@ Since this extension is not yet available on the GNOME Extensions website, you c
 
 3. Install the extension:
    ```bash
-   npm run install
+   npm run inject
    ```
 
    This will build the extension and install it to your local GNOME Shell extensions directory (`~/.local/share/gnome-shell/extensions/`).

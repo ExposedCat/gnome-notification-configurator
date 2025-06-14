@@ -63,6 +63,17 @@ export class SettingsManager {
 		this._notificationThreshold = this.settings.get_int(
 			"notification-threshold",
 		);
+		this.loadThemes();
+	}
+
+	private loadThemes() {
+		const colors = this.settings.get_string("app-themes");
+		try {
+			this._themes = JSON.parse(colors);
+		} catch (error) {
+			logError(error);
+			this.settings.set_string("app-themes", "{}");
+		}
 	}
 
 	private listen() {
@@ -74,13 +85,7 @@ export class SettingsManager {
 		);
 		this.settingSignals.push(
 			this.settings.connect("changed::app-themes", () => {
-				const colors = this.settings.get_string("app-themes");
-				try {
-					this._themes = JSON.parse(colors);
-				} catch (error) {
-					logError(error);
-					this.settings.set_string("app-themes", "{}");
-				}
+				this.loadThemes();
 			}),
 		);
 

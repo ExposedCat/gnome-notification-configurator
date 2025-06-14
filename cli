@@ -12,7 +12,8 @@ build() {
   glib-compile-schemas ./dist/schemas
 }
 
-install() {
+inject() {
+	build
   mkdir -p "$EXTENSIONS"
   rm -rf "${EXTENSIONS:?}/$SLUG"
   mv dist "$EXTENSIONS/$SLUG"
@@ -31,15 +32,15 @@ pack)
   zip "../$NAME.zip" -9r ./*.js ./*.css ./**/*.js ./**/*.css metadata.json
   popd || exit
   ;;
-install)
-  install
+inject)
+	inject
   ;;
 uninstall)
   rm -rf "${EXTENSIONS:?}/$SLUG"
   ;;
 dev)
   build
-  install
+  inject
   dbus-run-session -- gnome-shell --nested --wayland
   ;;
 *)
