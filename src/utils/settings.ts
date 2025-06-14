@@ -47,8 +47,8 @@ export class SettingsManager {
 	getThemeFor(partial: string) {
 		for (const [app, color] of Object.entries(this._themes)) {
 			if (
-				partial.includes(app.toLowerCase()) ||
-				app.toLowerCase().includes(partial)
+				partial.toLowerCase().includes(app.toLowerCase()) ||
+				app.toLowerCase().includes(partial.toLowerCase())
 			) {
 				return color as NotificationTheme;
 			}
