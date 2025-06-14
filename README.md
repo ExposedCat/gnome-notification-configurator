@@ -1,6 +1,16 @@
-# Notification Changer | GNOME Extension
+<h1 align="center">
+  GNOME Notification Configurator<br>
+  <!-- <img style="width:512px" src="./assets/preview.png" alt="Screenshot"> -->
+</h1>
+<p align="center"><strong>Advanced GNOME notification capabilities including rate limiting and custom color theming per application</strong></p>
 
-A GNOME Shell extension that provides advanced notification management capabilities including rate limiting for duplicate notifications and custom color theming per application.
+<div align="center">
+
+  [![](https://img.shields.io/badge/author%20blog%20on-Telegram-informational?style=for-the-badge&logo=telegram&logoColor=26A5E4&color=26A5E4)](https://t.me/ExposedCatDev)
+  [![](https://img.shields.io/badge/author-Reddit-informational?style=for-the-badge&logo=reddit&logoColor=FF5700&color=FF5700)](https://www.reddit.com/user/ExposedCatDev)
+</div>
+
+<br>
 
 ## Installation
 
@@ -10,8 +20,8 @@ Since this extension is not yet available on the GNOME Extensions website, you c
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/ExposedCat/gnome-shell-notification-cleaner.git
-   cd gnome-shell-notification-cleaner
+   git clone https://github.com/ExposedCat/gnome-notification-configurator.git
+   cd gnome-notification-configurator
    ```
 
 2. Install dependencies:
