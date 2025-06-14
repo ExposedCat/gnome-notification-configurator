@@ -1,22 +1,32 @@
-import { ExtensionPreferences } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
-import Gtk from "gi://Gtk";
-import Gio from "gi://Gio";
 import Adw from "gi://Adw";
 import Gdk from "gi://Gdk";
+import Gio from "gi://Gio";
+import Gtk from "gi://Gtk";
+import { ExtensionPreferences } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
-interface AppColorEntry {
+import type { NotificationTheme } from "./utils/themes.js";
+
+export const DEFAULT_THEME: NotificationTheme = {
+	appNameColor: [0.6, 0.6, 0.607843137, 1],
+	timeColor: [0.6, 0.6, 0.607843137, 1],
+	backgroundColor: [0.329411765, 0.329411765, 0.352941176, 1],
+	titleColor: [0.992156863, 0.992156863, 0.992156863, 1],
+	bodyColor: [0.992156863, 0.992156863, 0.992156863, 1],
+};
+
+interface AppThemeEntry {
 	name: string;
-	color: string;
+	theme: NotificationTheme;
 }
 
 export default class NotificationConfiguratorPreferences extends ExtensionPreferences {
 	private settings!: Gio.Settings;
-	private appColorsList!: Gtk.ListBox;
-	private appColorsData: AppColorEntry[] = [];
+	private appThemesList!: Gtk.ListBox;
+	private appThemesData: AppThemeEntry[] = [];
 
 	fillPreferencesWindow(window: Adw.PreferencesWindow) {
 		this.settings = this.getSettings();
-		this.loadAppColorsData();
+		this.loadAppThemesData();
 
 		// General Settings Page
 		const generalPage = new Adw.PreferencesPage({
@@ -64,121 +74,129 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		);
 		rateLimitGroup.add(thresholdRow);
 
-		// Colors Settings Page
-		const colorsPage = new Adw.PreferencesPage({
-			title: "Colors",
+		// Themes Settings Page
+		const themesPage = new Adw.PreferencesPage({
+			title: "Themes",
 			icon_name: "applications-graphics-symbolic",
 		});
-		window.add(colorsPage);
+		window.add(themesPage);
 
-		// Color Settings Group
-		const colorGroup = new Adw.PreferencesGroup({
-			title: "Notification Colors",
-			description: "Customize notification background colors by application",
+		// Theme Settings Group
+		const themeGroup = new Adw.PreferencesGroup({
+			title: "Notification Themes",
+			description: "Customize notification appearance by application",
 		});
-		colorsPage.add(colorGroup);
+		themesPage.add(themeGroup);
 
-		// Enable custom colors switch
-		const enableColorsRow = new Adw.SwitchRow({
-			title: "Enable Custom Colors",
-			subtitle: "Apply custom background colors to notifications",
+		// Enable custom themes switch
+		const enableThemesRow = new Adw.SwitchRow({
+			title: "Enable Custom Themes",
+			subtitle: "Apply custom themes to notifications",
 		});
 		this.settings.bind(
 			"enable-custom-colors",
-			enableColorsRow,
+			enableThemesRow,
 			"active",
 			Gio.SettingsBindFlags.DEFAULT,
 		);
-		colorGroup.add(enableColorsRow);
+		themeGroup.add(enableThemesRow);
 
-		// App Colors List Group
-		const appColorsGroup = new Adw.PreferencesGroup({
-			title: "Application Colors",
-			description: "Set custom colors for specific applications",
+		// App Themes List Group
+		const appThemesGroup = new Adw.PreferencesGroup({
+			title: "Application Themes",
+			description: "Set custom themes for specific applications",
 		});
-		colorsPage.add(appColorsGroup);
+		themesPage.add(appThemesGroup);
 
-		// Create list box for app colors
-		this.appColorsList = new Gtk.ListBox({
+		// Create list box for app themes
+		this.appThemesList = new Gtk.ListBox({
 			selection_mode: Gtk.SelectionMode.NONE,
 			css_classes: ["boxed-list"],
 		});
-		appColorsGroup.add(this.appColorsList);
+		appThemesGroup.add(this.appThemesList);
 
 		// Add button
 		const addButton = new Gtk.Button({
-			label: "Add Application Color",
+			label: "Add Application Theme",
 			css_classes: ["suggested-action"],
 			margin_top: 12,
 		});
 		addButton.connect("clicked", () => {
-			this.addAppColorEntry("", "#ffffff");
+			this.addAppThemeEntry("", { ...DEFAULT_THEME });
 		});
-		appColorsGroup.add(addButton);
+		appThemesGroup.add(addButton);
 
 		// Populate existing entries
-		this.populateAppColorsList();
+		this.populateAppThemesList();
 	}
 
-	private loadAppColorsData() {
+	private loadAppThemesData() {
 		try {
-			const appColorsJson = this.settings.get_string("app-colors");
+			const appColorsJson = this.settings.get_string("app-themes");
 			const appColors = JSON.parse(appColorsJson);
-			this.appColorsData = Object.entries(appColors).map(([name, color]) => ({
+
+			this.appThemesData = Object.entries(appColors).map(([name, theme]) => ({
 				name,
-				color: color as string,
+				theme: theme as NotificationTheme,
 			}));
 		} catch {
-			this.appColorsData = [];
+			this.appThemesData = [];
 		}
 	}
 
-	private saveAppColorsData() {
-		const colors = this.appColorsData.reduce(
+	private saveAppThemesData() {
+		const themes = this.appThemesData.reduce(
 			(list, entry) => {
 				if (entry.name.trim()) {
-					list[entry.name] = entry.color;
+					list[entry.name] = entry.theme;
 				}
 				return list;
 			},
-			{} as Record<string, string>,
+			{} as Record<string, NotificationTheme>,
 		);
 
-		this.settings.set_string("app-colors", JSON.stringify(colors));
+		this.settings.set_string("app-themes", JSON.stringify(themes));
 	}
 
-	private populateAppColorsList() {
+	private populateAppThemesList() {
 		// Clear existing rows
-		let child = this.appColorsList.get_first_child();
+		let child = this.appThemesList.get_first_child();
 		while (child) {
 			const next = child.get_next_sibling();
-			this.appColorsList.remove(child);
+			this.appThemesList.remove(child);
 			child = next;
 		}
 
 		// Add rows for existing data
-		for (let i = 0; i < this.appColorsData.length; i++) {
-			this.addAppColorRow(i);
+		for (let i = 0; i < this.appThemesData.length; i++) {
+			this.addAppThemeRow(i);
 		}
 	}
 
-	private addAppColorEntry(name: string, color: string) {
-		const index = this.appColorsData.length;
-		this.appColorsData.push({ name, color });
-		this.addAppColorRow(index);
-		this.saveAppColorsData();
+	private addAppThemeEntry(name: string, theme: NotificationTheme) {
+		const index = this.appThemesData.length;
+		this.appThemesData.push({ name, theme });
+		this.addAppThemeRow(index);
+		this.saveAppThemesData();
 	}
 
-	private addAppColorRow(index: number) {
-		const entry = this.appColorsData[index];
+	private addAppThemeRow(index: number) {
+		const entry = this.appThemesData[index];
 
-		const row = new Gtk.Box({
-			orientation: Gtk.Orientation.HORIZONTAL,
+		// Main container
+		const mainBox = new Gtk.Box({
+			orientation: Gtk.Orientation.VERTICAL,
 			spacing: 12,
-			margin_top: 6,
-			margin_bottom: 6,
+			margin_top: 12,
+			margin_bottom: 12,
 			margin_start: 12,
 			margin_end: 12,
+		});
+
+		// Header row with app name and remove button
+		const headerRow = new Gtk.Box({
+			orientation: Gtk.Orientation.HORIZONTAL,
+			spacing: 12,
 		});
 
 		// App name entry
@@ -189,26 +207,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		nameEntry.connect("changed", () => {
-			this.appColorsData[index].name = nameEntry.get_text();
-			this.saveAppColorsData();
-		});
-
-		// Color button
-		const colorButton = new Gtk.ColorButton({
-			valign: Gtk.Align.CENTER,
-			use_alpha: false,
-		});
-
-		const rgba = new Gdk.RGBA();
-		if (rgba.parse(entry.color)) {
-			colorButton.set_rgba(rgba);
-		}
-
-		colorButton.connect("color-set", () => {
-			const color = colorButton.get_rgba();
-			const hexColor = this.rgbaToHex(color);
-			this.appColorsData[index].color = hexColor;
-			this.saveAppColorsData();
+			this.appThemesData[index].name = nameEntry.get_text();
+			this.saveAppThemesData();
 		});
 
 		// Remove button
@@ -219,28 +219,83 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		removeButton.connect("clicked", () => {
-			this.appColorsData.splice(index, 1);
-			this.populateAppColorsList();
-			this.saveAppColorsData();
+			this.appThemesData.splice(index, 1);
+			this.populateAppThemesList();
+			this.saveAppThemesData();
 		});
 
-		row.append(nameEntry);
-		row.append(colorButton);
-		row.append(removeButton);
+		headerRow.append(nameEntry);
+		headerRow.append(removeButton);
+
+		// Colors grid
+		const colorsGrid = new Gtk.Grid({
+			column_spacing: 12,
+			row_spacing: 6,
+			margin_top: 6,
+		});
+
+		// Color entries
+		const colorEntries = [
+			{ key: "backgroundColor", label: "Background" },
+			{ key: "titleColor", label: "Title" },
+			{ key: "bodyColor", label: "Body Text" },
+			{ key: "appNameColor", label: "App Name" },
+			{ key: "timeColor", label: "Time" },
+		] as const;
+
+		colorEntries.forEach((colorEntry, i) => {
+			const row = Math.floor(i / 2);
+			const col = (i % 2) * 2;
+
+			// Label
+			const label = new Gtk.Label({
+				label: colorEntry.label,
+				halign: Gtk.Align.START,
+				css_classes: ["caption"],
+			});
+			colorsGrid.attach(label, col, row, 1, 1);
+
+			// Color button
+			const colorButton = new Gtk.ColorButton({
+				use_alpha: false,
+				halign: Gtk.Align.START,
+			});
+
+			const [red, green, blue, alpha] = entry.theme[colorEntry.key];
+			colorButton.set_rgba(new Gdk.RGBA({ red, green, blue, alpha }));
+
+			colorButton.connect("color-set", () => {
+				const color = colorButton.get_rgba();
+				this.appThemesData[index].theme[colorEntry.key] = [
+					color.red,
+					color.green,
+					color.blue,
+					color.alpha,
+				];
+				this.saveAppThemesData();
+			});
+
+			colorsGrid.attach(colorButton, col + 1, row, 1, 1);
+		});
+
+		mainBox.append(headerRow);
+		mainBox.append(colorsGrid);
+
+		// Add separator except for last item
+		if (index < this.appThemesData.length - 1) {
+			const separator = new Gtk.Separator({
+				orientation: Gtk.Orientation.HORIZONTAL,
+				margin_top: 6,
+			});
+			mainBox.append(separator);
+		}
 
 		const listBoxRow = new Gtk.ListBoxRow({
-			child: row,
+			child: mainBox,
 			activatable: false,
 			selectable: false,
 		});
 
-		this.appColorsList.append(listBoxRow);
-	}
-
-	private rgbaToHex(rgba: Gdk.RGBA): string {
-		const r = Math.round(rgba.red * 255);
-		const g = Math.round(rgba.green * 255);
-		const b = Math.round(rgba.blue * 255);
-		return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+		this.appThemesList.append(listBoxRow);
 	}
 }

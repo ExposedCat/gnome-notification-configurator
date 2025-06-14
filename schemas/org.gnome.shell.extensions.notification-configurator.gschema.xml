@@ -10,9 +10,9 @@
       <range min="100" max="60000"/>
     </key>
 
-    <!-- App colors mapping stored as JSON string -->
-    <key name="app-colors" type="s">
-      <default>'{"telegram": "#0e1621"}'</default>
+    <!-- App themes mapping stored as JSON string -->
+    <key name="app-themes" type="s">
+      <default>'{}'</default>
       <summary>Application color mappings</summary>
       <description>JSON object mapping application names to their notification colors</description>
     </key>

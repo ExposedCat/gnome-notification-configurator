@@ -1,5 +1,7 @@
 import type Gio from "gi://Gio?version=2.0";
+
 import { TypedEventEmitter } from "./event-emitter.js";
+import type { NotificationTheme } from "./themes.js";
 
 type SettingsEvents = {
 	colorsEnabledChanged: [boolean];
@@ -14,7 +16,7 @@ export class SettingsManager {
 	private _colorsEnabled!: boolean;
 	private _rateLimitingEnabled!: boolean;
 	private _notificationThreshold!: number;
-	private _colors: Record<string, string | undefined> = {};
+	private _themes: Record<string, NotificationTheme | undefined> = {};
 
 	events = new TypedEventEmitter<SettingsEvents>();
 
@@ -42,13 +44,13 @@ export class SettingsManager {
 		return this._notificationThreshold;
 	}
 
-	getColorFor(partial: string) {
-		for (const [app, color] of Object.entries(this._colors)) {
+	getThemeFor(partial: string) {
+		for (const [app, color] of Object.entries(this._themes)) {
 			if (
 				partial.includes(app.toLowerCase()) ||
 				app.toLowerCase().includes(partial)
 			) {
-				return color as string;
+				return color as NotificationTheme;
 			}
 		}
 	}
@@ -71,13 +73,13 @@ export class SettingsManager {
 			}),
 		);
 		this.settingSignals.push(
-			this.settings.connect("changed::app-colors", () => {
-				const colors = this.settings.get_string("app-colors");
+			this.settings.connect("changed::app-themes", () => {
+				const colors = this.settings.get_string("app-themes");
 				try {
-					this._colors = JSON.parse(colors);
+					this._themes = JSON.parse(colors);
 				} catch (error) {
 					logError(error);
-					this.settings.set_string("app-colors", "{}");
+					this.settings.set_string("app-themes", "{}");
 				}
 			}),
 		);
