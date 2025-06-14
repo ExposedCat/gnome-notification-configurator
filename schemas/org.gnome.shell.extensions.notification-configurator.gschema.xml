@@ -30,5 +30,11 @@
       <description>Whether to apply custom colors to notifications based on application</description>
     </key>
 
+    <key name="notification-position" type="s">
+      <default>'center'</default>
+      <summary>Notification position</summary>
+      <description>Position of notifications on screen: fill, left, right, or center</description>
+    </key>
+
   </schema>
 </schemalist>

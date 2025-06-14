@@ -7,7 +7,10 @@ type SettingsEvents = {
 	colorsEnabledChanged: [boolean];
 	rateLimitingEnabledChanged: [boolean];
 	notificationThresholdChanged: [number];
+	notificationPositionChanged: [Position];
 };
+
+export type Position = "fill" | "left" | "right" | "center";
 
 export class SettingsManager {
 	private settings: Gio.Settings;
@@ -42,6 +45,11 @@ export class SettingsManager {
 
 	get notificationThreshold() {
 		return this._notificationThreshold;
+	}
+
+	get notificationPosition() {
+		return (this.settings.get_string("notification-position") ??
+			"center") as Position;
 	}
 
 	getThemeFor(partial: string) {
@@ -108,6 +116,15 @@ export class SettingsManager {
 				this.events.emit(
 					"notificationThresholdChanged",
 					this._notificationThreshold,
+				);
+			}),
+		);
+		this.settingSignals.push(
+			this.settings.connect("changed::notification-position", () => {
+				console.log("emitting", this.notificationPosition);
+				this.events.emit(
+					"notificationPositionChanged",
+					this.notificationPosition,
 				);
 			}),
 		);

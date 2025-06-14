@@ -1,6 +1,8 @@
+import Clutter from "gi://Clutter";
+import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import { FdoNotificationDaemonSource } from "resource:///org/gnome/shell/ui/notificationDaemon.js";
 
-import type { SettingsManager } from "./settings.js";
+import type { Position, SettingsManager } from "./settings.js";
 
 export class NotificationsManager {
 	private _processNotification?: FdoNotificationDaemonSource["processNotification"];
@@ -21,6 +23,11 @@ export class NotificationsManager {
 		if (settingsManager.rateLimitingEnabled) {
 			this.enableRateLimit();
 		}
+
+		settingsManager.events.on("notificationPositionChanged", (position) => {
+			this.setPosition(position);
+		});
+		this.setPosition(settingsManager.notificationPosition);
 	}
 
 	dispose() {
@@ -60,5 +67,14 @@ export class NotificationsManager {
 			}
 			originalProcessNotification.call(this, notification, ...rest);
 		};
+	}
+
+	private setPosition(position: Position) {
+		Main.messageTray.bannerAlignment = {
+			fill: Clutter.ActorAlign.FILL,
+			left: Clutter.ActorAlign.START,
+			right: Clutter.ActorAlign.END,
+			center: Clutter.ActorAlign.CENTER,
+		}[position];
 	}
 }
