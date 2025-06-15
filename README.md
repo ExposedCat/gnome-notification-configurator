@@ -15,6 +15,7 @@
 ## Features
 
 - **Notification Rate Limiting** - Prevent frequent notifications from the same app within a configurable time threshold
+- **Notification Filtering** - Block or hide unwanted notifications based on title, body text, or application name with customizable filters
 - **Custom Color Themes** - Set custom colors for notifications per application (background, title, body, app name, time)
 - **Notification Positioning** - Control where notifications appear on screen (fill, left, center, right)
 - **Test Notifications** - Send test notifications to preview your settings instantly
@@ -86,18 +87,26 @@ Since this extension is not yet available on the GNOME Extensions website, you c
 
 This extension consists of three main components:
 
-1. **NotificationsManager** - Handles notification rate limiting by patching the `FdoNotificationDaemonSource.prototype.processNotification` method
+1. **NotificationsManager** - Handles notification filtering and rate limiting by patching the `FdoNotificationDaemonSource.prototype.processNotification` method
 2. **ThemesManager** - Applies custom colors to notifications by monitoring the message tray and dynamically styling notification elements
 3. **SettingsManager** - Manages GSettings integration and provides reactive updates when settings change
 
 ### How It Works
 
-#### Notification Rate Limiting
-The extension patches GNOME Shell's notification processing system:
-- Intercepts notifications via `FdoNotificationDaemonSource.prototype.processNotification`
-- Tracks timing of notifications per source application
-- Blocks duplicate notifications within the configured threshold (default: 5 seconds)
-- Sets `notification.acknowledged = true` to prevent display of rate-limited notifications
+#### Notification Processing
+The extension patches GNOME Shell's notification processing system with a two-stage filtering process:
+
+1. **Notification Filtering** - First stage that blocks unwanted notifications:
+   - Intercepts notifications via `FdoNotificationDaemonSource.prototype.processNotification`
+   - Matches notifications against user-defined filters based on title, body text, or app name
+   - Supports partial string matching (case-insensitive) with empty fields ignored
+   - Destroys notifications that match any active filter
+   - Configurable action per filter: hide (acknowledge) or destroy notifications
+
+2. **Rate Limiting** - Second stage for duplicate notification prevention:
+   - Tracks timing of notifications per source application (only for non-filtered notifications)
+   - Blocks duplicate notifications within the configured threshold (default: 5 seconds)
+   - Sets `notification.acknowledged = true` to prevent display of rate-limited notifications
 
 #### Notification Positioning
 The positioning system allows you to control where notifications appear on screen:
@@ -172,6 +181,7 @@ The extension uses the following GSettings keys:
 - `notification-threshold` (integer) - Rate limit threshold in milliseconds (100-60000)
 - `notification-position` (string) - Notification position: 'fill', 'left', 'center', or 'right'
 - `app-themes` (string) - JSON mapping of app names to color themes
+- `block-list` (string) - JSON array of notification filter objects with title, body, appName, and action fields
 
 ## License
 

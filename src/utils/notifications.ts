@@ -2,6 +2,7 @@ import Clutter from "gi://Clutter";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import { FdoNotificationDaemonSource } from "resource:///org/gnome/shell/ui/notificationDaemon.js";
 
+import type { Notification } from "resource:///org/gnome/shell/ui/messageTray.js";
 import type { Position, SettingsManager } from "./settings.js";
 
 export class NotificationsManager {
@@ -13,16 +14,7 @@ export class NotificationsManager {
 	constructor(settingsManager: SettingsManager) {
 		this.settingsManager = settingsManager;
 
-		settingsManager.events.on("rateLimitingEnabledChanged", (enabled) => {
-			if (enabled) {
-				this.enableRateLimit();
-			} else {
-				this.disableRateLimit();
-			}
-		});
-		if (settingsManager.rateLimitingEnabled) {
-			this.enableRateLimit();
-		}
+		this.startProcessingNotifications();
 
 		settingsManager.events.on("notificationPositionChanged", (position) => {
 			this.setPosition(position);
@@ -31,42 +23,63 @@ export class NotificationsManager {
 	}
 
 	dispose() {
-		this.disableRateLimit();
+		this.stopProcessingNotifications();
 	}
 
-	private disableRateLimit() {
+	private startProcessingNotifications() {
+		const originalProcessNotification =
+			FdoNotificationDaemonSource.prototype.processNotification;
+		this._processNotification = originalProcessNotification;
+
+		const ensureRateLimited = this.ensureRateLimited.bind(this);
+		const ensureFiltered = this.ensureFiltered.bind(this);
+
+		FdoNotificationDaemonSource.prototype.processNotification = function (
+			notification,
+			source: string,
+			...rest
+		) {
+			const rateLimited = ensureRateLimited(source);
+			if (rateLimited) {
+				notification.acknowledged = true;
+			}
+
+			const filtered = ensureFiltered(notification, source);
+			if (filtered === "close") {
+				return;
+			}
+			if (filtered === "hide") {
+				notification.acknowledged = true;
+			}
+
+			originalProcessNotification.call(this, notification, source, ...rest);
+		};
+	}
+
+	private stopProcessingNotifications() {
 		if (this._processNotification) {
 			FdoNotificationDaemonSource.prototype.processNotification =
 				this._processNotification;
 		}
 	}
 
-	private enableRateLimit() {
-		const originalProcessNotification =
-			FdoNotificationDaemonSource.prototype.processNotification;
-		this._processNotification = originalProcessNotification;
-
-		const { timings, settingsManager } = this;
-
-		FdoNotificationDaemonSource.prototype.processNotification = function (
-			notification,
-			...rest
-		) {
-			const source = rest[0];
-
-			if (settingsManager?.rateLimitingEnabled) {
-				const threshold = settingsManager.notificationThreshold;
-				const lastNotification = timings[source];
-				if (lastNotification && Date.now() - lastNotification < threshold) {
-					notification.acknowledged = true;
-				} else {
-					timings[source] = Date.now();
-				}
-			} else {
-				timings[source] = Date.now();
+	private ensureRateLimited(source: string) {
+		if (this.settingsManager?.rateLimitingEnabled) {
+			const threshold = this.settingsManager.notificationThreshold;
+			const lastNotification = this.timings[source];
+			if (lastNotification && Date.now() - lastNotification < threshold) {
+				return true;
 			}
-			originalProcessNotification.call(this, notification, ...rest);
-		};
+			this.timings[source] = Date.now();
+		}
+		return false;
+	}
+
+	private ensureFiltered(notification: Notification, source: string) {
+		return (
+			this.settingsManager.filteringEnabled &&
+			this.settingsManager.getFilterFor(notification, source)
+		);
 	}
 
 	private setPosition(position: Position) {

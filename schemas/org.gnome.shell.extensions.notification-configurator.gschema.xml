@@ -30,10 +30,23 @@
       <description>Whether to apply custom colors to notifications based on application</description>
     </key>
 
+    <key name="enable-filtering" type="b">
+      <default>true</default>
+      <summary>Enable notification filtering</summary>
+      <description>Whether to enable notification filtering based on block list</description>
+    </key>
+
     <key name="notification-position" type="s">
       <default>'center'</default>
       <summary>Notification position</summary>
       <description>Position of notifications on screen: fill, left, right, or center</description>
+    </key>
+
+    <!-- Notification block list stored as JSON string -->
+    <key name="block-list" type="s">
+      <default>'[]'</default>
+      <summary>Notification block list</summary>
+      <description>JSON array of notification filter objects with title, body, appName, and action fields</description>
     </key>
 
   </schema>

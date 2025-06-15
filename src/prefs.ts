@@ -4,6 +4,7 @@ import Gio from "gi://Gio";
 import Gtk from "gi://Gtk";
 import { ExtensionPreferences } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
+import type { NotificationFilter } from "./utils/settings.js";
 import type { NotificationTheme } from "./utils/themes.js";
 
 export const DEFAULT_THEME: NotificationTheme = {
@@ -19,6 +20,10 @@ interface AppThemeEntry {
 	theme: NotificationTheme;
 }
 
+interface FilterEntry {
+	filter: NotificationFilter;
+}
+
 export default class NotificationConfiguratorPreferences extends ExtensionPreferences {
 	private settings!: Gio.Settings;
 	private appThemesList!: Gtk.ListBox;
@@ -27,9 +32,15 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	private appThemesGroup!: Adw.PreferencesGroup;
 	private addButton!: Gtk.Button;
 
+	private filtersList!: Gtk.ListBox;
+	private filtersData: FilterEntry[] = [];
+	private filtersGroup!: Adw.PreferencesGroup;
+	private addFilterButton!: Gtk.Button;
+
 	fillPreferencesWindow(window: Adw.PreferencesWindow) {
 		this.settings = this.getSettings();
 		this.loadAppThemesData();
+		this.loadFiltersData();
 
 		// General Settings Page
 		const generalPage = new Adw.PreferencesPage({
@@ -142,6 +153,86 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		generalGroup.add(positionRow);
 
+		// Filtering Settings Page
+		const filteringPage = new Adw.PreferencesPage({
+			title: "Filtering",
+			icon_name: "action-unavailable-symbolic",
+		});
+		window.add(filteringPage);
+
+		// Notification Filters Group
+		const filterGroup = new Adw.PreferencesGroup({
+			title: "Notification Filters",
+			description:
+				"Block or hide notifications based on title, body text, or application name",
+		});
+		filteringPage.add(filterGroup);
+
+		// Enable filtering switch
+		const enableFilteringRow = new Adw.SwitchRow({
+			title: "Enable Filtering",
+			subtitle: "Apply notification filters",
+		});
+		this.settings.bind(
+			"enable-filtering",
+			enableFilteringRow,
+			"active",
+			Gio.SettingsBindFlags.DEFAULT,
+		);
+		filterGroup.add(enableFilteringRow);
+
+		// Filters List Group
+		this.filtersGroup = new Adw.PreferencesGroup({
+			title: "Active Filters",
+			description: "Configure filters to block unwanted notifications",
+		});
+		filteringPage.add(this.filtersGroup);
+
+		// Create list box for filters
+		this.filtersList = new Gtk.ListBox({
+			selection_mode: Gtk.SelectionMode.NONE,
+			css_classes: ["boxed-list"],
+		});
+		this.filtersGroup.add(this.filtersList);
+
+		// Add filter button
+		this.addFilterButton = new Gtk.Button({
+			label: "Add Filter",
+			css_classes: ["suggested-action"],
+			margin_top: 12,
+		});
+		this.addFilterButton.connect("clicked", () => {
+			this.addFilterEntry({
+				title: "",
+				body: "",
+				appName: "",
+				action: "hide",
+			});
+		});
+		this.filtersGroup.add(this.addFilterButton);
+
+		// Set initial sensitivity for filters
+		const filteringEnabled = this.settings.get_boolean("enable-filtering");
+		this.filtersGroup.set_sensitive(filteringEnabled);
+		this.addFilterButton.set_sensitive(filteringEnabled);
+
+		// Connect filtering switch to filters sensitivity
+		enableFilteringRow.connect("notify::active", () => {
+			const enabled = enableFilteringRow.get_active();
+			this.filtersGroup.set_sensitive(enabled);
+			this.addFilterButton.set_sensitive(enabled);
+
+			// Update sensitivity for all existing filter rows
+			let rowChild = this.filtersList.get_first_child();
+			while (rowChild) {
+				rowChild.set_sensitive(enabled);
+				rowChild = rowChild.get_next_sibling();
+			}
+		});
+
+		// Populate existing filter entries
+		this.populateFiltersList();
+
 		// Themes Settings Page
 		const themesPage = new Adw.PreferencesPage({
 			title: "Themes",
@@ -215,6 +306,212 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		// Populate existing entries
 		this.populateAppThemesList();
+	}
+
+	private loadFiltersData() {
+		try {
+			const blockListJson = this.settings.get_string("block-list");
+			const blockList = JSON.parse(blockListJson);
+
+			this.filtersData = blockList.map((filter: NotificationFilter) => ({
+				filter,
+			}));
+		} catch {
+			this.filtersData = [];
+		}
+	}
+
+	private saveFiltersData() {
+		const filters = this.filtersData.map((entry) => entry.filter);
+		this.settings.set_string("block-list", JSON.stringify(filters));
+	}
+
+	private populateFiltersList() {
+		// Clear existing rows
+		let child = this.filtersList.get_first_child();
+		while (child) {
+			const next = child.get_next_sibling();
+			this.filtersList.remove(child);
+			child = next;
+		}
+
+		// Add rows for existing data
+		const filteringEnabled = this.settings.get_boolean("enable-filtering");
+		for (let i = 0; i < this.filtersData.length; i++) {
+			this.addFilterRow(i);
+		}
+
+		// Set sensitivity for all filter rows based on filtering enabled state
+		let rowChild = this.filtersList.get_first_child();
+		while (rowChild) {
+			rowChild.set_sensitive(filteringEnabled);
+			rowChild = rowChild.get_next_sibling();
+		}
+	}
+
+	private addFilterEntry(filter: NotificationFilter) {
+		const index = this.filtersData.length;
+		this.filtersData.push({ filter });
+		this.addFilterRow(index);
+		this.saveFiltersData();
+
+		// Set sensitivity for the newly added row
+		const filteringEnabled = this.settings.get_boolean("enable-filtering");
+		const lastChild = this.filtersList.get_last_child();
+		if (lastChild) {
+			lastChild.set_sensitive(filteringEnabled);
+		}
+	}
+
+	private addFilterRow(index: number) {
+		const entry = this.filtersData[index];
+
+		// Main container
+		const mainBox = new Gtk.Box({
+			orientation: Gtk.Orientation.VERTICAL,
+			spacing: 12,
+			margin_top: 12,
+			margin_bottom: 12,
+			margin_start: 12,
+			margin_end: 12,
+		});
+
+		// Header row with action combo and remove button
+		const headerRow = new Gtk.Box({
+			orientation: Gtk.Orientation.HORIZONTAL,
+			spacing: 12,
+		});
+
+		// Action label
+		const actionLabel = new Gtk.Label({
+			label: "Action:",
+			halign: Gtk.Align.START,
+		});
+
+		// Action combo
+		const actionCombo = new Gtk.ComboBoxText();
+		actionCombo.append("hide", "Hide notification");
+		actionCombo.append("close", "Close notification");
+		actionCombo.set_active_id(entry.filter.action);
+
+		actionCombo.connect("changed", () => {
+			const activeId = actionCombo.get_active_id();
+			if (activeId) {
+				this.filtersData[index].filter.action = activeId as "hide" | "close";
+				this.saveFiltersData();
+			}
+		});
+
+		// Test button for this filter
+		const filterTestButton = new Gtk.Button({
+			icon_name: "dialog-information-symbolic",
+			css_classes: ["flat"],
+			valign: Gtk.Align.CENTER,
+			tooltip_text: "Test notification with this filter",
+		});
+
+		filterTestButton.connect("clicked", () => {
+			this.sendTestNotificationForFilter(entry.filter);
+		});
+
+		// Remove button
+		const removeButton = new Gtk.Button({
+			icon_name: "user-trash-symbolic",
+			css_classes: ["destructive-action"],
+			valign: Gtk.Align.CENTER,
+		});
+
+		removeButton.connect("clicked", () => {
+			this.filtersData.splice(index, 1);
+			this.populateFiltersList();
+			this.saveFiltersData();
+		});
+
+		headerRow.append(actionLabel);
+		headerRow.append(actionCombo);
+		headerRow.append(filterTestButton);
+		headerRow.append(removeButton);
+
+		// Filter fields grid
+		const fieldsGrid = new Gtk.Grid({
+			column_spacing: 12,
+			row_spacing: 6,
+			margin_top: 6,
+		});
+
+		// Title field
+		const titleLabel = new Gtk.Label({
+			label: "Title contains:",
+			halign: Gtk.Align.START,
+		});
+		fieldsGrid.attach(titleLabel, 0, 0, 1, 1);
+
+		const titleEntry = new Gtk.Entry({
+			text: entry.filter.title,
+			placeholder_text: "Leave empty to ignore title",
+			hexpand: true,
+		});
+		titleEntry.connect("changed", () => {
+			this.filtersData[index].filter.title = titleEntry.get_text();
+			this.saveFiltersData();
+		});
+		fieldsGrid.attach(titleEntry, 1, 0, 1, 1);
+
+		// Body field
+		const bodyLabel = new Gtk.Label({
+			label: "Body contains:",
+			halign: Gtk.Align.START,
+		});
+		fieldsGrid.attach(bodyLabel, 0, 1, 1, 1);
+
+		const bodyEntry = new Gtk.Entry({
+			text: entry.filter.body,
+			placeholder_text: "Leave empty to ignore body",
+			hexpand: true,
+		});
+		bodyEntry.connect("changed", () => {
+			this.filtersData[index].filter.body = bodyEntry.get_text();
+			this.saveFiltersData();
+		});
+		fieldsGrid.attach(bodyEntry, 1, 1, 1, 1);
+
+		// App name field
+		const appNameLabel = new Gtk.Label({
+			label: "App name contains:",
+			halign: Gtk.Align.START,
+		});
+		fieldsGrid.attach(appNameLabel, 0, 2, 1, 1);
+
+		const appNameEntry = new Gtk.Entry({
+			text: entry.filter.appName,
+			placeholder_text: "Leave empty to ignore app name",
+			hexpand: true,
+		});
+		appNameEntry.connect("changed", () => {
+			this.filtersData[index].filter.appName = appNameEntry.get_text();
+			this.saveFiltersData();
+		});
+		fieldsGrid.attach(appNameEntry, 1, 2, 1, 1);
+
+		mainBox.append(headerRow);
+		mainBox.append(fieldsGrid);
+
+		// Add separator except for last item
+		if (index < this.filtersData.length - 1) {
+			const separator = new Gtk.Separator({
+				orientation: Gtk.Orientation.HORIZONTAL,
+				margin_top: 6,
+			});
+			mainBox.append(separator);
+		}
+
+		const listBoxRow = new Gtk.ListBoxRow({
+			child: mainBox,
+			activatable: false,
+			selectable: false,
+		});
+
+		this.filtersList.append(listBoxRow);
 	}
 
 	private loadAppThemesData() {
@@ -443,6 +740,18 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			displayName,
 			"Theme Test Notification",
 			`This is a test notification for "${displayName}" theme configuration`,
+		);
+	}
+
+	private sendTestNotificationForFilter(filter: NotificationFilter) {
+		const title = filter.title || "Filter Test Title";
+		const body = filter.body || "Filter test body content";
+		const appName = filter.appName || "Filter Test App";
+
+		this.sendNotification(
+			appName,
+			title,
+			`${body} - This notification should be ${filter.action === "hide" ? "hidden" : "closed"} by your filter.`,
 		);
 	}
 }

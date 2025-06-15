@@ -1,11 +1,20 @@
 import type Gio from "gi://Gio?version=2.0";
 
+import type { Notification } from "@girs/gnome-shell/ui/messageTray";
 import { TypedEventEmitter } from "./event-emitter.js";
 import type { NotificationTheme } from "./themes.js";
+
+export type NotificationFilter = {
+	title: string;
+	body: string;
+	appName: string;
+	action: "hide" | "close";
+};
 
 type SettingsEvents = {
 	colorsEnabledChanged: [boolean];
 	rateLimitingEnabledChanged: [boolean];
+	filteringEnabledChanged: [boolean];
 	notificationThresholdChanged: [number];
 	notificationPositionChanged: [Position];
 };
@@ -18,8 +27,10 @@ export class SettingsManager {
 
 	private _colorsEnabled!: boolean;
 	private _rateLimitingEnabled!: boolean;
+	private _filteringEnabled!: boolean;
 	private _notificationThreshold!: number;
 	private _themes: Record<string, NotificationTheme | undefined> = {};
+	private _blockList: NotificationFilter[] = [];
 
 	events = new TypedEventEmitter<SettingsEvents>();
 
@@ -43,6 +54,10 @@ export class SettingsManager {
 		return this._rateLimitingEnabled;
 	}
 
+	get filteringEnabled() {
+		return this._filteringEnabled;
+	}
+
 	get notificationThreshold() {
 		return this._notificationThreshold;
 	}
@@ -52,12 +67,43 @@ export class SettingsManager {
 			"center") as Position;
 	}
 
+	get blockList() {
+		return this._blockList;
+	}
+
+	getFilterFor(
+		notification: Notification,
+		source: string,
+	): NotificationFilter["action"] | null {
+		for (const { title, body, appName, action } of this._blockList) {
+			if (
+				title.trim() &&
+				notification.title?.trim() &&
+				notification.title.toLowerCase().includes(title.toLowerCase())
+			) {
+				return action;
+			}
+			if (
+				appName.trim() &&
+				source.trim() &&
+				source.toLowerCase().includes(appName.toLowerCase())
+			) {
+				return action;
+			}
+			if (
+				body.trim() &&
+				notification.body?.trim() &&
+				notification.body.toLowerCase().includes(body.toLowerCase())
+			) {
+				return action;
+			}
+		}
+		return null;
+	}
+
 	getThemeFor(partial: string) {
 		for (const [app, color] of Object.entries(this._themes)) {
-			if (
-				partial.toLowerCase().includes(app.toLowerCase()) ||
-				app.toLowerCase().includes(partial.toLowerCase())
-			) {
+			if (app.toLowerCase().includes(partial.toLowerCase())) {
 				return color as NotificationTheme;
 			}
 		}
@@ -68,10 +114,12 @@ export class SettingsManager {
 		this._rateLimitingEnabled = this.settings.get_boolean(
 			"enable-rate-limiting",
 		);
+		this._filteringEnabled = this.settings.get_boolean("enable-filtering");
 		this._notificationThreshold = this.settings.get_int(
 			"notification-threshold",
 		);
 		this.loadThemes();
+		this.loadBlockList();
 	}
 
 	private loadThemes() {
@@ -81,6 +129,17 @@ export class SettingsManager {
 		} catch (error) {
 			logError(error);
 			this.settings.set_string("app-themes", "{}");
+		}
+	}
+
+	private loadBlockList() {
+		const blockListJson = this.settings.get_string("block-list");
+		try {
+			this._blockList = JSON.parse(blockListJson);
+		} catch (error) {
+			logError(error);
+			this.settings.set_string("block-list", "[]");
+			this._blockList = [];
 		}
 	}
 
@@ -96,6 +155,11 @@ export class SettingsManager {
 				this.loadThemes();
 			}),
 		);
+		this.settingSignals.push(
+			this.settings.connect("changed::block-list", () => {
+				this.loadBlockList();
+			}),
+		);
 
 		this.settingSignals.push(
 			this.settings.connect("changed::enable-rate-limiting", () => {
@@ -106,6 +170,12 @@ export class SettingsManager {
 					"rateLimitingEnabledChanged",
 					this._rateLimitingEnabled,
 				);
+			}),
+		);
+		this.settingSignals.push(
+			this.settings.connect("changed::enable-filtering", () => {
+				this._filteringEnabled = this.settings.get_boolean("enable-filtering");
+				this.events.emit("filteringEnabledChanged", this._filteringEnabled);
 			}),
 		);
 		this.settingSignals.push(
