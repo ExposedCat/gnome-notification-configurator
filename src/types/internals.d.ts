@@ -10,4 +10,8 @@ declare module "resource:///org/gnome/shell/ui/notificationDaemon.js" {
 			appIcon: string,
 		): void;
 	}
+
+	export class GtkNotificationDaemonAppSource {
+		addNotification(notification: Notification): void;
+	}
 }
