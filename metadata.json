@@ -1,6 +1,6 @@
 {
 	"name": "Notification Configurator",
-	"description": "GNOME Shell notification configurator",
+	"description": "Notification Configurator\n✦ Notification Rate Limiting - Prevent frequent notifications from the same app within a configurable time threshold\n✦ Custom Color Themes - Set custom colors for notifications per application (background, title, body, app name, time)\n✦ Notification Positioning - Control where notifications appear on screen (fill, left, center, right)\n✦ Filter Notifications - Hide or remove notifications based on specific criteria\n✦ Test Notifications - Send test notifications to preview your settings instantly\n✦ Real-time Configuration - Changes take effect immediately without requiring restarts",
 	"uuid": "notification-configurator@exposedcat",
 	"settings-schema": "org.gnome.shell.extensions.notification-configurator",
 	"shell-version": ["47", "48"]
