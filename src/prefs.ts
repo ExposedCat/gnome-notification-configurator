@@ -306,6 +306,9 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		// Populate existing entries
 		this.populateAppThemesList();
+
+		// Set cleanup for window close
+		this.setCleanup(window);
 	}
 
 	private loadFiltersData() {
@@ -753,5 +756,28 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			title,
 			`${body} - This notification should be ${filter.action === "hide" ? "hidden" : "closed"} by your filter.`,
 		);
+	}
+
+	private setCleanup(window: Adw.PreferencesWindow) {
+		window.connect("close-request", () => {
+			// biome-ignore lint/style/noNonNullAssertion: cleanup
+			this.settings = null!;
+			// biome-ignore lint/style/noNonNullAssertion: cleanup
+			this.appThemesList = null!;
+			this.appThemesData = [];
+			// biome-ignore lint/style/noNonNullAssertion: cleanup
+			this.thresholdRow = null!;
+			// biome-ignore lint/style/noNonNullAssertion: cleanup
+			this.appThemesGroup = null!;
+			// biome-ignore lint/style/noNonNullAssertion: cleanup
+			this.addButton = null!;
+			// biome-ignore lint/style/noNonNullAssertion: cleanup
+			this.filtersList = null!;
+			this.filtersData = [];
+			// biome-ignore lint/style/noNonNullAssertion: cleanup
+			this.filtersGroup = null!;
+			// biome-ignore lint/style/noNonNullAssertion: cleanup
+			this.addFilterButton = null!;
+		});
 	}
 }
