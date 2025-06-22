@@ -1,4 +1,5 @@
 <h1 align="center">
+	<img style="width:64px" src="./assets/logo.png" alt="Logo">
   GNOME Notification Configurator<br>
   <img style="width:512px" src="./assets/preview.png" alt="Screenshot">
 </h1>
@@ -23,7 +24,18 @@
 
 ## Installation
 
-### Manual Installation (Recommended)
+### Extension Manager (Recommended)
+- Install [Extension Manager](https://flathub.org/apps/com.mattjakeman.ExtensionManager)
+- Search For `Notification Configurator` in `Browse` tab
+- Select the extension and click `Install`
+
+### GNOME Extenssions Website
+<a href="https://extensions.gnome.org/extension/8249/notification-configurator/">
+  <!-- Button SVG by Just Perfection developer -->
+  <img src="./assets/download-from-ego.svg" height="80">
+</a>
+
+### Manual Installation
 
 Since this extension is not yet available on the GNOME Extensions website, you can install it manually:
 
