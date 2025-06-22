@@ -1,5 +1,5 @@
 <h1 align="center">
-	<img style="width:64px" src="./assets/logo.png" alt="Logo">
+	<img style="width:64px" src="./assets/logo.png" alt="Logo"><br>
   GNOME Notification Configurator<br>
   <img style="width:512px" src="./assets/preview.png" alt="Screenshot">
 </h1>
