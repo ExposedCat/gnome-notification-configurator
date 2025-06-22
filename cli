@@ -29,7 +29,7 @@ build)
 pack)
   rm -f $NAME.zip
   pushd dist || exit
-  zip "../$NAME.zip" -9r ./*.js ./*.css ./**/*.js ./**/*.css metadata.json
+  zip "../$NAME.zip" -9r ./*.js ./*.css ./**/*.js ./**/*.css ./**/*.xml metadata.json
   popd || exit
   ;;
 inject)
