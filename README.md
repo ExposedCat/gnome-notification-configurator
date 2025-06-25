@@ -19,6 +19,7 @@
 - **Notification Filtering** - Block or hide unwanted notifications based on title, body text, or application name with customizable filters
 - **Custom Color Themes** - Set custom colors for notifications per application (background, title, body, app name, time)
 - **Notification Positioning** - Control where notifications appear on screen (fill, left, center, right)
+- **Fullscreen Notifications** - Enable or disable notifications when applications are running in fullscreen mode
 - **Test Notifications** - Send test notifications to preview your settings instantly
 - **Real-time Configuration** - Changes take effect immediately without requiring restarts
 
@@ -127,6 +128,14 @@ The positioning system allows you to control where notifications appear on scree
 - Uses Clutter alignment constants for consistent positioning
 - Changes take effect immediately without requiring extension restart
 
+#### Fullscreen Notifications
+The fullscreen notification system provides control over notification behavior when applications are in fullscreen mode:
+- Patches the `MessageTray._updateState` method to override fullscreen detection
+- Temporarily modifies the `Monitor.inFullscreen` property during notification processing
+- Allows notifications to be displayed even when apps are running fullscreen (games, videos, presentations)
+- Configurable toggle to enable/disable this behavior per user preference
+- Restores original fullscreen behavior when the feature is disabled
+
 #### Custom Theming
 The theming system works by:
 - Monitoring the message tray container for new notifications using the `child-added` signal
@@ -190,6 +199,7 @@ The extension applies styles by:
 The extension uses the following GSettings keys:
 - `enable-rate-limiting` (boolean) - Toggle notification rate limiting
 - `enable-custom-colors` (boolean) - Toggle custom notification colors
+- `enable-fullscreen` (boolean) - Toggle notifications in fullscreen mode
 - `notification-threshold` (integer) - Rate limit threshold in milliseconds (100-60000)
 - `notification-position` (string) - Notification position: 'fill', 'left', 'center', or 'right'
 - `app-themes` (string) - JSON mapping of app names to color themes
