@@ -1,95 +1,38 @@
 {
-	"mode": "COMMIT",
 	"categories": [
 		{
 			"title": "## 🚀 Features",
-			"labels": ["feature", "enhancement"],
 			"rules": [
-				{
-					"pattern": "^feat(\\(.+\\))?: (.+)$",
-					"on_property": "message"
-				}
+				{ "pattern": "^feat(\\(.+\\))?: .+$", "on_property": "message" }
 			]
 		},
 		{
 			"title": "## 🐛 Bug Fixes",
-			"labels": ["bug", "bugfix"],
-			"rules": [
-				{
-					"pattern": "^fix(\\(.+\\))?: (.+)$",
-					"on_property": "message"
-				}
-			]
-		},
-		{
-			"title": "## 📚 Documentation",
-			"labels": ["documentation"],
-			"rules": [
-				{
-					"pattern": "^docs(\\(.+\\))?: (.+)$",
-					"on_property": "message"
-				}
-			]
-		},
-		{
-			"title": "## 🔧 Maintenance",
-			"labels": ["maintenance", "chore"],
-			"rules": [
-				{
-					"pattern": "^(chore|refactor|style|test|ci)(\\(.+\\))?: (.+)$",
-					"on_property": "message"
-				}
-			]
+			"rules": [{ "pattern": "^fix(\\(.+\\))?: .+$", "on_property": "message" }]
 		},
 		{
 			"title": "## ⚠️ Breaking Changes",
-			"labels": ["breaking"],
+			"rules": [{ "pattern": "^.*!: .+$", "on_property": "message" }]
+		},
+		{
+			"title": "## ✅ Tests",
 			"rules": [
-				{
-					"pattern": "^.*!: (.+)$",
-					"on_property": "message"
-				}
+				{ "pattern": "^test(\\(.+\\))?: .+$", "on_property": "message" }
+			]
+		},
+		{
+			"title": "## 🚧 Maintenance",
+			"rules": [
+				{ "pattern": "^(refactor|style): .+$", "on_property": "message" },
+				{ "pattern": "^chore(\\(.+\\))?: .+$", "on_property": "message" },
+				{ "pattern": "^ci(\\(.+\\))?: .+$", "on_property": "message" }
 			]
 		}
 	],
-	"ignore_labels": ["ignore", "dependencies"],
 	"sort": {
 		"order": "ASC",
 		"on_property": "mergedAt"
 	},
 	"template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
-	"pr_template": "- #{{TITLE}} (#{{NUMBER}})",
-	"commit_template": "- #{{TITLE}} ([#{{SHORT_SHA}}]({{URL}}))",
-	"empty_template": "- Minor changes and/or fixes",
-	"label_extractor": [
-		{
-			"pattern": "^feat(\\(.+\\))?: (.+)$",
-			"target": "feature"
-		},
-		{
-			"pattern": "^fix(\\(.+\\))?: (.+)$",
-			"target": "bug"
-		},
-		{
-			"pattern": "^docs(\\(.+\\))?: (.+)$",
-			"target": "documentation"
-		},
-		{
-			"pattern": "^(chore|refactor|style|test|ci)(\\(.+\\))?: (.+)$",
-			"target": "maintenance"
-		},
-		{
-			"pattern": "^.*!: (.+)$",
-			"target": "breaking"
-		}
-	],
-	"duplicate_filter": {
-		"pattern": "\\[(.+)\\]",
-		"on_property": "title",
-		"method": "match"
-	},
-	"reference": {
-		"pattern": "merge",
-		"on_property": "mergeCommitMessage"
-	}
+	"commit_template": "- {{message}}"
 }
