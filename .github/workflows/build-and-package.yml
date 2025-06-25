@@ -77,7 +77,7 @@ jobs:
       id: changelog
       uses: mikepenz/release-changelog-builder-action@v5
       with:
-        commitMode: "HYBRID"
+        mode: "HYBRID"
         configuration: ".github/changelog-config.json"
         outputFile: "CHANGELOG.md"
         fromTag: ${{ steps.previous_tag.outputs.from_tag }}

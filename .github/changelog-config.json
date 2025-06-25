@@ -2,30 +2,26 @@
 	"categories": [
 		{
 			"title": "## 🚀 Features",
-			"rules": [
-				{ "pattern": "^feat(\\(.+\\))?: .+$", "on_property": "message" }
-			]
+			"rules": [{ "pattern": "^feat(\\(.+\\))?: .+$", "on_property": "title" }]
 		},
 		{
 			"title": "## 🐛 Bug Fixes",
-			"rules": [{ "pattern": "^fix(\\(.+\\))?: .+$", "on_property": "message" }]
+			"rules": [{ "pattern": "^fix(\\(.+\\))?: .+$", "on_property": "title" }]
 		},
 		{
 			"title": "## ⚠️ Breaking Changes",
-			"rules": [{ "pattern": "^.*!: .+$", "on_property": "message" }]
+			"rules": [{ "pattern": "^.*!: .+$", "on_property": "title" }]
 		},
 		{
 			"title": "## ✅ Tests",
-			"rules": [
-				{ "pattern": "^test(\\(.+\\))?: .+$", "on_property": "message" }
-			]
+			"rules": [{ "pattern": "^test(\\(.+\\))?: .+$", "on_property": "title" }]
 		},
 		{
 			"title": "## 🚧 Maintenance",
 			"rules": [
-				{ "pattern": "^(refactor|style): .+$", "on_property": "message" },
-				{ "pattern": "^chore(\\(.+\\))?: .+$", "on_property": "message" },
-				{ "pattern": "^ci(\\(.+\\))?: .+$", "on_property": "message" }
+				{ "pattern": "^(refactor|style): .+$", "on_property": "title" },
+				{ "pattern": "^chore(\\(.+\\))?: .+$", "on_property": "title" },
+				{ "pattern": "^ci(\\(.+\\))?: .+$", "on_property": "title" }
 			]
 		}
 	],
@@ -34,5 +30,5 @@
 		"on_property": "mergedAt"
 	},
 	"template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
-	"commit_template": "- {{message}}"
+	"commit_template": "- #{{TITLE}}"
 }
