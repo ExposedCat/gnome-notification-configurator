@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+  packages: write
+
 
 
 jobs:
@@ -78,6 +82,14 @@ jobs:
         name: gnome-shell-extension-package
         path: notification-configurator.zip
         retention-days: 30
+
+    - name: Create tag
+      if: github.ref == 'refs/heads/main' && steps.tag_exists.outputs.exists == 'false'
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag ${{ steps.package_version.outputs.version }}
+        git push origin ${{ steps.package_version.outputs.version }}
 
     - name: Create release
       if: github.ref == 'refs/heads/main' && steps.tag_exists.outputs.exists == 'false'
