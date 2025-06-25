@@ -81,6 +81,7 @@ export class SettingsManager {
 				notification.title?.trim() &&
 				notification.title.toLowerCase().includes(title.toLowerCase())
 			) {
+				console.log(source, action);
 				return action;
 			}
 			if (
@@ -88,6 +89,7 @@ export class SettingsManager {
 				source.trim() &&
 				source.toLowerCase().includes(appName.toLowerCase())
 			) {
+				console.log(source, action);
 				return action;
 			}
 			if (
@@ -95,9 +97,11 @@ export class SettingsManager {
 				notification.body?.trim() &&
 				notification.body.toLowerCase().includes(body.toLowerCase())
 			) {
+				console.log(source, action);
 				return action;
 			}
 		}
+		console.log(source, null);
 		return null;
 	}
 
