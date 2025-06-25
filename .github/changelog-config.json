@@ -1,0 +1,93 @@
+{
+	"categories": [
+		{
+			"title": "## 🚀 Features",
+			"labels": ["feature", "enhancement"],
+			"rules": [
+				{
+					"pattern": "^feat(\\(.+\\))?: (.+)$",
+					"on_property": "title"
+				}
+			]
+		},
+		{
+			"title": "## 🐛 Bug Fixes",
+			"labels": ["bug", "bugfix"],
+			"rules": [
+				{
+					"pattern": "^fix(\\(.+\\))?: (.+)$",
+					"on_property": "title"
+				}
+			]
+		},
+		{
+			"title": "## 📚 Documentation",
+			"labels": ["documentation"],
+			"rules": [
+				{
+					"pattern": "^docs(\\(.+\\))?: (.+)$",
+					"on_property": "title"
+				}
+			]
+		},
+		{
+			"title": "## 🔧 Maintenance",
+			"labels": ["maintenance", "chore"],
+			"rules": [
+				{
+					"pattern": "^(chore|refactor|style|test|ci)(\\(.+\\))?: (.+)$",
+					"on_property": "title"
+				}
+			]
+		},
+		{
+			"title": "## ⚠️ Breaking Changes",
+			"labels": ["breaking"],
+			"rules": [
+				{
+					"pattern": "^.*!: (.+)$",
+					"on_property": "title"
+				}
+			]
+		}
+	],
+	"ignore_labels": ["ignore", "dependencies"],
+	"sort": {
+		"order": "ASC",
+		"on_property": "mergedAt"
+	},
+	"template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
+	"pr_template": "- #{{TITLE}} (#{{NUMBER}})",
+	"empty_template": "- No changes",
+	"label_extractor": [
+		{
+			"pattern": "^feat(\\(.+\\))?: (.+)$",
+			"target": "feature"
+		},
+		{
+			"pattern": "^fix(\\(.+\\))?: (.+)$",
+			"target": "bug"
+		},
+		{
+			"pattern": "^docs(\\(.+\\))?: (.+)$",
+			"target": "documentation"
+		},
+		{
+			"pattern": "^(chore|refactor|style|test|ci)(\\(.+\\))?: (.+)$",
+			"target": "maintenance"
+		},
+		{
+			"pattern": "^.*!: (.+)$",
+			"target": "breaking"
+		}
+	],
+	"duplicate_filter": {
+		"pattern": "\\[(.+)\\]",
+		"on_property": "title",
+		"method": "match"
+	},
+	"reference": {
+		"pattern": "merge",
+		"on_property": "mergeCommitMessage"
+	}
+}
