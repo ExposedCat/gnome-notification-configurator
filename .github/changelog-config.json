@@ -1,4 +1,5 @@
 {
+	"mode": "COMMIT",
 	"categories": [
 		{
 			"title": "## 🚀 Features",
@@ -58,7 +59,8 @@
 	},
 	"template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
 	"pr_template": "- #{{TITLE}} (#{{NUMBER}})",
-	"empty_template": "- No changes",
+	"commit_template": "- #{{TITLE}} ([#{{SHORT_SHA}}]({{URL}}))",
+	"empty_template": "- Minor changes and/or fixes",
 	"label_extractor": [
 		{
 			"pattern": "^feat(\\(.+\\))?: (.+)$",
