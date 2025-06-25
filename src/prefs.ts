@@ -184,7 +184,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		const filterGroup = new Adw.PreferencesGroup({
 			title: "Notification Filters",
 			description:
-				"Block or hide notifications based on title, body text, or application name",
+				"Block or hide notifications using regular expressions to match title, body text, or application name",
 		});
 		filteringPage.add(filterGroup);
 
@@ -204,7 +204,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		// Filters List Group
 		this.filtersGroup = new Adw.PreferencesGroup({
 			title: "Active Filters",
-			description: "Configure filters to block unwanted notifications",
+			description:
+				"Configure filters using RegExp patterns. Examples: '^Error' (starts with), 'update|upgrade' (contains either), '\\d+' (contains numbers)",
 		});
 		filteringPage.add(this.filtersGroup);
 
@@ -464,56 +465,68 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		// Title field
 		const titleLabel = new Gtk.Label({
-			label: "Title contains:",
+			label: "Title matches regex:",
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(titleLabel, 0, 0, 1, 1);
 
 		const titleEntry = new Gtk.Entry({
 			text: entry.filter.title,
-			placeholder_text: "Leave empty to ignore title",
+			placeholder_text: "RegExp pattern (e.g., ^Error|Warning$)",
 			hexpand: true,
 		});
 		titleEntry.connect("changed", () => {
-			this.filtersData[index].filter.title = titleEntry.get_text();
+			const pattern = titleEntry.get_text();
+			this.filtersData[index].filter.title = pattern;
+			this.validateRegexEntry(titleEntry, pattern);
 			this.saveFiltersData();
 		});
+		// Initial validation
+		this.validateRegexEntry(titleEntry, entry.filter.title);
 		fieldsGrid.attach(titleEntry, 1, 0, 1, 1);
 
 		// Body field
 		const bodyLabel = new Gtk.Label({
-			label: "Body contains:",
+			label: "Body matches regex:",
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(bodyLabel, 0, 1, 1, 1);
 
 		const bodyEntry = new Gtk.Entry({
 			text: entry.filter.body,
-			placeholder_text: "Leave empty to ignore body",
+			placeholder_text: "RegExp pattern (e.g., \\d+ messages?)",
 			hexpand: true,
 		});
 		bodyEntry.connect("changed", () => {
-			this.filtersData[index].filter.body = bodyEntry.get_text();
+			const pattern = bodyEntry.get_text();
+			this.filtersData[index].filter.body = pattern;
+			this.validateRegexEntry(bodyEntry, pattern);
 			this.saveFiltersData();
 		});
+		// Initial validation
+		this.validateRegexEntry(bodyEntry, entry.filter.body);
 		fieldsGrid.attach(bodyEntry, 1, 1, 1, 1);
 
 		// App name field
 		const appNameLabel = new Gtk.Label({
-			label: "App name contains:",
+			label: "App name matches regex:",
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(appNameLabel, 0, 2, 1, 1);
 
 		const appNameEntry = new Gtk.Entry({
 			text: entry.filter.appName,
-			placeholder_text: "Leave empty to ignore app name",
+			placeholder_text: "RegExp pattern (e.g., (Firefox|Chrome))",
 			hexpand: true,
 		});
 		appNameEntry.connect("changed", () => {
-			this.filtersData[index].filter.appName = appNameEntry.get_text();
+			const pattern = appNameEntry.get_text();
+			this.filtersData[index].filter.appName = pattern;
+			this.validateRegexEntry(appNameEntry, pattern);
 			this.saveFiltersData();
 		});
+		// Initial validation
+		this.validateRegexEntry(appNameEntry, entry.filter.appName);
 		fieldsGrid.attach(appNameEntry, 1, 2, 1, 1);
 
 		mainBox.append(headerRow);
@@ -535,6 +548,26 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		this.filtersList.append(listBoxRow);
+	}
+
+	private validateRegexEntry(entry: Gtk.Entry, pattern: string) {
+		if (!pattern.trim()) {
+			// Empty pattern is valid (means ignore this field)
+			entry.remove_css_class("error");
+			entry.set_tooltip_text("");
+			return;
+		}
+
+		try {
+			new RegExp(pattern, "i");
+			// Valid regex
+			entry.remove_css_class("error");
+			entry.set_tooltip_text("");
+		} catch (error) {
+			// Invalid regex
+			entry.add_css_class("error");
+			entry.set_tooltip_text(`Invalid regex pattern: ${error}`);
+		}
 	}
 
 	private loadAppThemesData() {

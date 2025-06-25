@@ -82,33 +82,33 @@ export class SettingsManager {
 		source: string,
 	): NotificationFilter["action"] | null {
 		for (const { title, body, appName, action } of this._blockList) {
-			if (
-				title.trim() &&
-				notification.title?.trim() &&
-				notification.title.toLowerCase().includes(title.toLowerCase())
-			) {
-				console.log(source, action);
-				return action;
+			if (title.trim() && notification.title?.trim()) {
+				if (this.matchesRegex(notification.title, title)) {
+					return action;
+				}
 			}
-			if (
-				appName.trim() &&
-				source.trim() &&
-				source.toLowerCase().includes(appName.toLowerCase())
-			) {
-				console.log(source, action);
-				return action;
+			if (appName.trim() && source.trim()) {
+				if (this.matchesRegex(source, appName)) {
+					return action;
+				}
 			}
-			if (
-				body.trim() &&
-				notification.body?.trim() &&
-				notification.body.toLowerCase().includes(body.toLowerCase())
-			) {
-				console.log(source, action);
-				return action;
+			if (body.trim() && notification.body?.trim()) {
+				if (this.matchesRegex(notification.body, body)) {
+					return action;
+				}
 			}
 		}
-		console.log(source, null);
 		return null;
+	}
+
+	private matchesRegex(text: string, pattern: string): boolean {
+		try {
+			const regex = new RegExp(pattern, "i");
+			return regex.test(text);
+		} catch (error) {
+			console.error("Invalid regex pattern:", pattern, error);
+			return false;
+		}
 	}
 
 	getThemeFor(partial: string) {
@@ -202,7 +202,6 @@ export class SettingsManager {
 		);
 		this.settingSignals.push(
 			this.settings.connect("changed::notification-position", () => {
-				console.log("emitting", this.notificationPosition);
 				this.events.emit(
 					"notificationPositionChanged",
 					this.notificationPosition,

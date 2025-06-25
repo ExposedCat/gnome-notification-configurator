@@ -16,7 +16,7 @@
 ## Features
 
 - **Notification Rate Limiting** - Prevent frequent notifications from the same app within a configurable time threshold
-- **Notification Filtering** - Block or hide unwanted notifications based on title, body text, or application name with customizable filters
+- **Notification Filtering** - Block or hide unwanted notifications using regular expressions to match title, body text, or application name
 - **Custom Color Themes** - Set custom colors for notifications per application (background, title, body, app name, time)
 - **Notification Positioning** - Control where notifications appear on screen (fill, left, center, right)
 - **Fullscreen Notifications** - Enable or disable notifications when applications are running in fullscreen mode
@@ -111,10 +111,12 @@ The extension patches GNOME Shell's notification processing system with a two-st
 
 1. **Notification Filtering** - First stage that blocks unwanted notifications:
    - Intercepts notifications via `FdoNotificationDaemonSource.prototype.processNotification`
-   - Matches notifications against user-defined filters based on title, body text, or app name
-   - Supports partial string matching (case-insensitive) with empty fields ignored
+   - Matches notifications against user-defined RegExp filters based on title, body text, or app name
+   - Supports regular expression patterns (case-insensitive) with empty fields ignored
+   - Examples: `^Error` (starts with Error), `update|upgrade` (contains either word), `\d+` (contains numbers)
    - Destroys notifications that match any active filter
    - Configurable action per filter: hide (acknowledge) or destroy notifications
+   - Invalid regex patterns are ignored and logged as warnings
 
 2. **Rate Limiting** - Second stage for duplicate notification prevention:
    - Tracks timing of notifications per source application (only for non-filtered notifications)
@@ -203,7 +205,7 @@ The extension uses the following GSettings keys:
 - `notification-threshold` (integer) - Rate limit threshold in milliseconds (100-60000)
 - `notification-position` (string) - Notification position: 'fill', 'left', 'center', or 'right'
 - `app-themes` (string) - JSON mapping of app names to color themes
-- `block-list` (string) - JSON array of notification filter objects with title, body, appName, and action fields
+- `block-list` (string) - JSON array of notification filter objects with title, body, appName (RegExp patterns), and action fields
 
 ## License
 
