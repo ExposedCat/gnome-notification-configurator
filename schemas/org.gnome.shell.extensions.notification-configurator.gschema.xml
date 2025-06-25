@@ -36,6 +36,12 @@
       <description>Whether to enable notification filtering based on block list</description>
     </key>
 
+    <key name="enable-fullscreen" type="b">
+      <default>false</default>
+      <summary>Enable notifications in fullscreen</summary>
+      <description>Whether to show notifications when applications are in fullscreen mode</description>
+    </key>
+
     <key name="notification-position" type="s">
       <default>'center'</default>
       <summary>Notification position</summary>

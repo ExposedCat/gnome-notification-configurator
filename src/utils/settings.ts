@@ -17,6 +17,7 @@ type SettingsEvents = {
 	filteringEnabledChanged: [boolean];
 	notificationThresholdChanged: [number];
 	notificationPositionChanged: [Position];
+	fullscreenEnabledChanged: [boolean];
 };
 
 export type Position = "fill" | "left" | "right" | "center";
@@ -28,6 +29,7 @@ export class SettingsManager {
 	private _colorsEnabled!: boolean;
 	private _rateLimitingEnabled!: boolean;
 	private _filteringEnabled!: boolean;
+	private _fullscreenEnabled!: boolean;
 	private _notificationThreshold!: number;
 	private _themes: Record<string, NotificationTheme | undefined> = {};
 	private _blockList: NotificationFilter[] = [];
@@ -56,6 +58,10 @@ export class SettingsManager {
 
 	get filteringEnabled() {
 		return this._filteringEnabled;
+	}
+
+	get fullscreenEnabled() {
+		return this._fullscreenEnabled;
 	}
 
 	get notificationThreshold() {
@@ -119,6 +125,7 @@ export class SettingsManager {
 			"enable-rate-limiting",
 		);
 		this._filteringEnabled = this.settings.get_boolean("enable-filtering");
+		this._fullscreenEnabled = this.settings.get_boolean("enable-fullscreen");
 		this._notificationThreshold = this.settings.get_int(
 			"notification-threshold",
 		);
@@ -200,6 +207,13 @@ export class SettingsManager {
 					"notificationPositionChanged",
 					this.notificationPosition,
 				);
+			}),
+		);
+		this.settingSignals.push(
+			this.settings.connect("changed::enable-fullscreen", () => {
+				this._fullscreenEnabled =
+					this.settings.get_boolean("enable-fullscreen");
+				this.events.emit("fullscreenEnabledChanged", this._fullscreenEnabled);
 			}),
 		);
 	}

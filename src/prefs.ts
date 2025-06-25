@@ -153,6 +153,26 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		generalGroup.add(positionRow);
 
+		// Fullscreen Notification Group
+		const fullscreenGroup = new Adw.PreferencesGroup({
+			title: "Fullscreen Notifications",
+			description: "Control notification behavior in fullscreen mode",
+		});
+		generalPage.add(fullscreenGroup);
+
+		// Enable notifications in fullscreen switch
+		const enableFullscreenRow = new Adw.SwitchRow({
+			title: "Enable notifications in Fullscreen",
+			subtitle: "Show notifications even when applications are in fullscreen",
+		});
+		this.settings.bind(
+			"enable-fullscreen",
+			enableFullscreenRow,
+			"active",
+			Gio.SettingsBindFlags.DEFAULT,
+		);
+		fullscreenGroup.add(enableFullscreenRow);
+
 		// Filtering Settings Page
 		const filteringPage = new Adw.PreferencesPage({
 			title: "Filtering",
