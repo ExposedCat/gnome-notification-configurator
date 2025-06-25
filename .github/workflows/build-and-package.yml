@@ -75,9 +75,9 @@ jobs:
     - name: Generate changelog
       if: github.ref == 'refs/heads/main'
       id: changelog
-      uses: mikepenz/release-changelog-builder-action@v4
+      uses: mikepenz/release-changelog-builder-action@v5
       with:
-        mode: "HYBRID"
+        commitMode: "HYBRID"
         configuration: ".github/changelog-config.json"
         outputFile: "CHANGELOG.md"
         fromTag: ${{ steps.previous_tag.outputs.from_tag }}
