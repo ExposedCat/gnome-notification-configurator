@@ -1,7 +1,7 @@
 {
 	"name": "gnome-shell-notification-configurator",
 	"description": "GNOME Shell notification configurator",
-	"version": "1.1.6",
+	"version": "1.1.7",
 	"keywords": [],
 	"scripts": {
 		"start": "./cli dev",
