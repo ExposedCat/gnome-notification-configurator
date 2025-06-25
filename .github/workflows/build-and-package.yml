@@ -100,7 +100,9 @@ jobs:
         tag_name: ${{ steps.package_version.outputs.version }}
         name: Release ${{ steps.package_version.outputs.version }}
         body: ${{ steps.changelog.outputs.changelog }}
-        files: notification-configurator.zip
+        files: |
+          notification-configurator.zip
+          CHANGELOG.md
         draft: false
         prerelease: false
         generate_release_notes: false
