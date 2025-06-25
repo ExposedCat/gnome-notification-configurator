@@ -7,7 +7,7 @@
 			"rules": [
 				{
 					"pattern": "^feat(\\(.+\\))?: (.+)$",
-					"on_property": "title"
+					"on_property": "message"
 				}
 			]
 		},
@@ -17,7 +17,7 @@
 			"rules": [
 				{
 					"pattern": "^fix(\\(.+\\))?: (.+)$",
-					"on_property": "title"
+					"on_property": "message"
 				}
 			]
 		},
@@ -27,7 +27,7 @@
 			"rules": [
 				{
 					"pattern": "^docs(\\(.+\\))?: (.+)$",
-					"on_property": "title"
+					"on_property": "message"
 				}
 			]
 		},
@@ -37,7 +37,7 @@
 			"rules": [
 				{
 					"pattern": "^(chore|refactor|style|test|ci)(\\(.+\\))?: (.+)$",
-					"on_property": "title"
+					"on_property": "message"
 				}
 			]
 		},
@@ -47,7 +47,7 @@
 			"rules": [
 				{
 					"pattern": "^.*!: (.+)$",
-					"on_property": "title"
+					"on_property": "message"
 				}
 			]
 		}
