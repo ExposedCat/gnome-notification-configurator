@@ -19,8 +19,6 @@ export class ThemesManager {
 	private themeSignalId?: number;
 
 	constructor(private settingsManager: SettingsManager) {
-		this.settingsManager = settingsManager;
-
 		settingsManager.events.on("colorsEnabledChanged", (enabled) => {
 			if (enabled) {
 				this.enableThemes();
@@ -66,14 +64,13 @@ export class ThemesManager {
 		const messageTrayContainer = Main.messageTray.get_first_child();
 
 		this.themeSignalId = messageTrayContainer?.connect("child-added", () => {
-			if (!this.settingsManager?.colorsEnabled) return;
+			if (!this.settingsManager.colorsEnabled) return;
 
 			const notificationContainer =
 				messageTrayContainer?.get_first_child() as St.Widget | null;
 			const notification = notificationContainer?.get_first_child();
 
 			const header = notification?.get_child_at_index(0);
-			// const headerIcon = header?.get_child_at_index(0) as St.Icon | null;
 			const headerContent = header?.get_child_at_index(
 				1,
 			) as St.BoxLayout | null;
@@ -92,7 +89,6 @@ export class ThemesManager {
 			const headerContentTime = headerContent?.get_child_at_index(1) as St.Bin;
 
 			const content = notification?.get_child_at_index(1);
-			// const contentIcon = content?.get_child_at_index(0) as St.Icon | null;
 			const contentContent = content?.get_child_at_index(
 				1,
 			) as St.BoxLayout | null;

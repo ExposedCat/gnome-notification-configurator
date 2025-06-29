@@ -82,41 +82,69 @@ export class SettingsManager {
 		source: string,
 	): NotificationFilter["action"] | null {
 		for (const { title, body, appName, action } of this._blockList) {
-			if (
-				title.trim() &&
-				notification.title?.trim() &&
-				notification.title.toLowerCase().includes(title.toLowerCase())
-			) {
-				console.log(source, action);
-				return action;
+			if (title.trim() && notification.title?.trim()) {
+				if (this.matchesRegex(notification.title, title)) {
+					return action;
+				}
 			}
-			if (
-				appName.trim() &&
-				source.trim() &&
-				source.toLowerCase().includes(appName.toLowerCase())
-			) {
-				console.log(source, action);
-				return action;
+			if (appName.trim() && source.trim()) {
+				if (this.matchesRegex(source, appName)) {
+					return action;
+				}
 			}
-			if (
-				body.trim() &&
-				notification.body?.trim() &&
-				notification.body.toLowerCase().includes(body.toLowerCase())
-			) {
-				console.log(source, action);
-				return action;
+			if (body.trim() && notification.body?.trim()) {
+				if (this.matchesRegex(notification.body, body)) {
+					return action;
+				}
 			}
 		}
-		console.log(source, null);
 		return null;
 	}
 
-	getThemeFor(partial: string) {
-		for (const [app, color] of Object.entries(this._themes)) {
-			if (app.toLowerCase().includes(partial.toLowerCase())) {
-				return color as NotificationTheme;
+	isValidRegexPattern(pattern: string): boolean {
+		if (!pattern.trim()) {
+			return true;
+		}
+
+		try {
+			new RegExp(pattern, "i");
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	private matchesRegex(text: string, pattern: string): boolean {
+		if (!pattern.trim()) {
+			return false;
+		}
+
+		try {
+			const regex = new RegExp(pattern, "i");
+			return regex.test(text);
+		} catch {
+			return false;
+		}
+	}
+
+	getThemeFor(appName: string) {
+		for (const [pattern, color] of Object.entries(this._themes)) {
+			const hasRegexChars = /[.*+?^${}()|[\]\\]/.test(pattern);
+
+			if (hasRegexChars) {
+				if (this.matchesRegex(appName, pattern)) {
+					return color as NotificationTheme;
+				}
+			} else {
+				if (
+					pattern.toLowerCase().includes(appName.toLowerCase()) ||
+					appName.toLowerCase().includes(pattern.toLowerCase())
+				) {
+					return color as NotificationTheme;
+				}
 			}
 		}
+		return undefined;
 	}
 
 	private load() {
@@ -138,7 +166,7 @@ export class SettingsManager {
 		try {
 			this._themes = JSON.parse(colors);
 		} catch (error) {
-			logError(error);
+			console.error("Failed to parse app themes JSON:", error);
 			this.settings.set_string("app-themes", "{}");
 		}
 	}
@@ -147,10 +175,25 @@ export class SettingsManager {
 		const blockListJson = this.settings.get_string("block-list");
 		try {
 			this._blockList = JSON.parse(blockListJson);
+			this.validateBlockListPatterns();
 		} catch (error) {
-			logError(error);
+			console.error("Failed to parse block list JSON:", error);
 			this.settings.set_string("block-list", "[]");
 			this._blockList = [];
+		}
+	}
+
+	private validateBlockListPatterns() {
+		for (const filter of this._blockList) {
+			if (filter.title?.trim()) {
+				this.isValidRegexPattern(filter.title);
+			}
+			if (filter.body?.trim()) {
+				this.isValidRegexPattern(filter.body);
+			}
+			if (filter.appName?.trim()) {
+				this.isValidRegexPattern(filter.appName);
+			}
 		}
 	}
 
@@ -202,7 +245,6 @@ export class SettingsManager {
 		);
 		this.settingSignals.push(
 			this.settings.connect("changed::notification-position", () => {
-				console.log("emitting", this.notificationPosition);
 				this.events.emit(
 					"notificationPositionChanged",
 					this.notificationPosition,

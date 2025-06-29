@@ -79,9 +79,11 @@ export class NotificationsManager {
 	private stopProcessingNotifications() {
 		if (this._processNotificationSource) {
 			Source.prototype.addNotification = this._processNotificationSource;
+			this._processNotificationSource = undefined;
 		}
 		if (this._updateState) {
 			this.unsafeMessageTray._updateState = this._updateState;
+			this._updateState = undefined;
 		}
 	}
 
@@ -97,6 +99,7 @@ export class NotificationsManager {
 		if (!enabled) {
 			if (this._updateState) {
 				this.unsafeMessageTray._updateState = this._updateState;
+				this._updateState = undefined;
 			}
 			return;
 		}
@@ -127,23 +130,25 @@ export class NotificationsManager {
 	}
 
 	private ensureRateLimited(source: string) {
-		if (this.settingsManager?.rateLimitingEnabled) {
-			const threshold = this.settingsManager.notificationThreshold;
-			const lastNotification = this.timings[source];
-			if (lastNotification && Date.now() - lastNotification < threshold) {
-				return true;
-			}
-			this.timings[source] = Date.now();
+		if (!this.settingsManager.rateLimitingEnabled) {
 			return false;
 		}
+
+		const threshold = this.settingsManager.notificationThreshold;
+		const lastNotification = this.timings[source];
+		if (lastNotification && Date.now() - lastNotification < threshold) {
+			return true;
+		}
+		this.timings[source] = Date.now();
 		return false;
 	}
 
 	private ensureFiltered(notification: Notification, source: string) {
-		return (
-			this.settingsManager.filteringEnabled &&
-			this.settingsManager.getFilterFor(notification, source)
-		);
+		if (!this.settingsManager.filteringEnabled) {
+			return null;
+		}
+
+		return this.settingsManager.getFilterFor(notification, source);
 	}
 
 	private setPosition(position: Position) {
