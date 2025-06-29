@@ -17,12 +17,11 @@ export default class NotificationConfiguratorExtension extends Extension {
 
 	disable() {
 		this.settingsManager?.dispose();
-		this.settingsManager = undefined;
-
 		this.notificationsManager?.dispose();
-		this.notificationsManager = undefined;
-
 		this.themesManager?.dispose();
+
+		this.settingsManager = undefined;
+		this.notificationsManager = undefined;
 		this.themesManager = undefined;
 	}
 }

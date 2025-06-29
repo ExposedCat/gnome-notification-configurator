@@ -17,7 +17,7 @@
 
 - **Notification Rate Limiting** - Prevent frequent notifications from the same app within a configurable time threshold
 - **Notification Filtering** - Block or hide unwanted notifications using regular expressions to match title, body text, or application name
-- **Custom Color Themes** - Set custom colors for notifications per application (background, title, body, app name, time)
+- **Custom Color Themes** - Set custom colors for notifications per application using app names or RegExp patterns (background, title, body, app name, time)
 - **Notification Positioning** - Control where notifications appear on screen (fill, left, center, right)
 - **Fullscreen Notifications** - Enable or disable notifications when applications are running in fullscreen mode
 - **Test Notifications** - Send test notifications to preview your settings instantly
@@ -143,7 +143,8 @@ The theming system works by:
 - Monitoring the message tray container for new notifications using the `child-added` signal
 - Parsing the notification DOM structure to find text elements (app name, time, title, body)
 - Applying custom CSS styles based on configured color themes per application
-- Matching applications using partial string matching (case-insensitive)
+- Matching applications using RegExp patterns (with fallback to partial string matching for backward compatibility)
+- Examples: `^Firefox` (starts with Firefox), `Chrome|Chromium` (either browser), `.*Code$` (ends with Code)
 
 #### Settings Integration
 - Uses GSettings schema: `org.gnome.shell.extensions.notification-configurator`
