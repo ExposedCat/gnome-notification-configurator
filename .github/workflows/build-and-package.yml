@@ -2,7 +2,7 @@ name: Build and Package
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "**" ]
   pull_request:
     branches: [ main ]
 
@@ -63,17 +63,15 @@ jobs:
         echo "from_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
     - name: Create tag
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && steps.tag_exists.outputs.exists == 'false'
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        if ! git rev-parse "${{ steps.package_version.outputs.version }}" >/dev/null 2>&1; then
-          git tag ${{ steps.package_version.outputs.version }}
-          git push origin ${{ steps.package_version.outputs.version }}
-        fi
+        git tag ${{ steps.package_version.outputs.version }}
+        git push origin ${{ steps.package_version.outputs.version }}
 
     - name: Generate changelog
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && steps.tag_exists.outputs.exists == 'false'
       id: changelog
       uses: mikepenz/release-changelog-builder-action@v5
       with:
@@ -95,7 +93,7 @@ jobs:
         retention-days: 30
 
     - name: Create release
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && steps.tag_exists.outputs.exists == 'false'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.package_version.outputs.version }}

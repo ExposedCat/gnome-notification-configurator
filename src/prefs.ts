@@ -15,14 +15,14 @@ export const DEFAULT_THEME: NotificationTheme = {
 	bodyColor: [0.992156863, 0.992156863, 0.992156863, 1],
 };
 
-interface AppThemeEntry {
+type AppThemeEntry = {
 	name: string;
 	theme: NotificationTheme;
-}
+};
 
-interface FilterEntry {
+type FilterEntry = {
 	filter: NotificationFilter;
-}
+};
 
 export default class NotificationConfiguratorPreferences extends ExtensionPreferences {
 	private settings!: Gio.Settings;
@@ -42,39 +42,20 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.loadAppThemesData();
 		this.loadFiltersData();
 
-		// General Settings Page
 		const generalPage = new Adw.PreferencesPage({
 			title: "General",
 			icon_name: "preferences-system-symbolic",
 		});
 		window.add(generalPage);
 
-		// Test notification group (at top)
-		const testGroup = new Adw.PreferencesGroup({
-			title: "Test Notifications",
-			description: "Send test notifications to preview your settings",
-		});
-		generalPage.add(testGroup);
+		this.addTestSection(generalPage);
 
-		// Test notification button
-		const testButton = new Gtk.Button({
-			label: "Send Test Notification",
-			css_classes: ["suggested-action"],
-			margin_top: 12,
-		});
-		testButton.connect("clicked", () => {
-			this.sendTestNotification();
-		});
-		testGroup.add(testButton);
-
-		// Rate Limiting Group
 		const rateLimitGroup = new Adw.PreferencesGroup({
 			title: "Rate Limiting",
 			description: "Control notification frequency per application",
 		});
 		generalPage.add(rateLimitGroup);
 
-		// Enable rate limiting switch
 		const enableRateLimitRow = new Adw.SwitchRow({
 			title: "Enable Rate Limiting",
 			subtitle: "Prevent duplicate notifications within threshold time",
@@ -87,7 +68,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		);
 		rateLimitGroup.add(enableRateLimitRow);
 
-		// Notification threshold
 		this.thresholdRow = new Adw.SpinRow({
 			title: "Notification Threshold",
 			subtitle: "Time in milliseconds before allowing duplicate notifications",
@@ -104,27 +84,70 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			"value",
 			Gio.SettingsBindFlags.DEFAULT,
 		);
+		rateLimitGroup.add(this.thresholdRow);
 
-		// Set initial sensitivity for threshold
 		this.thresholdRow.set_sensitive(
 			this.settings.get_boolean("enable-rate-limiting"),
 		);
 
-		// Connect rate limiting switch to threshold sensitivity
 		enableRateLimitRow.connect("notify::active", () => {
 			this.thresholdRow.set_sensitive(enableRateLimitRow.get_active());
 		});
 
-		rateLimitGroup.add(this.thresholdRow);
+		const timeoutGroup = new Adw.PreferencesGroup({
+			title: "Notification Timeout",
+			description: "Control how long notifications stay visible",
+		});
+		generalPage.add(timeoutGroup);
 
-		// General Settings Group
+		const timeoutRow = new Adw.SpinRow({
+			title: "Notification Timeout",
+			subtitle: "Time in milliseconds before auto-dismiss (0 = never dismiss)",
+			adjustment: new Gtk.Adjustment({
+				lower: 0,
+				upper: 30000,
+				step_increment: 500,
+				page_increment: 1000,
+			}),
+		});
+		this.settings.bind(
+			"notification-timeout",
+			timeoutRow,
+			"value",
+			Gio.SettingsBindFlags.DEFAULT,
+		);
+		timeoutGroup.add(timeoutRow);
+
+		const ignoreIdleRow = new Adw.SwitchRow({
+			title: "Ignore Idle State",
+			subtitle: "Keep timing notifications even when user is idle",
+		});
+		this.settings.bind(
+			"ignore-idle",
+			ignoreIdleRow,
+			"active",
+			Gio.SettingsBindFlags.DEFAULT,
+		);
+		timeoutGroup.add(ignoreIdleRow);
+
+		const forceNormalRow = new Adw.SwitchRow({
+			title: "Force Normal Urgency",
+			subtitle: "Make all notifications use normal urgency level",
+		});
+		this.settings.bind(
+			"always-normal-urgency",
+			forceNormalRow,
+			"active",
+			Gio.SettingsBindFlags.DEFAULT,
+		);
+		timeoutGroup.add(forceNormalRow);
+
 		const generalGroup = new Adw.PreferencesGroup({
 			title: "General Settings",
 			description: "Basic notification configuration",
 		});
 		generalPage.add(generalGroup);
 
-		// Notification position
 		const positionRow = new Adw.ComboRow({
 			title: "Notification Position",
 			subtitle: "Choose where notifications appear on screen",
@@ -137,14 +160,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		positionModel.append("Right");
 		positionRow.set_model(positionModel);
 
-		// Set initial position
 		const currentPosition = this.settings.get_string("notification-position");
 		const positionMap = { fill: 0, left: 1, center: 2, right: 3 };
 		positionRow.set_selected(
 			positionMap[currentPosition as keyof typeof positionMap] ?? 2,
 		);
 
-		// Connect position change
 		positionRow.connect("notify::selected", () => {
 			const selected = positionRow.get_selected();
 			const positions = ["fill", "left", "center", "right"];
@@ -153,14 +174,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		generalGroup.add(positionRow);
 
-		// Fullscreen Notification Group
 		const fullscreenGroup = new Adw.PreferencesGroup({
 			title: "Fullscreen Notifications",
 			description: "Control notification behavior in fullscreen mode",
 		});
 		generalPage.add(fullscreenGroup);
 
-		// Enable notifications in fullscreen switch
 		const enableFullscreenRow = new Adw.SwitchRow({
 			title: "Enable notifications in Fullscreen",
 			subtitle: "Show notifications even when applications are in fullscreen",
@@ -173,22 +192,21 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		);
 		fullscreenGroup.add(enableFullscreenRow);
 
-		// Filtering Settings Page
 		const filteringPage = new Adw.PreferencesPage({
 			title: "Filtering",
 			icon_name: "action-unavailable-symbolic",
 		});
 		window.add(filteringPage);
 
-		// Notification Filters Group
+		this.addTestSection(filteringPage);
+
 		const filterGroup = new Adw.PreferencesGroup({
 			title: "Notification Filters",
 			description:
-				"Block or hide notifications based on title, body text, or application name",
+				"Block or hide notifications using regular expressions to match title, body text, or application name",
 		});
 		filteringPage.add(filterGroup);
 
-		// Enable filtering switch
 		const enableFilteringRow = new Adw.SwitchRow({
 			title: "Enable Filtering",
 			subtitle: "Apply notification filters",
@@ -201,25 +219,23 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		);
 		filterGroup.add(enableFilteringRow);
 
-		// Filters List Group
 		this.filtersGroup = new Adw.PreferencesGroup({
 			title: "Active Filters",
-			description: "Configure filters to block unwanted notifications",
+			description:
+				"Configure filters using RegExp patterns. Examples: '^Error' (starts with), 'update|upgrade' (contains either), '\\d+' (contains numbers)",
 		});
 		filteringPage.add(this.filtersGroup);
 
-		// Create list box for filters
 		this.filtersList = new Gtk.ListBox({
 			selection_mode: Gtk.SelectionMode.NONE,
 			css_classes: ["boxed-list"],
 		});
 		this.filtersGroup.add(this.filtersList);
 
-		// Add filter button
 		this.addFilterButton = new Gtk.Button({
 			label: "Add Filter",
 			css_classes: ["suggested-action"],
-			margin_top: 12,
+			margin_top: 6,
 		});
 		this.addFilterButton.connect("clicked", () => {
 			this.addFilterEntry({
@@ -229,20 +245,20 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 				action: "hide",
 			});
 		});
-		this.filtersGroup.add(this.addFilterButton);
 
-		// Set initial sensitivity for filters
+		const addFilterGroup = new Adw.PreferencesGroup();
+		addFilterGroup.add(this.addFilterButton);
+		filteringPage.add(addFilterGroup);
+
 		const filteringEnabled = this.settings.get_boolean("enable-filtering");
 		this.filtersGroup.set_sensitive(filteringEnabled);
-		this.addFilterButton.set_sensitive(filteringEnabled);
+		addFilterGroup.set_sensitive(filteringEnabled);
 
-		// Connect filtering switch to filters sensitivity
 		enableFilteringRow.connect("notify::active", () => {
 			const enabled = enableFilteringRow.get_active();
 			this.filtersGroup.set_sensitive(enabled);
-			this.addFilterButton.set_sensitive(enabled);
+			addFilterGroup.set_sensitive(enabled);
 
-			// Update sensitivity for all existing filter rows
 			let rowChild = this.filtersList.get_first_child();
 			while (rowChild) {
 				rowChild.set_sensitive(enabled);
@@ -250,24 +266,22 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			}
 		});
 
-		// Populate existing filter entries
 		this.populateFiltersList();
 
-		// Themes Settings Page
 		const themesPage = new Adw.PreferencesPage({
 			title: "Themes",
 			icon_name: "applications-graphics-symbolic",
 		});
 		window.add(themesPage);
 
-		// Theme Settings Group
+		this.addTestSection(themesPage);
+
 		const themeGroup = new Adw.PreferencesGroup({
 			title: "Notification Themes",
 			description: "Customize notification appearance by application",
 		});
 		themesPage.add(themeGroup);
 
-		// Enable custom themes switch
 		const enableThemesRow = new Adw.SwitchRow({
 			title: "Enable Custom Themes",
 			subtitle: "Apply custom themes to notifications",
@@ -280,43 +294,41 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		);
 		themeGroup.add(enableThemesRow);
 
-		// App Themes List Group
 		this.appThemesGroup = new Adw.PreferencesGroup({
 			title: "Application Themes",
-			description: "Set custom themes for specific applications",
+			description:
+				"Set custom themes for specific applications using app names or RegExp patterns",
 		});
 		themesPage.add(this.appThemesGroup);
 
-		// Create list box for app themes
 		this.appThemesList = new Gtk.ListBox({
 			selection_mode: Gtk.SelectionMode.NONE,
 			css_classes: ["boxed-list"],
 		});
 		this.appThemesGroup.add(this.appThemesList);
 
-		// Add button
 		this.addButton = new Gtk.Button({
 			label: "Add Application Theme",
 			css_classes: ["suggested-action"],
-			margin_top: 12,
+			margin_top: 6,
 		});
 		this.addButton.connect("clicked", () => {
 			this.addAppThemeEntry("", { ...DEFAULT_THEME });
 		});
-		this.appThemesGroup.add(this.addButton);
 
-		// Set initial sensitivity for themes
+		const addThemeGroup = new Adw.PreferencesGroup();
+		addThemeGroup.add(this.addButton);
+		themesPage.add(addThemeGroup);
+
 		const themesEnabled = this.settings.get_boolean("enable-custom-colors");
 		this.appThemesGroup.set_sensitive(themesEnabled);
-		this.addButton.set_sensitive(themesEnabled);
+		addThemeGroup.set_sensitive(themesEnabled);
 
-		// Connect themes switch to themes sensitivity
 		enableThemesRow.connect("notify::active", () => {
 			const enabled = enableThemesRow.get_active();
 			this.appThemesGroup.set_sensitive(enabled);
-			this.addButton.set_sensitive(enabled);
+			addThemeGroup.set_sensitive(enabled);
 
-			// Update sensitivity for all existing theme rows
 			let rowChild = this.appThemesList.get_first_child();
 			while (rowChild) {
 				rowChild.set_sensitive(enabled);
@@ -324,10 +336,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			}
 		});
 
-		// Populate existing entries
 		this.populateAppThemesList();
 
-		// Set cleanup for window close
 		this.setCleanup(window);
 	}
 
@@ -350,7 +360,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	}
 
 	private populateFiltersList() {
-		// Clear existing rows
 		let child = this.filtersList.get_first_child();
 		while (child) {
 			const next = child.get_next_sibling();
@@ -358,13 +367,11 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			child = next;
 		}
 
-		// Add rows for existing data
 		const filteringEnabled = this.settings.get_boolean("enable-filtering");
-		for (let i = 0; i < this.filtersData.length; i++) {
-			this.addFilterRow(i);
+		for (let index = 0; index < this.filtersData.length; index++) {
+			this.addFilterRow(index);
 		}
 
-		// Set sensitivity for all filter rows based on filtering enabled state
 		let rowChild = this.filtersList.get_first_child();
 		while (rowChild) {
 			rowChild.set_sensitive(filteringEnabled);
@@ -378,7 +385,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.addFilterRow(index);
 		this.saveFiltersData();
 
-		// Set sensitivity for the newly added row
 		const filteringEnabled = this.settings.get_boolean("enable-filtering");
 		const lastChild = this.filtersList.get_last_child();
 		if (lastChild) {
@@ -389,7 +395,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	private addFilterRow(index: number) {
 		const entry = this.filtersData[index];
 
-		// Main container
 		const mainBox = new Gtk.Box({
 			orientation: Gtk.Orientation.VERTICAL,
 			spacing: 12,
@@ -399,19 +404,16 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			margin_end: 12,
 		});
 
-		// Header row with action combo and remove button
 		const headerRow = new Gtk.Box({
 			orientation: Gtk.Orientation.HORIZONTAL,
 			spacing: 12,
 		});
 
-		// Action label
 		const actionLabel = new Gtk.Label({
 			label: "Action:",
 			halign: Gtk.Align.START,
 		});
 
-		// Action combo
 		const actionCombo = new Gtk.ComboBoxText();
 		actionCombo.append("hide", "Hide notification");
 		actionCombo.append("close", "Close notification");
@@ -425,19 +427,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			}
 		});
 
-		// Test button for this filter
-		const filterTestButton = new Gtk.Button({
-			icon_name: "dialog-information-symbolic",
-			css_classes: ["flat"],
-			valign: Gtk.Align.CENTER,
-			tooltip_text: "Test notification with this filter",
-		});
-
-		filterTestButton.connect("clicked", () => {
-			this.sendTestNotificationForFilter(entry.filter);
-		});
-
-		// Remove button
 		const removeButton = new Gtk.Button({
 			icon_name: "user-trash-symbolic",
 			css_classes: ["destructive-action"],
@@ -452,74 +441,77 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		headerRow.append(actionLabel);
 		headerRow.append(actionCombo);
-		headerRow.append(filterTestButton);
 		headerRow.append(removeButton);
 
-		// Filter fields grid
 		const fieldsGrid = new Gtk.Grid({
 			column_spacing: 12,
 			row_spacing: 6,
 			margin_top: 6,
 		});
 
-		// Title field
 		const titleLabel = new Gtk.Label({
-			label: "Title contains:",
+			label: "Title matches regex:",
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(titleLabel, 0, 0, 1, 1);
 
 		const titleEntry = new Gtk.Entry({
 			text: entry.filter.title,
-			placeholder_text: "Leave empty to ignore title",
+			placeholder_text: "Match pattern (RegExp)",
 			hexpand: true,
 		});
 		titleEntry.connect("changed", () => {
-			this.filtersData[index].filter.title = titleEntry.get_text();
+			const pattern = titleEntry.get_text();
+			this.filtersData[index].filter.title = pattern;
+			this.validateRegexEntry(titleEntry, pattern);
 			this.saveFiltersData();
 		});
+		this.validateRegexEntry(titleEntry, entry.filter.title);
 		fieldsGrid.attach(titleEntry, 1, 0, 1, 1);
 
-		// Body field
 		const bodyLabel = new Gtk.Label({
-			label: "Body contains:",
+			label: "Body matches regex:",
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(bodyLabel, 0, 1, 1, 1);
 
 		const bodyEntry = new Gtk.Entry({
 			text: entry.filter.body,
-			placeholder_text: "Leave empty to ignore body",
+			placeholder_text: "Match pattern (RegExp)",
 			hexpand: true,
 		});
 		bodyEntry.connect("changed", () => {
-			this.filtersData[index].filter.body = bodyEntry.get_text();
+			const pattern = bodyEntry.get_text();
+			this.filtersData[index].filter.body = pattern;
+			this.validateRegexEntry(bodyEntry, pattern);
 			this.saveFiltersData();
 		});
+		this.validateRegexEntry(bodyEntry, entry.filter.body);
 		fieldsGrid.attach(bodyEntry, 1, 1, 1, 1);
 
-		// App name field
 		const appNameLabel = new Gtk.Label({
-			label: "App name contains:",
+			label: "App name matches regex:",
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(appNameLabel, 0, 2, 1, 1);
 
 		const appNameEntry = new Gtk.Entry({
 			text: entry.filter.appName,
-			placeholder_text: "Leave empty to ignore app name",
+			placeholder_text: "Match pattern (RegExp)",
 			hexpand: true,
 		});
 		appNameEntry.connect("changed", () => {
-			this.filtersData[index].filter.appName = appNameEntry.get_text();
+			const pattern = appNameEntry.get_text();
+			this.filtersData[index].filter.appName = pattern;
+			this.validateRegexEntry(appNameEntry, pattern);
 			this.saveFiltersData();
 		});
+		this.validateRegexEntry(appNameEntry, entry.filter.appName);
 		fieldsGrid.attach(appNameEntry, 1, 2, 1, 1);
 
 		mainBox.append(headerRow);
 		mainBox.append(fieldsGrid);
 
-		// Add separator except for last item
 		if (index < this.filtersData.length - 1) {
 			const separator = new Gtk.Separator({
 				orientation: Gtk.Orientation.HORIZONTAL,
@@ -535,6 +527,23 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		this.filtersList.append(listBoxRow);
+	}
+
+	private validateRegexEntry(entry: Gtk.Entry, pattern: string) {
+		if (!pattern?.trim()) {
+			entry.remove_css_class("error");
+			entry.set_tooltip_text("");
+			return;
+		}
+
+		try {
+			new RegExp(pattern, "i");
+			entry.remove_css_class("error");
+			entry.set_tooltip_text("");
+		} catch (error) {
+			entry.add_css_class("error");
+			entry.set_tooltip_text(`Invalid regex pattern: ${error}`);
+		}
 	}
 
 	private loadAppThemesData() {
@@ -566,7 +575,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	}
 
 	private populateAppThemesList() {
-		// Clear existing rows
 		let child = this.appThemesList.get_first_child();
 		while (child) {
 			const next = child.get_next_sibling();
@@ -574,12 +582,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			child = next;
 		}
 
-		// Add rows for existing data
-		for (let i = 0; i < this.appThemesData.length; i++) {
-			this.addAppThemeRow(i);
+		for (let index = 0; index < this.appThemesData.length; index++) {
+			this.addAppThemeRow(index);
 		}
 
-		// Update sensitivity for all rows
 		const themesEnabled = this.settings.get_boolean("enable-custom-colors");
 		let rowChild = this.appThemesList.get_first_child();
 		while (rowChild) {
@@ -598,7 +604,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	private addAppThemeRow(index: number) {
 		const entry = this.appThemesData[index];
 
-		// Main container
 		const mainBox = new Gtk.Box({
 			orientation: Gtk.Orientation.VERTICAL,
 			spacing: 12,
@@ -608,37 +613,25 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			margin_end: 12,
 		});
 
-		// Header row with app name and remove button
 		const headerRow = new Gtk.Box({
 			orientation: Gtk.Orientation.HORIZONTAL,
 			spacing: 12,
 		});
 
-		// App name entry
 		const nameEntry = new Gtk.Entry({
 			text: entry.name,
-			placeholder_text: "Application name",
+			placeholder_text: "Match pattern (RegExp)",
 			hexpand: true,
 		});
 
 		nameEntry.connect("changed", () => {
-			this.appThemesData[index].name = nameEntry.get_text();
+			const pattern = nameEntry.get_text();
+			this.appThemesData[index].name = pattern;
+			this.validateRegexEntry(nameEntry, pattern);
 			this.saveAppThemesData();
 		});
+		this.validateRegexEntry(nameEntry, entry.name);
 
-		// Test button for this theme
-		const themeTestButton = new Gtk.Button({
-			icon_name: "dialog-information-symbolic",
-			css_classes: ["flat"],
-			valign: Gtk.Align.CENTER,
-			tooltip_text: "Test notification with this theme",
-		});
-
-		themeTestButton.connect("clicked", () => {
-			this.sendTestNotificationForTheme(entry.name || "Test App");
-		});
-
-		// Remove button
 		const removeButton = new Gtk.Button({
 			icon_name: "user-trash-symbolic",
 			css_classes: ["destructive-action"],
@@ -652,17 +645,14 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		headerRow.append(nameEntry);
-		headerRow.append(themeTestButton);
 		headerRow.append(removeButton);
 
-		// Colors grid
 		const colorsGrid = new Gtk.Grid({
 			column_spacing: 12,
 			row_spacing: 6,
 			margin_top: 6,
 		});
 
-		// Color entries
 		const colorEntries = [
 			{ key: "backgroundColor", label: "Background" },
 			{ key: "titleColor", label: "Title" },
@@ -671,11 +661,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			{ key: "timeColor", label: "Time" },
 		] as const;
 
-		colorEntries.forEach((colorEntry, i) => {
-			const row = Math.floor(i / 2);
-			const col = (i % 2) * 2;
+		colorEntries.forEach((colorEntry, colorIndex) => {
+			const row = Math.floor(colorIndex / 2);
+			const col = (colorIndex % 2) * 2;
 
-			// Label
 			const label = new Gtk.Label({
 				label: colorEntry.label,
 				halign: Gtk.Align.START,
@@ -683,7 +672,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			});
 			colorsGrid.attach(label, col, row, 1, 1);
 
-			// Color button
 			const colorButton = new Gtk.ColorButton({
 				use_alpha: false,
 				halign: Gtk.Align.START,
@@ -709,7 +697,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		mainBox.append(headerRow);
 		mainBox.append(colorsGrid);
 
-		// Add separator except for last item
 		if (index < this.appThemesData.length - 1) {
 			const separator = new Gtk.Separator({
 				orientation: Gtk.Orientation.HORIZONTAL,
@@ -724,7 +711,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			selectable: false,
 		});
 
-		// Set initial sensitivity based on themes enabled state
 		const themesEnabled = this.settings.get_boolean("enable-custom-colors");
 		listBoxRow.set_sensitive(themesEnabled);
 
@@ -749,35 +735,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		}
 	}
 
-	private sendTestNotification() {
-		this.sendNotification(
-			"Notification Configurator",
-			"Test Notification",
-			"This is a test notification from Notification Configurator extension",
-		);
-	}
-
-	private sendTestNotificationForTheme(appName: string) {
-		const displayName = appName || "Notification Configurator";
-		this.sendNotification(
-			displayName,
-			"Theme Test Notification",
-			`This is a test notification for "${displayName}" theme configuration`,
-		);
-	}
-
-	private sendTestNotificationForFilter(filter: NotificationFilter) {
-		const title = filter.title || "Filter Test Title";
-		const body = filter.body || "Filter test body content";
-		const appName = filter.appName || "Filter Test App";
-
-		this.sendNotification(
-			appName,
-			title,
-			`${body} - This notification should be ${filter.action === "hide" ? "hidden" : "closed"} by your filter.`,
-		);
-	}
-
 	private setCleanup(window: Adw.PreferencesWindow) {
 		window.connect("close-request", () => {
 			// biome-ignore lint/style/noNonNullAssertion: cleanup
@@ -799,5 +756,98 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			// biome-ignore lint/style/noNonNullAssertion: cleanup
 			this.addFilterButton = null!;
 		});
+	}
+
+	private addTestSection(page: Adw.PreferencesPage) {
+		const testGroup = new Adw.PreferencesGroup({
+			title: "Test Notifications",
+		});
+		page.add(testGroup);
+
+		const testList = new Gtk.ListBox({
+			selection_mode: Gtk.SelectionMode.NONE,
+			css_classes: ["boxed-list"],
+		});
+		testGroup.add(testList);
+
+		const mainBox = new Gtk.Box({
+			orientation: Gtk.Orientation.VERTICAL,
+			spacing: 12,
+			margin_top: 12,
+			margin_bottom: 12,
+			margin_start: 12,
+			margin_end: 12,
+		});
+
+		const testGrid = new Gtk.Grid({
+			column_spacing: 12,
+			row_spacing: 6,
+		});
+
+		const appLabel = new Gtk.Label({
+			label: "App Name:",
+			halign: Gtk.Align.START,
+		});
+		testGrid.attach(appLabel, 0, 0, 1, 1);
+
+		const appEntry = new Gtk.Entry({
+			text: "Test Application Name",
+			placeholder_text: "Application name",
+			hexpand: true,
+		});
+		testGrid.attach(appEntry, 1, 0, 1, 1);
+
+		const titleLabel = new Gtk.Label({
+			label: "Title:",
+			halign: Gtk.Align.START,
+		});
+		testGrid.attach(titleLabel, 0, 1, 1, 1);
+
+		const titleEntry = new Gtk.Entry({
+			text: "Test Notification Title",
+			placeholder_text: "Notification title",
+			hexpand: true,
+		});
+		testGrid.attach(titleEntry, 1, 1, 1, 1);
+
+		const bodyLabel = new Gtk.Label({
+			label: "Body:",
+			halign: Gtk.Align.START,
+		});
+		testGrid.attach(bodyLabel, 0, 2, 1, 1);
+
+		const bodyEntry = new Gtk.Entry({
+			text: "Test Notification Body",
+			placeholder_text: "Notification body text",
+			hexpand: true,
+		});
+		testGrid.attach(bodyEntry, 1, 2, 1, 1);
+
+		mainBox.append(testGrid);
+
+		const listBoxRow = new Gtk.ListBoxRow({
+			child: mainBox,
+			activatable: false,
+			selectable: false,
+		});
+
+		testList.append(listBoxRow);
+
+		const testButton = new Gtk.Button({
+			label: "Send Test Notification",
+			css_classes: ["suggested-action"],
+			margin_top: 6,
+		});
+
+		testButton.connect("clicked", () => {
+			const appName = appEntry.get_text() || "Test App";
+			const title = titleEntry.get_text() || "Test Notification";
+			const body = bodyEntry.get_text() || "This is a test notification";
+			this.sendNotification(appName, title, body);
+		});
+
+		const testButtonGroup = new Adw.PreferencesGroup();
+		testButtonGroup.add(testButton);
+		page.add(testButtonGroup);
 	}
 }

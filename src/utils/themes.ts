@@ -19,8 +19,6 @@ export class ThemesManager {
 	private themeSignalId?: number;
 
 	constructor(private settingsManager: SettingsManager) {
-		this.settingsManager = settingsManager;
-
 		settingsManager.events.on("colorsEnabledChanged", (enabled) => {
 			if (enabled) {
 				this.enableThemes();
@@ -49,10 +47,10 @@ export class ThemesManager {
 		[red, green, blue, alpha]: Color,
 		kind: "color" | "background" = "color",
 	): string {
-		const r = Math.round(red * 255);
-		const g = Math.round(green * 255);
-		const b = Math.round(blue * 255);
-		const hex = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+		const redComponent = Math.round(red * 255);
+		const greenComponent = Math.round(green * 255);
+		const blueComponent = Math.round(blue * 255);
+		const hex = `#${redComponent.toString(16).padStart(2, "0")}${greenComponent.toString(16).padStart(2, "0")}${blueComponent.toString(16).padStart(2, "0")}`;
 		const value =
 			alpha < 1
 				? `${hex}${Math.round(alpha * 255)
@@ -66,14 +64,13 @@ export class ThemesManager {
 		const messageTrayContainer = Main.messageTray.get_first_child();
 
 		this.themeSignalId = messageTrayContainer?.connect("child-added", () => {
-			if (!this.settingsManager?.colorsEnabled) return;
+			if (!this.settingsManager.colorsEnabled) return;
 
 			const notificationContainer =
 				messageTrayContainer?.get_first_child() as St.Widget | null;
 			const notification = notificationContainer?.get_first_child();
 
 			const header = notification?.get_child_at_index(0);
-			// const headerIcon = header?.get_child_at_index(0) as St.Icon | null;
 			const headerContent = header?.get_child_at_index(
 				1,
 			) as St.BoxLayout | null;
@@ -92,7 +89,6 @@ export class ThemesManager {
 			const headerContentTime = headerContent?.get_child_at_index(1) as St.Bin;
 
 			const content = notification?.get_child_at_index(1);
-			// const contentIcon = content?.get_child_at_index(0) as St.Icon | null;
 			const contentContent = content?.get_child_at_index(
 				1,
 			) as St.BoxLayout | null;

@@ -55,5 +55,25 @@
       <description>JSON array of notification filter objects with title, body, appName, and action fields</description>
     </key>
 
+    <!-- Notification timeout settings -->
+    <key name="notification-timeout" type="i">
+      <default>4000</default>
+      <summary>Notification timeout</summary>
+      <description>Time in milliseconds before notifications auto-dismiss (0 = never dismiss)</description>
+      <range min="0" max="30000"/>
+    </key>
+
+    <key name="ignore-idle" type="b">
+      <default>true</default>
+      <summary>Ignore idle state</summary>
+      <description>Whether to ignore user idle state when timing notifications</description>
+    </key>
+
+    <key name="always-normal-urgency" type="b">
+      <default>false</default>
+      <summary>Force normal urgency</summary>
+      <description>Whether to force all notifications to normal urgency level</description>
+    </key>
+
   </schema>
 </schemalist>

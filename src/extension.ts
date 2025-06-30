@@ -1,6 +1,7 @@
 import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 
-import { NotificationsManager } from "./utils/notifications.js";
+import { NotificationsManager } from "./shell/notifications.js";
+
 import { SettingsManager } from "./utils/settings.js";
 import { ThemesManager } from "./utils/themes.js";
 
@@ -17,12 +18,11 @@ export default class NotificationConfiguratorExtension extends Extension {
 
 	disable() {
 		this.settingsManager?.dispose();
-		this.settingsManager = undefined;
-
 		this.notificationsManager?.dispose();
-		this.notificationsManager = undefined;
-
 		this.themesManager?.dispose();
+
+		this.settingsManager = undefined;
+		this.notificationsManager = undefined;
 		this.themesManager = undefined;
 	}
 }
