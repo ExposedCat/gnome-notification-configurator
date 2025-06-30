@@ -18,6 +18,9 @@ type SettingsEvents = {
 	notificationThresholdChanged: [number];
 	notificationPositionChanged: [Position];
 	fullscreenEnabledChanged: [boolean];
+	notificationTimeoutChanged: [number];
+	ignoreIdleChanged: [boolean];
+	alwaysNormalUrgencyChanged: [boolean];
 };
 
 export type Position = "fill" | "left" | "right" | "center";
@@ -31,6 +34,9 @@ export class SettingsManager {
 	private _filteringEnabled!: boolean;
 	private _fullscreenEnabled!: boolean;
 	private _notificationThreshold!: number;
+	private _notificationTimeout!: number;
+	private _ignoreIdle!: boolean;
+	private _alwaysNormalUrgency!: boolean;
 	private _themes: Record<string, NotificationTheme | undefined> = {};
 	private _blockList: NotificationFilter[] = [];
 
@@ -66,6 +72,18 @@ export class SettingsManager {
 
 	get notificationThreshold() {
 		return this._notificationThreshold;
+	}
+
+	get notificationTimeout() {
+		return this._notificationTimeout;
+	}
+
+	get ignoreIdle() {
+		return this._ignoreIdle;
+	}
+
+	get alwaysNormalUrgency() {
+		return this._alwaysNormalUrgency;
 	}
 
 	get notificationPosition() {
@@ -156,6 +174,11 @@ export class SettingsManager {
 		this._fullscreenEnabled = this.settings.get_boolean("enable-fullscreen");
 		this._notificationThreshold = this.settings.get_int(
 			"notification-threshold",
+		);
+		this._notificationTimeout = this.settings.get_int("notification-timeout");
+		this._ignoreIdle = this.settings.get_boolean("ignore-idle");
+		this._alwaysNormalUrgency = this.settings.get_boolean(
+			"always-normal-urgency",
 		);
 		this.loadThemes();
 		this.loadBlockList();
@@ -256,6 +279,34 @@ export class SettingsManager {
 				this._fullscreenEnabled =
 					this.settings.get_boolean("enable-fullscreen");
 				this.events.emit("fullscreenEnabledChanged", this._fullscreenEnabled);
+			}),
+		);
+		this.settingSignals.push(
+			this.settings.connect("changed::notification-timeout", () => {
+				this._notificationTimeout = this.settings.get_int(
+					"notification-timeout",
+				);
+				this.events.emit(
+					"notificationTimeoutChanged",
+					this._notificationTimeout,
+				);
+			}),
+		);
+		this.settingSignals.push(
+			this.settings.connect("changed::ignore-idle", () => {
+				this._ignoreIdle = this.settings.get_boolean("ignore-idle");
+				this.events.emit("ignoreIdleChanged", this._ignoreIdle);
+			}),
+		);
+		this.settingSignals.push(
+			this.settings.connect("changed::always-normal-urgency", () => {
+				this._alwaysNormalUrgency = this.settings.get_boolean(
+					"always-normal-urgency",
+				);
+				this.events.emit(
+					"alwaysNormalUrgencyChanged",
+					this._alwaysNormalUrgency,
+				);
 			}),
 		);
 	}

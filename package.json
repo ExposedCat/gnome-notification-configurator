@@ -8,7 +8,8 @@
 		"clean": "./cli clean",
 		"build": "./cli build",
 		"inject": "./cli inject",
-		"pack": "./cli pack"
+		"pack": "./cli pack",
+		"format": "biome format src --write; biome lint src --write "
 	},
 	"author": "ExposedCat",
 	"license": "LGPL-3.0-or-later",

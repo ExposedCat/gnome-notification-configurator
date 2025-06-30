@@ -47,10 +47,10 @@ export class ThemesManager {
 		[red, green, blue, alpha]: Color,
 		kind: "color" | "background" = "color",
 	): string {
-		const r = Math.round(red * 255);
-		const g = Math.round(green * 255);
-		const b = Math.round(blue * 255);
-		const hex = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+		const redComponent = Math.round(red * 255);
+		const greenComponent = Math.round(green * 255);
+		const blueComponent = Math.round(blue * 255);
+		const hex = `#${redComponent.toString(16).padStart(2, "0")}${greenComponent.toString(16).padStart(2, "0")}${blueComponent.toString(16).padStart(2, "0")}`;
 		const value =
 			alpha < 1
 				? `${hex}${Math.round(alpha * 255)

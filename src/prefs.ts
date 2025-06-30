@@ -15,14 +15,14 @@ export const DEFAULT_THEME: NotificationTheme = {
 	bodyColor: [0.992156863, 0.992156863, 0.992156863, 1],
 };
 
-interface AppThemeEntry {
+type AppThemeEntry = {
 	name: string;
 	theme: NotificationTheme;
-}
+};
 
-interface FilterEntry {
+type FilterEntry = {
 	filter: NotificationFilter;
-}
+};
 
 export default class NotificationConfiguratorPreferences extends ExtensionPreferences {
 	private settings!: Gio.Settings;
@@ -42,7 +42,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.loadAppThemesData();
 		this.loadFiltersData();
 
-		// General Settings Page
 		const generalPage = new Adw.PreferencesPage({
 			title: "General",
 			icon_name: "preferences-system-symbolic",
@@ -95,6 +94,54 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			this.thresholdRow.set_sensitive(enableRateLimitRow.get_active());
 		});
 
+		const timeoutGroup = new Adw.PreferencesGroup({
+			title: "Notification Timeout",
+			description: "Control how long notifications stay visible",
+		});
+		generalPage.add(timeoutGroup);
+
+		const timeoutRow = new Adw.SpinRow({
+			title: "Notification Timeout",
+			subtitle: "Time in milliseconds before auto-dismiss (0 = never dismiss)",
+			adjustment: new Gtk.Adjustment({
+				lower: 0,
+				upper: 30000,
+				step_increment: 500,
+				page_increment: 1000,
+			}),
+		});
+		this.settings.bind(
+			"notification-timeout",
+			timeoutRow,
+			"value",
+			Gio.SettingsBindFlags.DEFAULT,
+		);
+		timeoutGroup.add(timeoutRow);
+
+		const ignoreIdleRow = new Adw.SwitchRow({
+			title: "Ignore Idle State",
+			subtitle: "Keep timing notifications even when user is idle",
+		});
+		this.settings.bind(
+			"ignore-idle",
+			ignoreIdleRow,
+			"active",
+			Gio.SettingsBindFlags.DEFAULT,
+		);
+		timeoutGroup.add(ignoreIdleRow);
+
+		const forceNormalRow = new Adw.SwitchRow({
+			title: "Force Normal Urgency",
+			subtitle: "Make all notifications use normal urgency level",
+		});
+		this.settings.bind(
+			"always-normal-urgency",
+			forceNormalRow,
+			"active",
+			Gio.SettingsBindFlags.DEFAULT,
+		);
+		timeoutGroup.add(forceNormalRow);
+
 		const generalGroup = new Adw.PreferencesGroup({
 			title: "General Settings",
 			description: "Basic notification configuration",
@@ -119,7 +166,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			positionMap[currentPosition as keyof typeof positionMap] ?? 2,
 		);
 
-		// Connect position change
 		positionRow.connect("notify::selected", () => {
 			const selected = positionRow.get_selected();
 			const positions = ["fill", "left", "center", "right"];
@@ -128,14 +174,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		generalGroup.add(positionRow);
 
-		// Fullscreen Notification Group
 		const fullscreenGroup = new Adw.PreferencesGroup({
 			title: "Fullscreen Notifications",
 			description: "Control notification behavior in fullscreen mode",
 		});
 		generalPage.add(fullscreenGroup);
 
-		// Enable notifications in fullscreen switch
 		const enableFullscreenRow = new Adw.SwitchRow({
 			title: "Enable notifications in Fullscreen",
 			subtitle: "Show notifications even when applications are in fullscreen",
@@ -148,7 +192,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		);
 		fullscreenGroup.add(enableFullscreenRow);
 
-		// Filtering Settings Page
 		const filteringPage = new Adw.PreferencesPage({
 			title: "Filtering",
 			icon_name: "action-unavailable-symbolic",
@@ -157,7 +200,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		this.addTestSection(filteringPage);
 
-		// Notification Filters Group
 		const filterGroup = new Adw.PreferencesGroup({
 			title: "Notification Filters",
 			description:
@@ -224,10 +266,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			}
 		});
 
-		// Populate existing filter entries
 		this.populateFiltersList();
 
-		// Themes Settings Page
 		const themesPage = new Adw.PreferencesPage({
 			title: "Themes",
 			icon_name: "applications-graphics-symbolic",
@@ -296,10 +336,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			}
 		});
 
-		// Populate existing entries
 		this.populateAppThemesList();
 
-		// Set cleanup for window close
 		this.setCleanup(window);
 	}
 
@@ -322,7 +360,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	}
 
 	private populateFiltersList() {
-		// Clear existing rows
 		let child = this.filtersList.get_first_child();
 		while (child) {
 			const next = child.get_next_sibling();
@@ -330,13 +367,11 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			child = next;
 		}
 
-		// Add rows for existing data
 		const filteringEnabled = this.settings.get_boolean("enable-filtering");
-		for (let i = 0; i < this.filtersData.length; i++) {
-			this.addFilterRow(i);
+		for (let index = 0; index < this.filtersData.length; index++) {
+			this.addFilterRow(index);
 		}
 
-		// Set sensitivity for all filter rows based on filtering enabled state
 		let rowChild = this.filtersList.get_first_child();
 		while (rowChild) {
 			rowChild.set_sensitive(filteringEnabled);
@@ -350,7 +385,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.addFilterRow(index);
 		this.saveFiltersData();
 
-		// Set sensitivity for the newly added row
 		const filteringEnabled = this.settings.get_boolean("enable-filtering");
 		const lastChild = this.filtersList.get_last_child();
 		if (lastChild) {
@@ -361,7 +395,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	private addFilterRow(index: number) {
 		const entry = this.filtersData[index];
 
-		// Main container
 		const mainBox = new Gtk.Box({
 			orientation: Gtk.Orientation.VERTICAL,
 			spacing: 12,
@@ -542,7 +575,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	}
 
 	private populateAppThemesList() {
-		// Clear existing rows
 		let child = this.appThemesList.get_first_child();
 		while (child) {
 			const next = child.get_next_sibling();
@@ -550,12 +582,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			child = next;
 		}
 
-		// Add rows for existing data
-		for (let i = 0; i < this.appThemesData.length; i++) {
-			this.addAppThemeRow(i);
+		for (let index = 0; index < this.appThemesData.length; index++) {
+			this.addAppThemeRow(index);
 		}
 
-		// Update sensitivity for all rows
 		const themesEnabled = this.settings.get_boolean("enable-custom-colors");
 		let rowChild = this.appThemesList.get_first_child();
 		while (rowChild) {
@@ -574,7 +604,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 	private addAppThemeRow(index: number) {
 		const entry = this.appThemesData[index];
 
-		// Main container
 		const mainBox = new Gtk.Box({
 			orientation: Gtk.Orientation.VERTICAL,
 			spacing: 12,
@@ -584,7 +613,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			margin_end: 12,
 		});
 
-		// Header row with app name and remove button
 		const headerRow = new Gtk.Box({
 			orientation: Gtk.Orientation.HORIZONTAL,
 			spacing: 12,
@@ -625,7 +653,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			margin_top: 6,
 		});
 
-		// Color entries
 		const colorEntries = [
 			{ key: "backgroundColor", label: "Background" },
 			{ key: "titleColor", label: "Title" },
@@ -634,11 +661,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 			{ key: "timeColor", label: "Time" },
 		] as const;
 
-		colorEntries.forEach((colorEntry, i) => {
-			const row = Math.floor(i / 2);
-			const col = (i % 2) * 2;
+		colorEntries.forEach((colorEntry, colorIndex) => {
+			const row = Math.floor(colorIndex / 2);
+			const col = (colorIndex % 2) * 2;
 
-			// Label
 			const label = new Gtk.Label({
 				label: colorEntry.label,
 				halign: Gtk.Align.START,

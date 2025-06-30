@@ -1,6 +1,7 @@
 import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 
-import { NotificationsManager } from "./utils/notifications.js";
+import { NotificationsManager } from "./shell/notifications.js";
+
 import { SettingsManager } from "./utils/settings.js";
 import { ThemesManager } from "./utils/themes.js";
 
