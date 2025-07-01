@@ -9,7 +9,7 @@ EXTENSIONS="/home/$USER/.local/share/gnome-shell/extensions"
 build() {
   npx tsc
   cp -r metadata.json schemas dist
-  glib-compile-schemas ./dist/schemas
+  # glib-compile-schemas ./dist/schemas
 }
 
 inject() {
@@ -29,7 +29,7 @@ build)
 pack)
   rm -f $NAME.zip
   pushd dist || exit
-  zip "../$NAME.zip" -9r ./*.js ./*.css ./**/*.js ./**/*.css ./**/*.xml metadata.json
+  zip "../$NAME.zip" -9r . -i "*.js" "*.css" "*.xml" "metadata.json"
   popd || exit
   ;;
 inject)
