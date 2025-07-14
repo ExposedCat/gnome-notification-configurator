@@ -1,0 +1,308 @@
+# Notification Configurator
+# Copyright (C) 2025-2025 Artem Prokop
+# Artem Prokop <artem.prokop.dev@gmail.com>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Notification Configurator 3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-14 10:32+0200\n"
+"PO-Revision-Date: 2025-07-14 18:59+0200\n"
+"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
+"Language-Team: \n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.6\n"
+
+#: dist/prefs.js:29
+msgid "General"
+msgstr "Algemeen"
+
+#: dist/prefs.js:35
+msgid "Rate Limiting"
+msgstr "Hoeveelheid beperken"
+
+#: dist/prefs.js:36
+msgid "Control notification frequency per application"
+msgstr "Geef aan hoeveel meldingen een toepassing mag tonen"
+
+#: dist/prefs.js:40
+msgid "Enable Rate Limiting"
+msgstr "Hoeveelheid beperken"
+
+#: dist/prefs.js:41
+msgid "Prevent duplicate notifications within threshold time"
+msgstr "Voorkom dubbele meldingen binnen de ingestelde tijdspanne"
+
+#: dist/prefs.js:46
+msgid "Notification Threshold"
+msgstr "Tijd tussen meldingen"
+
+#: dist/prefs.js:47
+msgid "Time in milliseconds before allowing duplicate notifications"
+msgstr ""
+"De tijd (in milliseconden) voordat dubbele meldingen getoond mogen worden"
+
+#: dist/prefs.js:62 dist/prefs.js:67
+msgid "Notification Timeout"
+msgstr "Meldingen verbergen na"
+
+#: dist/prefs.js:63
+msgid "Control how long notifications stay visible"
+msgstr "Geef aan hoelang meldingen getoond dienen te worden"
+
+#: dist/prefs.js:68
+msgid "Time in milliseconds before auto-dismiss (0 = never dismiss)"
+msgstr ""
+"De tijd (in milliseconden) voordat meldingen worden verborgen (0 = nooit)"
+
+#: dist/prefs.js:79
+msgid "Ignore Idle State"
+msgstr "Inactiviteit negeren"
+
+#: dist/prefs.js:80
+msgid "Keep showing notifications even when user is idle"
+msgstr "Blijf meldingen tonen, zelfs als de gebruiker in kwestie inactief is"
+
+#: dist/prefs.js:85
+msgid "Force Normal Urgency"
+msgstr "Normaal urgentieniveau gebruiken"
+
+#: dist/prefs.js:86
+msgid "Make all notifications use normal urgency level"
+msgstr "Toon alle meldingen zonder verhoogde of verlaagde urgentie"
+
+#: dist/prefs.js:91
+msgid "General Settings"
+msgstr "Algemene voorkeuren"
+
+#: dist/prefs.js:92
+msgid "Basic notification configuration"
+msgstr "Algemene meldingsvoorkeuren"
+
+#: dist/prefs.js:96
+msgid "Notification Position"
+msgstr "Meldingslocatie"
+
+#: dist/prefs.js:97
+msgid "Choose where notifications appear on screen"
+msgstr "Geef aan op welke locatie meldingen dienen te worden getoond"
+
+#: dist/prefs.js:100
+msgid "Fill Screen"
+msgstr "Uitrekken"
+
+#: dist/prefs.js:101
+msgid "Left"
+msgstr "Links"
+
+#: dist/prefs.js:102
+msgid "Center"
+msgstr "Midden"
+
+#: dist/prefs.js:103
+msgid "Right"
+msgstr "Rechts"
+
+#: dist/prefs.js:115
+msgid "Fullscreen Notifications"
+msgstr "Meldingen in schermvullende weergave"
+
+#: dist/prefs.js:116
+msgid "Control notification behavior in fullscreen mode"
+msgstr ""
+"Geef aan wat er met meldingen dient te gebeuren als de schermvullende "
+"weergave actief is"
+
+#: dist/prefs.js:120
+msgid "Enable notifications in Fullscreen"
+msgstr "Meldingen in schermvullende weergave tonen"
+
+#: dist/prefs.js:121
+msgid "Show notifications even when applications are in fullscreen"
+msgstr ""
+"Toon meldingen, zelfs als toepassing de schermvullende weergave gebruiken"
+
+#: dist/prefs.js:126
+msgid "Filtering"
+msgstr "Filteren"
+
+#: dist/prefs.js:132
+msgid "Notification Filters"
+msgstr "Meldingsfilters"
+
+#: dist/prefs.js:133
+msgid ""
+"Block or hide notifications using regular expressions to match title, body "
+"text, or application name"
+msgstr ""
+"Blokkeer of verberg meldingen met behulp van reguliere uitdrukkingen "
+"(titel, inhoud of toepassingsnaam)"
+
+#: dist/prefs.js:137
+msgid "Enable Filtering"
+msgstr "Filteren"
+
+#: dist/prefs.js:138
+msgid "Apply notification filters"
+msgstr "Meldingsfilters toepassen"
+
+#: dist/prefs.js:143
+msgid "Active Filters"
+msgstr "Actieve filters"
+
+#: dist/prefs.js:144
+msgid ""
+"Configure filters using RegExp patterns. Examples: '^Error' (starts with), "
+"'update|upgrade' (contains either), '\\d+' (contains numbers)"
+msgstr ""
+"Stel filters in met behulp van reguliere uitdrukkingen. Voorbeelden: "
+"‘^Error’ (starts with), ‘update|upgrade’ (contains either), ‘\\d+’ "
+"(contains numbers)"
+
+#: dist/prefs.js:153
+msgid "Add Filter"
+msgstr "Filter toevoegen"
+
+#: dist/prefs.js:183
+msgid "Themes"
+msgstr "Thema's"
+
+#: dist/prefs.js:189
+msgid "Notification Themes"
+msgstr "Meldingsthema's"
+
+#: dist/prefs.js:190
+msgid "Customize notification appearance by application"
+msgstr "Pas de vormgeving van meldingen aan"
+
+#: dist/prefs.js:194
+msgid "Enable Custom Themes"
+msgstr "Eigen thema's gebruiken"
+
+#: dist/prefs.js:195
+msgid "Apply custom themes to notifications"
+msgstr "Pas eigen thema's toe op meldingen"
+
+#: dist/prefs.js:200
+msgid "Application Themes"
+msgstr "Toepassingsthema's"
+
+#: dist/prefs.js:201
+msgid ""
+"Set custom themes for specific applications using app names or RegExp "
+"patterns"
+msgstr ""
+"Pas eigen thema's toe op meldingen van bepaalde toepassingen aan de hand "
+"van hun namen of reguliere uitdrukkingen"
+
+#: dist/prefs.js:210
+msgid "Add Application Theme"
+msgstr "Toepassingsthema toevoegen"
+
+#: dist/prefs.js:295
+msgid "Action:"
+msgstr "Actie:"
+
+#: dist/prefs.js:299
+msgid "Hide notification"
+msgstr "Melding verbergen"
+
+#: dist/prefs.js:300
+msgid "Close notification"
+msgstr "Melding sluiten"
+
+#: dist/prefs.js:328
+msgid "Title matches regex:"
+msgstr "Reguliere uitdrukking van meldingstitel:"
+
+#: dist/prefs.js:334 dist/prefs.js:352 dist/prefs.js:370 dist/prefs.js:474
+msgid "Match pattern (RegExp)"
+msgstr "Patroon overeen laten komen (RegExp)"
+
+#: dist/prefs.js:346
+msgid "Body matches regex:"
+msgstr "Reguliere uitdrukking van meldingsinhoud:"
+
+#: dist/prefs.js:364
+msgid "App name matches regex:"
+msgstr "Reguliere uitdrukking van toepassingsnaam:"
+
+#: dist/prefs.js:502
+msgid "Background"
+msgstr "Achtergrond"
+
+#: dist/prefs.js:503
+msgid "Title"
+msgstr "Titel"
+
+#: dist/prefs.js:504
+msgid "Body Text"
+msgstr "Inhoud"
+
+#: dist/prefs.js:505
+msgid "App Name"
+msgstr "Toepassingsnaam"
+
+#: dist/prefs.js:506
+msgid "Time"
+msgstr "Tijdstip"
+
+#: dist/prefs.js:592
+msgid "Test Notifications"
+msgstr "Meldingen uitproberen"
+
+#: dist/prefs.js:613
+msgid "App Name:"
+msgstr "Toepassingsnaam:"
+
+#: dist/prefs.js:618
+msgid "Test Application Name"
+msgstr "Toepassingsnaam uitproberen"
+
+#: dist/prefs.js:619
+msgid "Application name"
+msgstr "Toepassingsnaam"
+
+#: dist/prefs.js:624
+msgid "Title:"
+msgstr "Titel:"
+
+#: dist/prefs.js:629
+msgid "Test Notification Title"
+msgstr "Meldingstitel voorvertonen"
+
+#: dist/prefs.js:630
+msgid "Notification title"
+msgstr "Meldingstitel"
+
+#: dist/prefs.js:635
+msgid "Body:"
+msgstr "Inhoud:"
+
+#: dist/prefs.js:640
+msgid "Test Notification Body"
+msgstr "Meldingsinhoud voorvertonen"
+
+#: dist/prefs.js:641
+msgid "Notification body text"
+msgstr "Meldingstekst"
+
+#: dist/prefs.js:653
+msgid "Send Test Notification"
+msgstr "Testmelding versturen"
+
+#: dist/prefs.js:658
+msgid "Test App"
+msgstr "Toepassingstest"
+
+#: dist/prefs.js:659
+msgid "Test Notification"
+msgstr "Testmelding"
+
+#: dist/prefs.js:660
+msgid "This is a test notification"
+msgstr "Dit is een testmelding"
