@@ -7,6 +7,7 @@
 		"start": "./scripts/cli dev",
 		"clean": "./scripts/cli clean",
 		"build": "./scripts/cli build",
+		"cleanup": "./scripts/cli cleanup",
 		"inject": "./scripts/cli inject",
 		"pack": "./scripts/cli pack",
 		"translate": "./scripts/cli translate",

@@ -8,13 +8,17 @@ ARCHIVE="$SLUG.shell-extension.zip"
 EXTENSIONS="/home/$USER/.local/share/gnome-shell/extensions"
 
 pack() {
-	gnome-extensions pack --podir=po dist --extra-source=shell --extra-source=utils  --extra-source=managers --force
+	cd dist || exit
+	zip -9r "../$ARCHIVE" .
+	cd ..
 }
 
 build() {
   npx tsc
-  cp -r metadata.json schemas po dist
+  cp -r metadata.json schemas dist
+
   glib-compile-schemas ./dist/schemas
+  ./scripts/compile-locales.sh "$SLUG"
 }
 
 inject() {
@@ -26,17 +30,18 @@ inject() {
 
 case $1 in
 clean)
-  rm -rf dist node_modules $ARCHIVE
+  rm -rf dist node_modules $ARCHIVE locale
   ;;
 build)
   build
   ;;
+cleanup)
+	rm -f ./dist/schemas/gschemas.compiled
+  ;;
 pack)
-	build
 	pack
   ;;
 inject)
-	pack
 	inject
   ;;
 translate)

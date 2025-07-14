@@ -34,10 +34,13 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y glib2.0-dev libglib2.0-dev-bin
+        sudo apt-get install -y glib2.0-dev libglib2.0-dev-bin gettext
 
     - name: Build extension
       run: npm run build
+
+    - name: Cleanup build
+      run: npm run cleanup
 
     - name: Package extension
       run: npm run pack
