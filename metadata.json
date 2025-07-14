@@ -4,5 +4,6 @@
 	"uuid": "notification-configurator@exposedcat",
 	"settings-schema": "org.gnome.shell.extensions.notification-configurator",
 	"shell-version": ["46", "47", "48"],
-	"url": "https://github.com/ExposedCat/gnome-notification-configurator"
+	"url": "https://github.com/ExposedCat/gnome-notification-configurator",
+	"gettext-domain": "notification-configurator@exposedcat"
 }

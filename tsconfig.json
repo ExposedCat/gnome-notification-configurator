@@ -11,13 +11,13 @@
 		"strict": true,
 		"forceConsistentCasingInFileNames": true,
 		"sourceMap": false,
-		"incremental": true,
+		"incremental": false,
 		"allowJs": true,
 		"skipLibCheck": true,
 		"downlevelIteration": true,
 		"importHelpers": true,
 		"maxNodeModuleJsDepth": 2,
-		"declaration": true,
+		"declaration": false,
 		"outDir": "./dist"
 	},
 	"include": ["src/**/*"]
