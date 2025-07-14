@@ -4,7 +4,12 @@ NAME="notification-configurator"
 DOMAIN="exposedcat"
 
 SLUG="$NAME@$DOMAIN"
+ARCHIVE="$SLUG.shell-extension.zip"
 EXTENSIONS="/home/$USER/.local/share/gnome-shell/extensions"
+
+pack() {
+	gnome-extensions pack --podir=po dist --extra-source=shell --extra-source=utils  --extra-source=managers --force
+}
 
 build() {
   npx tsc
@@ -13,25 +18,30 @@ build() {
 }
 
 inject() {
-	build
   mkdir -p "$EXTENSIONS"
   rm -rf "${EXTENSIONS:?}/$SLUG"
-  mv dist "$EXTENSIONS/$SLUG"
+  unzip $ARCHIVE -d "$EXTENSIONS/$SLUG"
+  glib-compile-schemas "$EXTENSIONS/$SLUG/schemas"
 }
 
 case $1 in
 clean)
-  rm -rf dist node_modules $NAME.zip
+  rm -rf dist node_modules $ARCHIVE
   ;;
 build)
   build
   ;;
 pack)
 	build
-  gnome-extensions pack --podir=po dist --extra-source=shell --extra-source=utils  --extra-source=managers --force
+	pack
   ;;
 inject)
+	build
 	inject
+  ;;
+translate)
+  build
+	./scripts/update-pot.sh
   ;;
 uninstall)
   rm -rf "${EXTENSIONS:?}/$SLUG"

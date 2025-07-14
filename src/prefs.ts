@@ -2,7 +2,10 @@ import Adw from "gi://Adw";
 import Gdk from "gi://Gdk";
 import Gio from "gi://Gio";
 import Gtk from "gi://Gtk";
-import { ExtensionPreferences } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
+import {
+	ExtensionPreferences,
+	gettext as _,
+} from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
 import type { NotificationFilter } from "./utils/settings.js";
 import type { NotificationTheme } from "./utils/themes.js";
@@ -43,7 +46,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.loadFiltersData();
 
 		const generalPage = new Adw.PreferencesPage({
-			title: "General",
+			title: _("General"),
 			icon_name: "preferences-system-symbolic",
 		});
 		window.add(generalPage);
@@ -51,14 +54,14 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.addTestSection(generalPage);
 
 		const rateLimitGroup = new Adw.PreferencesGroup({
-			title: "Rate Limiting",
-			description: "Control notification frequency per application",
+			title: _("Rate Limiting"),
+			description: _("Control notification frequency per application"),
 		});
 		generalPage.add(rateLimitGroup);
 
 		const enableRateLimitRow = new Adw.SwitchRow({
-			title: "Enable Rate Limiting",
-			subtitle: "Prevent duplicate notifications within threshold time",
+			title: _("Enable Rate Limiting"),
+			subtitle: _("Prevent duplicate notifications within threshold time"),
 		});
 		this.settings.bind(
 			"enable-rate-limiting",
@@ -69,8 +72,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		rateLimitGroup.add(enableRateLimitRow);
 
 		this.thresholdRow = new Adw.SpinRow({
-			title: "Notification Threshold",
-			subtitle: "Time in milliseconds before allowing duplicate notifications",
+			title: _("Notification Threshold"),
+			subtitle: _(
+				"Time in milliseconds before allowing duplicate notifications",
+			),
 			adjustment: new Gtk.Adjustment({
 				lower: 100,
 				upper: 60000,
@@ -95,14 +100,16 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		const timeoutGroup = new Adw.PreferencesGroup({
-			title: "Notification Timeout",
-			description: "Control how long notifications stay visible",
+			title: _("Notification Timeout"),
+			description: _("Control how long notifications stay visible"),
 		});
 		generalPage.add(timeoutGroup);
 
 		const timeoutRow = new Adw.SpinRow({
-			title: "Notification Timeout",
-			subtitle: "Time in milliseconds before auto-dismiss (0 = never dismiss)",
+			title: _("Notification Timeout"),
+			subtitle: _(
+				"Time in milliseconds before auto-dismiss (0 = never dismiss)",
+			),
 			adjustment: new Gtk.Adjustment({
 				lower: 0,
 				upper: 30000,
@@ -119,8 +126,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		timeoutGroup.add(timeoutRow);
 
 		const ignoreIdleRow = new Adw.SwitchRow({
-			title: "Ignore Idle State",
-			subtitle: "Keep timing notifications even when user is idle",
+			title: _("Ignore Idle State"),
+			subtitle: _("Keep showing notifications even when user is idle"),
 		});
 		this.settings.bind(
 			"ignore-idle",
@@ -131,8 +138,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		timeoutGroup.add(ignoreIdleRow);
 
 		const forceNormalRow = new Adw.SwitchRow({
-			title: "Force Normal Urgency",
-			subtitle: "Make all notifications use normal urgency level",
+			title: _("Force Normal Urgency"),
+			subtitle: _("Make all notifications use normal urgency level"),
 		});
 		this.settings.bind(
 			"always-normal-urgency",
@@ -143,21 +150,21 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		timeoutGroup.add(forceNormalRow);
 
 		const generalGroup = new Adw.PreferencesGroup({
-			title: "General Settings",
-			description: "Basic notification configuration",
+			title: _("General Settings"),
+			description: _("Basic notification configuration"),
 		});
 		generalPage.add(generalGroup);
 
 		const positionRow = new Adw.ComboRow({
-			title: "Notification Position",
-			subtitle: "Choose where notifications appear on screen",
+			title: _("Notification Position"),
+			subtitle: _("Choose where notifications appear on screen"),
 		});
 
 		const positionModel = new Gtk.StringList();
-		positionModel.append("Fill Screen");
-		positionModel.append("Left");
-		positionModel.append("Center");
-		positionModel.append("Right");
+		positionModel.append(_("Fill Screen"));
+		positionModel.append(_("Left"));
+		positionModel.append(_("Center"));
+		positionModel.append(_("Right"));
 		positionRow.set_model(positionModel);
 
 		const currentPosition = this.settings.get_string("notification-position");
@@ -175,14 +182,16 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		generalGroup.add(positionRow);
 
 		const fullscreenGroup = new Adw.PreferencesGroup({
-			title: "Fullscreen Notifications",
-			description: "Control notification behavior in fullscreen mode",
+			title: _("Fullscreen Notifications"),
+			description: _("Control notification behavior in fullscreen mode"),
 		});
 		generalPage.add(fullscreenGroup);
 
 		const enableFullscreenRow = new Adw.SwitchRow({
-			title: "Enable notifications in Fullscreen",
-			subtitle: "Show notifications even when applications are in fullscreen",
+			title: _("Enable notifications in Fullscreen"),
+			subtitle: _(
+				"Show notifications even when applications are in fullscreen",
+			),
 		});
 		this.settings.bind(
 			"enable-fullscreen",
@@ -193,7 +202,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		fullscreenGroup.add(enableFullscreenRow);
 
 		const filteringPage = new Adw.PreferencesPage({
-			title: "Filtering",
+			title: _("Filtering"),
 			icon_name: "action-unavailable-symbolic",
 		});
 		window.add(filteringPage);
@@ -201,15 +210,16 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.addTestSection(filteringPage);
 
 		const filterGroup = new Adw.PreferencesGroup({
-			title: "Notification Filters",
-			description:
+			title: _("Notification Filters"),
+			description: _(
 				"Block or hide notifications using regular expressions to match title, body text, or application name",
+			),
 		});
 		filteringPage.add(filterGroup);
 
 		const enableFilteringRow = new Adw.SwitchRow({
-			title: "Enable Filtering",
-			subtitle: "Apply notification filters",
+			title: _("Enable Filtering"),
+			subtitle: _("Apply notification filters"),
 		});
 		this.settings.bind(
 			"enable-filtering",
@@ -220,9 +230,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		filterGroup.add(enableFilteringRow);
 
 		this.filtersGroup = new Adw.PreferencesGroup({
-			title: "Active Filters",
-			description:
+			title: _("Active Filters"),
+			description: _(
 				"Configure filters using RegExp patterns. Examples: '^Error' (starts with), 'update|upgrade' (contains either), '\\d+' (contains numbers)",
+			),
 		});
 		filteringPage.add(this.filtersGroup);
 
@@ -233,7 +244,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.filtersGroup.add(this.filtersList);
 
 		this.addFilterButton = new Gtk.Button({
-			label: "Add Filter",
+			label: _("Add Filter"),
 			css_classes: ["suggested-action"],
 			margin_top: 6,
 		});
@@ -269,7 +280,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.populateFiltersList();
 
 		const themesPage = new Adw.PreferencesPage({
-			title: "Themes",
+			title: _("Themes"),
 			icon_name: "applications-graphics-symbolic",
 		});
 		window.add(themesPage);
@@ -277,14 +288,14 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.addTestSection(themesPage);
 
 		const themeGroup = new Adw.PreferencesGroup({
-			title: "Notification Themes",
-			description: "Customize notification appearance by application",
+			title: _("Notification Themes"),
+			description: _("Customize notification appearance by application"),
 		});
 		themesPage.add(themeGroup);
 
 		const enableThemesRow = new Adw.SwitchRow({
-			title: "Enable Custom Themes",
-			subtitle: "Apply custom themes to notifications",
+			title: _("Enable Custom Themes"),
+			subtitle: _("Apply custom themes to notifications"),
 		});
 		this.settings.bind(
 			"enable-custom-colors",
@@ -295,9 +306,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		themeGroup.add(enableThemesRow);
 
 		this.appThemesGroup = new Adw.PreferencesGroup({
-			title: "Application Themes",
-			description:
+			title: _("Application Themes"),
+			description: _(
 				"Set custom themes for specific applications using app names or RegExp patterns",
+			),
 		});
 		themesPage.add(this.appThemesGroup);
 
@@ -308,7 +320,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.appThemesGroup.add(this.appThemesList);
 
 		this.addButton = new Gtk.Button({
-			label: "Add Application Theme",
+			label: _("Add Application Theme"),
 			css_classes: ["suggested-action"],
 			margin_top: 6,
 		});
@@ -410,13 +422,13 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		const actionLabel = new Gtk.Label({
-			label: "Action:",
+			label: _("Action:"),
 			halign: Gtk.Align.START,
 		});
 
 		const actionCombo = new Gtk.ComboBoxText();
-		actionCombo.append("hide", "Hide notification");
-		actionCombo.append("close", "Close notification");
+		actionCombo.append("hide", _("Hide notification"));
+		actionCombo.append("close", _("Close notification"));
 		actionCombo.set_active_id(entry.filter.action);
 
 		actionCombo.connect("changed", () => {
@@ -450,14 +462,14 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		const titleLabel = new Gtk.Label({
-			label: "Title matches regex:",
+			label: _("Title matches regex:"),
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(titleLabel, 0, 0, 1, 1);
 
 		const titleEntry = new Gtk.Entry({
 			text: entry.filter.title,
-			placeholder_text: "Match pattern (RegExp)",
+			placeholder_text: _("Match pattern (RegExp)"),
 			hexpand: true,
 		});
 		titleEntry.connect("changed", () => {
@@ -470,14 +482,14 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		fieldsGrid.attach(titleEntry, 1, 0, 1, 1);
 
 		const bodyLabel = new Gtk.Label({
-			label: "Body matches regex:",
+			label: _("Body matches regex:"),
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(bodyLabel, 0, 1, 1, 1);
 
 		const bodyEntry = new Gtk.Entry({
 			text: entry.filter.body,
-			placeholder_text: "Match pattern (RegExp)",
+			placeholder_text: _("Match pattern (RegExp)"),
 			hexpand: true,
 		});
 		bodyEntry.connect("changed", () => {
@@ -490,14 +502,14 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		fieldsGrid.attach(bodyEntry, 1, 1, 1, 1);
 
 		const appNameLabel = new Gtk.Label({
-			label: "App name matches regex:",
+			label: _("App name matches regex:"),
 			halign: Gtk.Align.START,
 		});
 		fieldsGrid.attach(appNameLabel, 0, 2, 1, 1);
 
 		const appNameEntry = new Gtk.Entry({
 			text: entry.filter.appName,
-			placeholder_text: "Match pattern (RegExp)",
+			placeholder_text: _("Match pattern (RegExp)"),
 			hexpand: true,
 		});
 		appNameEntry.connect("changed", () => {
@@ -620,7 +632,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 		const nameEntry = new Gtk.Entry({
 			text: entry.name,
-			placeholder_text: "Match pattern (RegExp)",
+			placeholder_text: _("Match pattern (RegExp)"),
 			hexpand: true,
 		});
 
@@ -654,11 +666,11 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		const colorEntries = [
-			{ key: "backgroundColor", label: "Background" },
-			{ key: "titleColor", label: "Title" },
-			{ key: "bodyColor", label: "Body Text" },
-			{ key: "appNameColor", label: "App Name" },
-			{ key: "timeColor", label: "Time" },
+			{ key: "backgroundColor", label: _("Background") },
+			{ key: "titleColor", label: _("Title") },
+			{ key: "bodyColor", label: _("Body Text") },
+			{ key: "appNameColor", label: _("App Name") },
+			{ key: "timeColor", label: _("Time") },
 		] as const;
 
 		colorEntries.forEach((colorEntry, colorIndex) => {
@@ -760,7 +772,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
 	private addTestSection(page: Adw.PreferencesPage) {
 		const testGroup = new Adw.PreferencesGroup({
-			title: "Test Notifications",
+			title: _("Test Notifications"),
 		});
 		page.add(testGroup);
 
@@ -785,40 +797,40 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		const appLabel = new Gtk.Label({
-			label: "App Name:",
+			label: _("App Name:"),
 			halign: Gtk.Align.START,
 		});
 		testGrid.attach(appLabel, 0, 0, 1, 1);
 
 		const appEntry = new Gtk.Entry({
-			text: "Test Application Name",
-			placeholder_text: "Application name",
+			text: _("Test Application Name"),
+			placeholder_text: _("Application name"),
 			hexpand: true,
 		});
 		testGrid.attach(appEntry, 1, 0, 1, 1);
 
 		const titleLabel = new Gtk.Label({
-			label: "Title:",
+			label: _("Title:"),
 			halign: Gtk.Align.START,
 		});
 		testGrid.attach(titleLabel, 0, 1, 1, 1);
 
 		const titleEntry = new Gtk.Entry({
-			text: "Test Notification Title",
-			placeholder_text: "Notification title",
+			text: _("Test Notification Title"),
+			placeholder_text: _("Notification title"),
 			hexpand: true,
 		});
 		testGrid.attach(titleEntry, 1, 1, 1, 1);
 
 		const bodyLabel = new Gtk.Label({
-			label: "Body:",
+			label: _("Body:"),
 			halign: Gtk.Align.START,
 		});
 		testGrid.attach(bodyLabel, 0, 2, 1, 1);
 
 		const bodyEntry = new Gtk.Entry({
-			text: "Test Notification Body",
-			placeholder_text: "Notification body text",
+			text: _("Test Notification Body"),
+			placeholder_text: _("Notification body text"),
 			hexpand: true,
 		});
 		testGrid.attach(bodyEntry, 1, 2, 1, 1);
@@ -834,15 +846,15 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		testList.append(listBoxRow);
 
 		const testButton = new Gtk.Button({
-			label: "Send Test Notification",
+			label: _("Send Test Notification"),
 			css_classes: ["suggested-action"],
 			margin_top: 6,
 		});
 
 		testButton.connect("clicked", () => {
-			const appName = appEntry.get_text() || "Test App";
-			const title = titleEntry.get_text() || "Test Notification";
-			const body = bodyEntry.get_text() || "This is a test notification";
+			const appName = appEntry.get_text() || _("Test App");
+			const title = titleEntry.get_text() || _("Test Notification");
+			const body = bodyEntry.get_text() || _("This is a test notification");
 			this.sendNotification(appName, title, body);
 		});
 

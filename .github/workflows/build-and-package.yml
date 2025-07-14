@@ -89,7 +89,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: gnome-shell-extension-package
-        path: notification-configurator.zip
+        path: notification-configurator@exposedcat.shell-extension.zip
         retention-days: 30
 
     - name: Create release
@@ -100,7 +100,7 @@ jobs:
         name: Release ${{ steps.package_version.outputs.version }}
         body: ${{ steps.changelog.outputs.changelog }}
         files: |
-          notification-configurator.zip
+          notification-configurator@exposedcat.shell-extension.zip
           CHANGELOG.md
         draft: false
         prerelease: false

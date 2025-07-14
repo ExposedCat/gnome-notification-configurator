@@ -1,36 +1,37 @@
 {
-  "name": "gnome-shell-notification-configurator",
-  "description": "GNOME Shell notification configurator",
-  "version": "1.2.1",
-  "keywords": [],
-  "scripts": {
-    "start": "./cli dev",
-    "clean": "./cli clean",
-    "build": "./cli build",
-    "inject": "./cli inject",
-    "pack": "./cli pack",
-    "format": "biome format src --write; biome lint src --write "
-  },
-  "author": "ExposedCat",
-  "license": "LGPL-3.0-or-later",
-  "devDependencies": {
-    "@girs/gda-5.0": "^5.0.0-4.0.0-beta.14",
-    "@types/node": "^22.4.0",
-    "typescript": "^5.5.3"
-  },
-  "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ExposedCat/gnome-shell-notification-cleaner.git"
-  },
-  "bugs": {
-    "url": "https://github.com/ExposedCat/gnome-shell-notification-cleaner/issues"
-  },
-  "homepage": "https://github.com/ExposedCat/gnome-shell-notification-cleaner#readme",
-  "sideEffects": false,
-  "dependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@girs/gjs": "^4.0.0-beta.7",
-    "@girs/gnome-shell": "^46.0.1"
-  }
+	"name": "gnome-shell-notification-configurator",
+	"description": "GNOME Shell notification configurator",
+	"version": "1.2.0",
+	"keywords": [],
+	"scripts": {
+		"start": "./scripts/cli dev",
+		"clean": "./scripts/cli clean",
+		"build": "./scripts/cli build",
+		"inject": "./scripts/cli inject",
+		"pack": "./scripts/cli pack",
+		"translate": "./scripts/cli translate",
+		"format": "biome format src --write; biome lint src --write "
+	},
+	"author": "ExposedCat",
+	"license": "LGPL-3.0-or-later",
+	"devDependencies": {
+		"@girs/gda-5.0": "^5.0.0-4.0.0-beta.14",
+		"@types/node": "^22.4.0",
+		"typescript": "^5.5.3"
+	},
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ExposedCat/gnome-shell-notification-cleaner.git"
+	},
+	"bugs": {
+		"url": "https://github.com/ExposedCat/gnome-shell-notification-cleaner/issues"
+	},
+	"homepage": "https://github.com/ExposedCat/gnome-shell-notification-cleaner#readme",
+	"sideEffects": false,
+	"dependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@girs/gjs": "^4.0.0-beta.7",
+		"@girs/gnome-shell": "^46.0.1"
+	}
 }

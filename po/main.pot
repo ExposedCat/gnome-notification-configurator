@@ -1,0 +1,296 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Notification Configurator
+# This file is distributed under the same license as the Notification Configurator package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Notification Configurator 3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-14 10:32+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: dist/prefs.js:29
+msgid "General"
+msgstr ""
+
+#: dist/prefs.js:35
+msgid "Rate Limiting"
+msgstr ""
+
+#: dist/prefs.js:36
+msgid "Control notification frequency per application"
+msgstr ""
+
+#: dist/prefs.js:40
+msgid "Enable Rate Limiting"
+msgstr ""
+
+#: dist/prefs.js:41
+msgid "Prevent duplicate notifications within threshold time"
+msgstr ""
+
+#: dist/prefs.js:46
+msgid "Notification Threshold"
+msgstr ""
+
+#: dist/prefs.js:47
+msgid "Time in milliseconds before allowing duplicate notifications"
+msgstr ""
+
+#: dist/prefs.js:62 dist/prefs.js:67
+msgid "Notification Timeout"
+msgstr ""
+
+#: dist/prefs.js:63
+msgid "Control how long notifications stay visible"
+msgstr ""
+
+#: dist/prefs.js:68
+msgid "Time in milliseconds before auto-dismiss (0 = never dismiss)"
+msgstr ""
+
+#: dist/prefs.js:79
+msgid "Ignore Idle State"
+msgstr ""
+
+#: dist/prefs.js:80
+msgid "Keep showing notifications even when user is idle"
+msgstr ""
+
+#: dist/prefs.js:85
+msgid "Force Normal Urgency"
+msgstr ""
+
+#: dist/prefs.js:86
+msgid "Make all notifications use normal urgency level"
+msgstr ""
+
+#: dist/prefs.js:91
+msgid "General Settings"
+msgstr ""
+
+#: dist/prefs.js:92
+msgid "Basic notification configuration"
+msgstr ""
+
+#: dist/prefs.js:96
+msgid "Notification Position"
+msgstr ""
+
+#: dist/prefs.js:97
+msgid "Choose where notifications appear on screen"
+msgstr ""
+
+#: dist/prefs.js:100
+msgid "Fill Screen"
+msgstr ""
+
+#: dist/prefs.js:101
+msgid "Left"
+msgstr ""
+
+#: dist/prefs.js:102
+msgid "Center"
+msgstr ""
+
+#: dist/prefs.js:103
+msgid "Right"
+msgstr ""
+
+#: dist/prefs.js:115
+msgid "Fullscreen Notifications"
+msgstr ""
+
+#: dist/prefs.js:116
+msgid "Control notification behavior in fullscreen mode"
+msgstr ""
+
+#: dist/prefs.js:120
+msgid "Enable notifications in Fullscreen"
+msgstr ""
+
+#: dist/prefs.js:121
+msgid "Show notifications even when applications are in fullscreen"
+msgstr ""
+
+#: dist/prefs.js:126
+msgid "Filtering"
+msgstr ""
+
+#: dist/prefs.js:132
+msgid "Notification Filters"
+msgstr ""
+
+#: dist/prefs.js:133
+msgid ""
+"Block or hide notifications using regular expressions to match title, body "
+"text, or application name"
+msgstr ""
+
+#: dist/prefs.js:137
+msgid "Enable Filtering"
+msgstr ""
+
+#: dist/prefs.js:138
+msgid "Apply notification filters"
+msgstr ""
+
+#: dist/prefs.js:143
+msgid "Active Filters"
+msgstr ""
+
+#: dist/prefs.js:144
+msgid ""
+"Configure filters using RegExp patterns. Examples: '^Error' (starts with), "
+"'update|upgrade' (contains either), '\\d+' (contains numbers)"
+msgstr ""
+
+#: dist/prefs.js:153
+msgid "Add Filter"
+msgstr ""
+
+#: dist/prefs.js:183
+msgid "Themes"
+msgstr ""
+
+#: dist/prefs.js:189
+msgid "Notification Themes"
+msgstr ""
+
+#: dist/prefs.js:190
+msgid "Customize notification appearance by application"
+msgstr ""
+
+#: dist/prefs.js:194
+msgid "Enable Custom Themes"
+msgstr ""
+
+#: dist/prefs.js:195
+msgid "Apply custom themes to notifications"
+msgstr ""
+
+#: dist/prefs.js:200
+msgid "Application Themes"
+msgstr ""
+
+#: dist/prefs.js:201
+msgid ""
+"Set custom themes for specific applications using app names or RegExp "
+"patterns"
+msgstr ""
+
+#: dist/prefs.js:210
+msgid "Add Application Theme"
+msgstr ""
+
+#: dist/prefs.js:295
+msgid "Action:"
+msgstr ""
+
+#: dist/prefs.js:299
+msgid "Hide notification"
+msgstr ""
+
+#: dist/prefs.js:300
+msgid "Close notification"
+msgstr ""
+
+#: dist/prefs.js:328
+msgid "Title matches regex:"
+msgstr ""
+
+#: dist/prefs.js:334 dist/prefs.js:352 dist/prefs.js:370 dist/prefs.js:474
+msgid "Match pattern (RegExp)"
+msgstr ""
+
+#: dist/prefs.js:346
+msgid "Body matches regex:"
+msgstr ""
+
+#: dist/prefs.js:364
+msgid "App name matches regex:"
+msgstr ""
+
+#: dist/prefs.js:502
+msgid "Background"
+msgstr ""
+
+#: dist/prefs.js:503
+msgid "Title"
+msgstr ""
+
+#: dist/prefs.js:504
+msgid "Body Text"
+msgstr ""
+
+#: dist/prefs.js:505
+msgid "App Name"
+msgstr ""
+
+#: dist/prefs.js:506
+msgid "Time"
+msgstr ""
+
+#: dist/prefs.js:592
+msgid "Test Notifications"
+msgstr ""
+
+#: dist/prefs.js:613
+msgid "App Name:"
+msgstr ""
+
+#: dist/prefs.js:618
+msgid "Test Application Name"
+msgstr ""
+
+#: dist/prefs.js:619
+msgid "Application name"
+msgstr ""
+
+#: dist/prefs.js:624
+msgid "Title:"
+msgstr ""
+
+#: dist/prefs.js:629
+msgid "Test Notification Title"
+msgstr ""
+
+#: dist/prefs.js:630
+msgid "Notification title"
+msgstr ""
+
+#: dist/prefs.js:635
+msgid "Body:"
+msgstr ""
+
+#: dist/prefs.js:640
+msgid "Test Notification Body"
+msgstr ""
+
+#: dist/prefs.js:641
+msgid "Notification body text"
+msgstr ""
+
+#: dist/prefs.js:653
+msgid "Send Test Notification"
+msgstr ""
+
+#: dist/prefs.js:658
+msgid "Test App"
+msgstr ""
+
+#: dist/prefs.js:659
+msgid "Test Notification"
+msgstr ""
+
+#: dist/prefs.js:660
+msgid "This is a test notification"
+msgstr ""
