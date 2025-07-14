@@ -7,16 +7,9 @@ import {
 	gettext as _,
 } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
+import type { NotificationTheme } from "./utils/constants.js";
+import { DEFAULT_THEME } from "./utils/constants.js";
 import type { NotificationFilter } from "./utils/settings.js";
-import type { NotificationTheme } from "./utils/themes.js";
-
-export const DEFAULT_THEME: NotificationTheme = {
-	appNameColor: [0.6, 0.6, 0.607843137, 1],
-	timeColor: [0.6, 0.6, 0.607843137, 1],
-	backgroundColor: [0.329411765, 0.329411765, 0.352941176, 1],
-	titleColor: [0.992156863, 0.992156863, 0.992156863, 1],
-	bodyColor: [0.992156863, 0.992156863, 0.992156863, 1],
-};
 
 type AppThemeEntry = {
 	name: string;
@@ -293,17 +286,17 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 		themesPage.add(themeGroup);
 
-		const enableThemesRow = new Adw.SwitchRow({
-			title: _("Enable Custom Themes"),
-			subtitle: _("Apply custom themes to notifications"),
+		const enableColorsRow = new Adw.SwitchRow({
+			title: _("Enable Custom Colors"),
+			subtitle: _("Apply custom colors to notifications"),
 		});
 		this.settings.bind(
 			"enable-custom-colors",
-			enableThemesRow,
+			enableColorsRow,
 			"active",
 			Gio.SettingsBindFlags.DEFAULT,
 		);
-		themeGroup.add(enableThemesRow);
+		themeGroup.add(enableColorsRow);
 
 		this.appThemesGroup = new Adw.PreferencesGroup({
 			title: _("Application Themes"),
@@ -336,8 +329,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		this.appThemesGroup.set_sensitive(themesEnabled);
 		addThemeGroup.set_sensitive(themesEnabled);
 
-		enableThemesRow.connect("notify::active", () => {
-			const enabled = enableThemesRow.get_active();
+		enableColorsRow.connect("notify::active", () => {
+			const enabled = enableColorsRow.get_active();
 			this.appThemesGroup.set_sensitive(enabled);
 			addThemeGroup.set_sensitive(enabled);
 
@@ -576,7 +569,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		const themes = this.appThemesData.reduce(
 			(list, entry) => {
 				if (entry.name.trim()) {
-					list[entry.name] = entry.theme;
+					list[entry.name] = {
+						...DEFAULT_THEME,
+						...entry.theme,
+					};
 				}
 				return list;
 			},
@@ -659,42 +655,66 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		headerRow.append(nameEntry);
 		headerRow.append(removeButton);
 
-		const colorsGrid = new Gtk.Grid({
+		const themeGrid = new Gtk.Grid({
 			column_spacing: 12,
 			row_spacing: 6,
 			margin_top: 6,
 		});
 
-		const colorEntries = [
-			{ key: "backgroundColor", label: _("Background") },
-			{ key: "titleColor", label: _("Title") },
-			{ key: "bodyColor", label: _("Body Text") },
-			{ key: "appNameColor", label: _("App Name") },
-			{ key: "timeColor", label: _("Time") },
+		const themeEntries = [
+			{
+				key: "backgroundColor",
+				label: _("Background"),
+				colorKey: "backgroundColor",
+				fontKey: null,
+			},
+			{
+				key: "titleColor",
+				label: _("Title"),
+				colorKey: "titleColor",
+				fontKey: "titleFontSize",
+			},
+			{
+				key: "bodyColor",
+				label: _("Body Text"),
+				colorKey: "bodyColor",
+				fontKey: "bodyFontSize",
+			},
+			{
+				key: "appNameColor",
+				label: _("App Name"),
+				colorKey: "appNameColor",
+				fontKey: "appNameFontSize",
+			},
+			{
+				key: "timeColor",
+				label: _("Time"),
+				colorKey: "timeColor",
+				fontKey: "timeFontSize",
+			},
 		] as const;
 
-		colorEntries.forEach((colorEntry, colorIndex) => {
-			const row = Math.floor(colorIndex / 2);
-			const col = (colorIndex % 2) * 2;
+		themeEntries.forEach((themeEntry, themeIndex) => {
+			const row = themeIndex;
 
 			const label = new Gtk.Label({
-				label: colorEntry.label,
+				label: themeEntry.label,
 				halign: Gtk.Align.START,
 				css_classes: ["caption"],
 			});
-			colorsGrid.attach(label, col, row, 1, 1);
+			themeGrid.attach(label, 0, row, 1, 1);
 
 			const colorButton = new Gtk.ColorButton({
 				use_alpha: false,
 				halign: Gtk.Align.START,
 			});
 
-			const [red, green, blue, alpha] = entry.theme[colorEntry.key];
+			const [red, green, blue, alpha] = entry.theme[themeEntry.colorKey];
 			colorButton.set_rgba(new Gdk.RGBA({ red, green, blue, alpha }));
 
 			colorButton.connect("color-set", () => {
 				const color = colorButton.get_rgba();
-				this.appThemesData[index].theme[colorEntry.key] = [
+				this.appThemesData[index].theme[themeEntry.colorKey] = [
 					color.red,
 					color.green,
 					color.blue,
@@ -703,11 +723,49 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 				this.saveAppThemesData();
 			});
 
-			colorsGrid.attach(colorButton, col + 1, row, 1, 1);
+			themeGrid.attach(colorButton, 1, row, 1, 1);
+
+			if (themeEntry.fontKey) {
+				const fontSizeValue =
+					entry.theme[themeEntry.fontKey] ?? DEFAULT_THEME[themeEntry.fontKey];
+
+				const fontSizeButton = new Gtk.SpinButton({
+					adjustment: new Gtk.Adjustment({
+						lower: 8,
+						upper: 32,
+						step_increment: 1,
+						page_increment: 2,
+					}),
+					value: fontSizeValue,
+					halign: Gtk.Align.START,
+				});
+
+				fontSizeButton.connect("value-changed", () => {
+					this.appThemesData[index].theme[themeEntry.fontKey] =
+						fontSizeButton.get_value();
+					this.saveAppThemesData();
+				});
+
+				themeGrid.attach(fontSizeButton, 2, row, 1, 1);
+
+				const fontLabel = new Gtk.Label({
+					label: _("px"),
+					halign: Gtk.Align.START,
+					css_classes: ["caption"],
+				});
+				themeGrid.attach(fontLabel, 3, row, 1, 1);
+			} else {
+				// Add empty space for background row to maintain alignment
+				const emptySpace = new Gtk.Label({
+					label: "",
+					halign: Gtk.Align.START,
+				});
+				themeGrid.attach(emptySpace, 2, row, 2, 1);
+			}
 		});
 
 		mainBox.append(headerRow);
-		mainBox.append(colorsGrid);
+		mainBox.append(themeGrid);
 
 		if (index < this.appThemesData.length - 1) {
 			const separator = new Gtk.Separator({

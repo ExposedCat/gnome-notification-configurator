@@ -1,8 +1,8 @@
 import type Gio from "gi://Gio?version=2.0";
 
 import type { Notification } from "@girs/gnome-shell/ui/messageTray";
+import type { NotificationTheme } from "./constants.js";
 import { TypedEventEmitter } from "./event-emitter.js";
-import type { NotificationTheme } from "./themes.js";
 
 export type NotificationFilter = {
 	title: string;

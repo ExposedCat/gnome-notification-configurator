@@ -17,11 +17,10 @@
 
 - **Notification Rate Limiting** - Prevent frequent notifications from the same app within a configurable time threshold
 - **Notification Filtering** - Block or hide unwanted notifications using regular expressions to match title, body text, or application name
-- **Custom Color Themes** - Set custom colors for notifications per application using app names or RegExp patterns (background, title, body, app name, time)
+- **Custom Themes** - Set custom colors and font sizes for notifications per application using app names or RegExp patterns (background, title, body, app name, time)
 - **Notification Positioning** - Control where notifications appear on screen (fill, left, center, right)
+- **Notification Timeout** - Configure auto-dismiss timeout for notifications with idle state handling and urgency control
 - **Fullscreen Notifications** - Enable or disable notifications when applications are running in fullscreen mode
-- **Test Notifications** - Send test notifications to preview your settings instantly
-- **Real-time Configuration** - Changes take effect immediately without requiring restarts
 
 ## Installation
 
