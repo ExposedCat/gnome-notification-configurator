@@ -1,7 +1,6 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Notification Configurator
-# This file is distributed under the same license as the Notification Configurator package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Notification Configurator
+# Copyright (C) 2025-2025 Artem Prokop
+# Artem Prokop <artem.prokop.dev@gmail.com>, 2025.
 #
 #, fuzzy
 msgid ""
@@ -14,7 +13,7 @@ msgstr ""
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: dist/prefs.js:29
