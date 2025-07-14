@@ -36,7 +36,7 @@ pack)
 	pack
   ;;
 inject)
-	build
+	pack
 	inject
   ;;
 translate)
@@ -47,7 +47,8 @@ uninstall)
   rm -rf "${EXTENSIONS:?}/$SLUG"
   ;;
 dev)
-  build
+	build
+	pack
   inject
   dbus-run-session -- gnome-shell --nested --wayland
   ;;
