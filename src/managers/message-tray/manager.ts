@@ -8,9 +8,9 @@ export type UpdateStateHook = (
 
 export type UpdateNotificationTimeoutHook = (
 	original: (timeout: number) => void,
-	timeout: number,
+	timeout: number | null,
 	context: { tray: MessageTray.MessageTrayProto },
-) => number;
+) => number | null;
 
 export class MessageTrayManager {
 	private _updateStateOrig?: () => void;
@@ -92,7 +92,7 @@ export class MessageTrayManager {
 		const hooks = this.updateNotificationTimeoutHooks;
 
 		messageTrayProto._updateNotificationTimeout = function (timeout: number) {
-			let finalTimeout = timeout;
+			let finalTimeout: number | null = timeout;
 
 			for (const hook of hooks) {
 				finalTimeout = hook(
@@ -100,9 +100,14 @@ export class MessageTrayManager {
 					finalTimeout,
 					{ tray: this },
 				);
+				if (finalTimeout === null) {
+					break;
+				}
 			}
 
-			return updateTimeoutOrig.call(this, finalTimeout);
+			if (finalTimeout !== null) {
+				return updateTimeoutOrig.call(this, finalTimeout);
+			}
 		};
 	}
 
