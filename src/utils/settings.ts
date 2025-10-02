@@ -100,20 +100,25 @@ export class SettingsManager {
 		source: string,
 	): NotificationFilter["action"] | null {
 		for (const { title, body, appName, action } of this._blockList) {
-			if (title.trim() && notification.title?.trim()) {
-				if (this.matchesRegex(notification.title, title)) {
-					return action;
-				}
+			if (!title.trim() && !appName.trim() && !body.trim()) {
+				continue;
 			}
-			if (appName.trim() && source.trim()) {
-				if (this.matchesRegex(source, appName)) {
-					return action;
-				}
-			}
-			if (body.trim() && notification.body?.trim()) {
-				if (this.matchesRegex(notification.body, body)) {
-					return action;
-				}
+
+			const matches = [
+				!title.trim() ||
+					(notification.title?.trim() &&
+						this.matchesRegex(notification.title, title)),
+
+				!appName.trim() ||
+					(source.trim() && this.matchesRegex(source, appName)),
+
+				!body.trim() ||
+					(notification.body?.trim() &&
+						this.matchesRegex(notification.body, body)),
+			];
+
+			if (matches.every(Boolean)) {
+				return action;
 			}
 		}
 		return null;
