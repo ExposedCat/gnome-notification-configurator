@@ -10,7 +10,7 @@ export class ProcessingAdapter {
 		const settingsManager = this.settingsManager;
 		const timings = this.timings;
 
-		return (original, notification, { block }) => {
+		return (_original, notification, { block }) => {
 			const sourceTitle = notification.source?.title ?? "UNK_SRC";
 
 			if (settingsManager.rateLimitingEnabled) {
@@ -39,8 +39,6 @@ export class ProcessingAdapter {
 					notification.acknowledged = true;
 				}
 			}
-
-			original(notification);
 		};
 	}
 

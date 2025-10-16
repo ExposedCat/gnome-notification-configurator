@@ -6,8 +6,7 @@ import { IdleAdapter } from "../managers/message-tray/idle.js";
 import { MessageTrayManager } from "../managers/message-tray/manager.js";
 import { TimeoutAdapter } from "../managers/message-tray/timeout.js";
 
-import { NotificationManager } from "../managers/notification/manager.js";
-import { UrgencyAdapter } from "../managers/notification/urgency.js";
+import { UrgencyAdapter } from "../managers/source/urgency.js";
 
 import { SourceManager } from "../managers/source/manager.js";
 import { ProcessingAdapter } from "../managers/source/processing.js";
@@ -16,7 +15,6 @@ import type { SettingsManager } from "../utils/settings.js";
 
 export class NotificationsManager {
 	private messageTrayManager: MessageTrayManager;
-	private notificationManager: NotificationManager;
 	private sourceManager: SourceManager;
 
 	private fullscreenAdapter: FullscreenAdapter;
@@ -27,7 +25,6 @@ export class NotificationsManager {
 
 	constructor(settingsManager: SettingsManager) {
 		this.messageTrayManager = new MessageTrayManager(settingsManager);
-		this.notificationManager = new NotificationManager(settingsManager);
 		this.sourceManager = new SourceManager(settingsManager);
 
 		this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
@@ -39,7 +36,7 @@ export class NotificationsManager {
 		this.fullscreenAdapter.register(this.messageTrayManager);
 		this.idleAdapter.register(this.messageTrayManager);
 		this.timeoutAdapter.register(this.messageTrayManager);
-		this.urgencyAdapter.register(this.notificationManager);
+		this.urgencyAdapter.register(this.sourceManager);
 		this.processingAdapter.register(this.sourceManager);
 
 		this.setupPositioning(settingsManager);
@@ -66,13 +63,11 @@ export class NotificationsManager {
 
 	private enable() {
 		this.messageTrayManager.enable();
-		this.notificationManager.enable();
 		this.sourceManager.enable();
 	}
 
 	private disable() {
 		this.sourceManager.disable();
-		this.notificationManager.disable();
 		this.messageTrayManager.disable();
 	}
 
@@ -86,7 +81,6 @@ export class NotificationsManager {
 		this.processingAdapter.dispose();
 
 		this.messageTrayManager.dispose();
-		this.notificationManager.dispose();
 		this.sourceManager.dispose();
 
 		Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
