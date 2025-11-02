@@ -1,5 +1,6 @@
 import Clutter from "gi://Clutter";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
+import type { MessageTrayProto } from "resource:///org/gnome/shell/ui/messageTray.js";
 
 import { FullscreenAdapter } from "../managers/message-tray/fullscreen.js";
 import { IdleAdapter } from "../managers/message-tray/idle.js";
@@ -16,6 +17,9 @@ import type { SettingsManager } from "../utils/settings.js";
 export class NotificationsManager {
 	private messageTrayManager: MessageTrayManager;
 	private sourceManager: SourceManager;
+	private settingsManager: SettingsManager;
+	private horizontalPositionListenerId?: number;
+	private verticalPositionListenerId?: number;
 
 	private fullscreenAdapter: FullscreenAdapter;
 	private idleAdapter: IdleAdapter;
@@ -24,6 +28,7 @@ export class NotificationsManager {
 	private processingAdapter: ProcessingAdapter;
 
 	constructor(settingsManager: SettingsManager) {
+		this.settingsManager = settingsManager;
 		this.messageTrayManager = new MessageTrayManager(settingsManager);
 		this.sourceManager = new SourceManager(settingsManager);
 
@@ -39,13 +44,17 @@ export class NotificationsManager {
 		this.urgencyAdapter.register(this.sourceManager);
 		this.processingAdapter.register(this.sourceManager);
 
-		this.setupPositioning(settingsManager);
+		this.setupPositioning();
 
 		this.enable();
 	}
 
-	private setupPositioning(settingsManager: SettingsManager) {
-		const setPosition = (position: "fill" | "left" | "right" | "center") => {
+	private setupPositioning() {
+		const settingsManager = this.settingsManager;
+
+		const setHorizontalPosition = (
+			position: "fill" | "left" | "right" | "center",
+		) => {
 			Main.messageTray.bannerAlignment = {
 				fill: Clutter.ActorAlign.FILL,
 				left: Clutter.ActorAlign.START,
@@ -54,11 +63,88 @@ export class NotificationsManager {
 			}[position];
 		};
 
-		setPosition(settingsManager.notificationPosition);
+		const updateVerticalPosition = (tray: MessageTrayProto) => {
+			const bannerTray = tray as MessageTrayProto & {
+				_bannerBin?: Clutter.Actor;
+			};
+			const actor = bannerTray._bannerBin;
+			if (!actor) {
+				return;
+			}
 
-		settingsManager.events.on("notificationPositionChanged", (position) => {
-			setPosition(position);
+			if (!actor.get_stage()) {
+				const [translationX, , translationZ] = actor.get_translation();
+				actor.set_translation(translationX, 0, translationZ);
+				return;
+			}
+
+			const verticalPosition = settingsManager.notificationVerticalPosition;
+			const [, stageY] = actor.get_transformed_position();
+			const [, actorHeight] = actor.get_transformed_size();
+
+			if (actorHeight === 0) {
+				return;
+			}
+
+			const monitorIndex = Main.layoutManager.findIndexForActor(actor);
+			const workArea = Main.layoutManager.getWorkAreaForMonitor(monitorIndex);
+			const availableSpan = Math.max(workArea.height - actorHeight, 0);
+
+			const targetOffset =
+				verticalPosition === "center"
+					? availableSpan / 2
+					: verticalPosition === "bottom"
+						? availableSpan
+						: 0;
+			const target = workArea.y + targetOffset;
+
+			const [translationX, currentTranslationY, translationZ] =
+				actor.get_translation();
+			const baseStageY = stageY - currentTranslationY;
+			const translationY = Math.round(target - baseStageY);
+
+			if (translationY !== currentTranslationY) {
+				actor.set_translation(translationX, translationY, translationZ);
+			}
+		};
+
+		this.messageTrayManager.registerUpdateStateHook((original, { tray }) => {
+			original();
+			updateVerticalPosition(tray);
 		});
+
+		setHorizontalPosition(settingsManager.notificationPosition);
+		updateVerticalPosition(Main.messageTray as unknown as MessageTrayProto);
+
+		this.horizontalPositionListenerId = settingsManager.events.on(
+			"notificationPositionChanged",
+			(position) => {
+				setHorizontalPosition(position);
+			},
+		);
+
+		this.verticalPositionListenerId = settingsManager.events.on(
+			"notificationVerticalPositionChanged",
+			() => {
+				updateVerticalPosition(Main.messageTray as unknown as MessageTrayProto);
+			},
+		);
+	}
+
+	private resetVerticalTranslations(tray?: MessageTrayProto) {
+		const targetTray =
+			tray ?? (Main.messageTray as unknown as MessageTrayProto);
+		const bannerTray = targetTray as MessageTrayProto & {
+			_bannerBin?: Clutter.Actor;
+		};
+		const actor = bannerTray._bannerBin;
+
+		if (!actor) {
+			return;
+		}
+
+		const [translationX, , translationZ] = actor.get_translation();
+		actor.set_translation(translationX, 0, translationZ);
 	}
 
 	private enable() {
@@ -67,8 +153,21 @@ export class NotificationsManager {
 	}
 
 	private disable() {
+		if (this.horizontalPositionListenerId !== undefined) {
+			this.settingsManager.events.off(this.horizontalPositionListenerId);
+			this.horizontalPositionListenerId = undefined;
+		}
+
+		if (this.verticalPositionListenerId !== undefined) {
+			this.settingsManager.events.off(this.verticalPositionListenerId);
+			this.verticalPositionListenerId = undefined;
+		}
+
 		this.sourceManager.disable();
 		this.messageTrayManager.disable();
+
+		this.resetVerticalTranslations();
+		Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
 	}
 
 	dispose() {
@@ -82,7 +181,5 @@ export class NotificationsManager {
 
 		this.messageTrayManager.dispose();
 		this.sourceManager.dispose();
-
-		Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
 	}
 }

@@ -149,8 +149,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		generalPage.add(generalGroup);
 
 		const positionRow = new Adw.ComboRow({
-			title: _("Notification Position"),
-			subtitle: _("Choose where notifications appear on screen"),
+			title: _("Horizontal Position"),
+			subtitle: _("Choose horizontal alignment for notifications"),
 		});
 
 		const positionModel = new Gtk.StringList();
@@ -173,6 +173,36 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 		});
 
 		generalGroup.add(positionRow);
+
+		const verticalRow = new Adw.ComboRow({
+			title: _("Vertical Position"),
+			subtitle: _("Choose vertical placement for notifications"),
+		});
+
+		const verticalModel = new Gtk.StringList();
+		verticalModel.append(_("Top"));
+		verticalModel.append(_("Center"));
+		verticalModel.append(_("Bottom"));
+		verticalRow.set_model(verticalModel);
+
+		const currentVertical = this.settings.get_string(
+			"notification-vertical-position",
+		);
+		const verticalMap = { top: 0, center: 1, bottom: 2 };
+		verticalRow.set_selected(
+			verticalMap[currentVertical as keyof typeof verticalMap] ?? 0,
+		);
+
+		verticalRow.connect("notify::selected", () => {
+			const selected = verticalRow.get_selected();
+			const verticalPositions = ["top", "center", "bottom"];
+			this.settings.set_string(
+				"notification-vertical-position",
+				verticalPositions[selected],
+			);
+		});
+
+		generalGroup.add(verticalRow);
 
 		const fullscreenGroup = new Adw.PreferencesGroup({
 			title: _("Fullscreen Notifications"),

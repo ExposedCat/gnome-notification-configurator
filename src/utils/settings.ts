@@ -17,6 +17,7 @@ type SettingsEvents = {
 	filteringEnabledChanged: [boolean];
 	notificationThresholdChanged: [number];
 	notificationPositionChanged: [Position];
+	notificationVerticalPositionChanged: [VerticalPosition];
 	fullscreenEnabledChanged: [boolean];
 	notificationTimeoutChanged: [number];
 	ignoreIdleChanged: [boolean];
@@ -24,6 +25,7 @@ type SettingsEvents = {
 };
 
 export type Position = "fill" | "left" | "right" | "center";
+export type VerticalPosition = "top" | "center" | "bottom";
 
 export class SettingsManager {
 	private settings: Gio.Settings;
@@ -89,6 +91,11 @@ export class SettingsManager {
 	get notificationPosition() {
 		return (this.settings.get_string("notification-position") ??
 			"center") as Position;
+	}
+
+	get notificationVerticalPosition() {
+		return (this.settings.get_string("notification-vertical-position") ??
+			"top") as VerticalPosition;
 	}
 
 	get blockList() {
@@ -276,6 +283,14 @@ export class SettingsManager {
 				this.events.emit(
 					"notificationPositionChanged",
 					this.notificationPosition,
+				);
+			}),
+		);
+		this.settingSignals.push(
+			this.settings.connect("changed::notification-vertical-position", () => {
+				this.events.emit(
+					"notificationVerticalPositionChanged",
+					this.notificationVerticalPosition,
 				);
 			}),
 		);

@@ -48,6 +48,12 @@
       <description>Position of notifications on screen: fill, left, right, or center</description>
     </key>
 
+    <key name="notification-vertical-position" type="s">
+      <default>'top'</default>
+      <summary>Notification vertical position</summary>
+      <description>Vertical placement of notifications on screen: top, center, or bottom</description>
+    </key>
+
     <!-- Notification block list stored as JSON string -->
     <key name="block-list" type="s">
       <default>'[]'</default>
