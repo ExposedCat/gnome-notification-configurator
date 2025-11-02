@@ -64,13 +64,7 @@ export class NotificationsManager {
 		};
 
 		const updateVerticalPosition = (tray: MessageTrayProto) => {
-			const bannerTray = tray as MessageTrayProto & {
-				_bannerBin?: Clutter.Actor;
-			};
-			const actor = bannerTray._bannerBin;
-			if (!actor) {
-				return;
-			}
+			const actor = tray as unknown as Clutter.Actor;
 
 			if (!actor.get_stage()) {
 				const [translationX, , translationZ] = actor.get_translation();
@@ -134,15 +128,7 @@ export class NotificationsManager {
 	private resetVerticalTranslations(tray?: MessageTrayProto) {
 		const targetTray =
 			tray ?? (Main.messageTray as unknown as MessageTrayProto);
-		const bannerTray = targetTray as MessageTrayProto & {
-			_bannerBin?: Clutter.Actor;
-		};
-		const actor = bannerTray._bannerBin;
-
-		if (!actor) {
-			return;
-		}
-
+		const actor = targetTray as unknown as Clutter.Actor;
 		const [translationX, , translationZ] = actor.get_translation();
 		actor.set_translation(translationX, 0, translationZ);
 	}
