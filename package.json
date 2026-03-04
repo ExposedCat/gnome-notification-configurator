@@ -5,6 +5,7 @@
 	"keywords": [],
 	"scripts": {
 		"start": "./scripts/cli dev",
+		"start:container": "./scripts/cli dev:container",
 		"clean": "./scripts/cli clean",
 		"build": "./scripts/cli build",
 		"cleanup": "./scripts/cli cleanup",

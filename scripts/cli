@@ -28,6 +28,12 @@ inject() {
   glib-compile-schemas "$EXTENSIONS/$SLUG/schemas"
 }
 
+predev() {
+	build
+	pack
+  inject
+}
+
 case $1 in
 clean)
   rm -rf dist node_modules $ARCHIVE locale
@@ -52,10 +58,12 @@ uninstall)
   rm -rf "${EXTENSIONS:?}/$SLUG"
   ;;
 dev)
-	build
-	pack
-  inject
-  dbus-run-session -- gnome-shell --nested --wayland
+	predev
+  dbus-run-session gnome-shell --devkit --wayland --no-x11
+  ;;
+dev:container)
+	predev
+  distrobox enter gnome-dev -- env PIPEWIRE_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR#/}" PIPEWIRE_REMOTE=pipewire-0 dbus-run-session gnome-shell --devkit --wayland --no-x11
   ;;
 *)
   echo "Unknown command '$1'"
