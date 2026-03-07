@@ -294,7 +294,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     actionModel.append(_("Close notification"));
     filterActionRow.set_model(actionModel);
     filterActionRow.set_selected(pattern.filtering.action === "close" ? 1 : 0);
-    filterActionRow.set_sensitive(pattern.filtering.enabled);
+    filterActionRow.set_visible(pattern.filtering.enabled);
     filterActionRow.connect("notify::selected", () => {
       pattern.filtering.action =
         filterActionRow.get_selected() === 1 ? "close" : "hide";
@@ -309,7 +309,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     filterEnabledRow.connect("notify::active", () => {
       pattern.filtering.enabled = filterEnabledRow.get_active();
       this.savePatterns();
-      filterActionRow.set_sensitive(pattern.filtering.enabled);
+      filterActionRow.set_visible(pattern.filtering.enabled);
     });
     filterGroup.add(filterEnabledRow);
     filterGroup.add(filterActionRow);
