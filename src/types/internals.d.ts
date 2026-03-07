@@ -23,7 +23,19 @@ declare module "resource:///org/gnome/shell/ui/messageTray.js" {
   export type MessageTrayProto = {
     _updateNotificationTimeout: (timeout: number) => void;
     _updateState: () => void;
+    _showNotification: () => void;
+    _updateShowingNotification: () => void;
+    _hideNotification: (animate: boolean) => void;
+    _showNotificationCompleted: () => void;
+    _hideNotificationCompleted: () => void;
+    _resetNotificationLeftTimeout: () => void;
+    _notificationFocusGrabber: { ungrabFocus: () => void };
     _userActiveWhileNotificationShown?: boolean;
+    _banner: import("@girs/gnome-shell/ui/messageList").NotificationMessage | null;
+    _bannerBin: import("gi://St").default.Widget & {
+      ease: (params: Record<string, unknown>) => void;
+    };
+    _notificationState: number;
   };
 
   export type NotificationProto = {
