@@ -16,6 +16,7 @@ import type {
   PatternConfiguration,
   PatternOverrides,
   Position,
+  VerticalPosition,
 } from "./utils/settings.js";
 import { SettingsManager } from "./utils/settings.js";
 
@@ -39,6 +40,12 @@ type ThemeField = {
 };
 
 const POSITION_VALUES: Position[] = ["fill", "left", "center", "right"];
+const VERTICAL_POSITION_VALUES: VerticalPosition[] = [
+  "fill",
+  "top",
+  "center",
+  "bottom",
+];
 
 const THEME_FIELDS: ThemeField[] = [
   { label: "Background", colorKey: "backgroundColor", fontKey: null },
@@ -545,28 +552,50 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       displayGroup.add(fullscreenRow);
     }
 
-    const positionRow = new Adw.ComboRow({
-      title: _("Notification Position"),
-      subtitle: _("Choose where notifications appear on screen"),
+    const horizontalRow = new Adw.ComboRow({
+      title: _("Horizontal Alignment"),
+      subtitle: _("Horizontal position of notifications on screen"),
     });
-    const positionModel = new Gtk.StringList();
-    positionModel.append(_("Fill Screen"));
-    positionModel.append(_("Left"));
-    positionModel.append(_("Center"));
-    positionModel.append(_("Right"));
-    positionRow.set_model(positionModel);
-    const positionIndex = POSITION_VALUES.indexOf(
+    const horizontalModel = new Gtk.StringList();
+    horizontalModel.append(_("Fill"));
+    horizontalModel.append(_("Left"));
+    horizontalModel.append(_("Center"));
+    horizontalModel.append(_("Right"));
+    horizontalRow.set_model(horizontalModel);
+    const horizontalIndex = POSITION_VALUES.indexOf(
       config.display.notificationPosition,
     );
-    positionRow.set_selected(positionIndex >= 0 ? positionIndex : 2);
-    positionRow.connect("notify::selected", () => {
+    horizontalRow.set_selected(horizontalIndex >= 0 ? horizontalIndex : 2);
+    horizontalRow.connect("notify::selected", () => {
       config.display.notificationPosition =
-        POSITION_VALUES[positionRow.get_selected()] ?? "center";
+        POSITION_VALUES[horizontalRow.get_selected()] ?? "center";
+      onSave();
+    });
+
+    const verticalRow = new Adw.ComboRow({
+      title: _("Vertical Alignment"),
+      subtitle: _("Vertical position of notifications on screen"),
+    });
+    const verticalModel = new Gtk.StringList();
+    verticalModel.append(_("Fill"));
+    verticalModel.append(_("Top"));
+    verticalModel.append(_("Center"));
+    verticalModel.append(_("Bottom"));
+    verticalRow.set_model(verticalModel);
+    const verticalIndex = VERTICAL_POSITION_VALUES.indexOf(
+      config.display.verticalPosition,
+    );
+    verticalRow.set_selected(verticalIndex >= 0 ? verticalIndex : 2);
+    verticalRow.connect("notify::selected", () => {
+      config.display.verticalPosition =
+        VERTICAL_POSITION_VALUES[verticalRow.get_selected()] ?? "center";
       onSave();
     });
 
     const updateDisplayVisibility = () => {
-      positionRow.set_visible(!overrides || overrides.display);
+      const active = !overrides || overrides.display;
+      horizontalRow.set_visible(active);
+      verticalRow.set_visible(active);
     };
 
     if (overrides) {
@@ -579,7 +608,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       );
     }
 
-    displayGroup.add(positionRow);
+    displayGroup.add(horizontalRow);
+    displayGroup.add(verticalRow);
     updateDisplayVisibility();
 
     const appearanceGroup = new Adw.PreferencesGroup({

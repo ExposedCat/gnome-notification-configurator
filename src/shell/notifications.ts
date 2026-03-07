@@ -11,8 +11,13 @@ import { UrgencyAdapter } from "../managers/source/urgency.js";
 import { SourceManager } from "../managers/source/manager.js";
 import { ProcessingAdapter } from "../managers/source/processing.js";
 
-import type { Position, SettingsManager } from "../utils/settings.js";
+import type {
+  Position,
+  SettingsManager,
+  VerticalPosition,
+} from "../utils/settings.js";
 import {
+  getBannerBin,
   getMessageTrayContainer,
   resolveNotificationWidgets,
 } from "./notification-widgets.js";
@@ -50,22 +55,52 @@ export class NotificationsManager {
 
   private positionSignalId?: number;
 
-  private static readonly ALIGNMENT_MAP: Record<Position, Clutter.ActorAlign> =
-    {
-      fill: Clutter.ActorAlign.FILL,
-      left: Clutter.ActorAlign.START,
-      right: Clutter.ActorAlign.END,
-      center: Clutter.ActorAlign.CENTER,
-    };
+  private static readonly HORIZONTAL_ALIGNMENT_MAP: Record<
+    Position,
+    Clutter.ActorAlign
+  > = {
+    fill: Clutter.ActorAlign.FILL,
+    left: Clutter.ActorAlign.START,
+    right: Clutter.ActorAlign.END,
+    center: Clutter.ActorAlign.CENTER,
+  };
+
+  private static readonly VERTICAL_ALIGNMENT_MAP: Record<
+    VerticalPosition,
+    Clutter.ActorAlign
+  > = {
+    fill: Clutter.ActorAlign.FILL,
+    top: Clutter.ActorAlign.START,
+    bottom: Clutter.ActorAlign.END,
+    center: Clutter.ActorAlign.CENTER,
+  };
 
   private setupPositioning(settingsManager: SettingsManager) {
+    const bannerBin = getBannerBin();
+
     Main.messageTray.bannerAlignment =
-      NotificationsManager.ALIGNMENT_MAP[settingsManager.notificationPosition];
+      NotificationsManager.HORIZONTAL_ALIGNMENT_MAP[
+        settingsManager.notificationPosition
+      ];
+    bannerBin?.set_y_align(
+      NotificationsManager.VERTICAL_ALIGNMENT_MAP[
+        settingsManager.verticalPosition
+      ],
+    );
 
     settingsManager.events.on("notificationPositionChanged", (position) => {
       Main.messageTray.bannerAlignment =
-        NotificationsManager.ALIGNMENT_MAP[position];
+        NotificationsManager.HORIZONTAL_ALIGNMENT_MAP[position];
     });
+
+    settingsManager.events.on(
+      "verticalPositionChanged",
+      (verticalPosition) => {
+        bannerBin?.set_y_align(
+          NotificationsManager.VERTICAL_ALIGNMENT_MAP[verticalPosition],
+        );
+      },
+    );
 
     const messageTrayContainer = getMessageTrayContainer();
     this.positionSignalId = messageTrayContainer?.connect("child-added", () => {
@@ -80,7 +115,16 @@ export class NotificationsManager {
         bodyText,
       );
       Main.messageTray.bannerAlignment =
-        NotificationsManager.ALIGNMENT_MAP[position];
+        NotificationsManager.HORIZONTAL_ALIGNMENT_MAP[position];
+
+      const verticalPosition = settingsManager.getVerticalPositionFor(
+        sourceName,
+        titleText,
+        bodyText,
+      );
+      bannerBin?.set_y_align(
+        NotificationsManager.VERTICAL_ALIGNMENT_MAP[verticalPosition],
+      );
 
       const margins = settingsManager.getMarginsFor(
         sourceName,
@@ -123,5 +167,6 @@ export class NotificationsManager {
     this.sourceManager.dispose();
 
     Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
+    getBannerBin()?.set_y_align(Clutter.ActorAlign.START);
   }
 }

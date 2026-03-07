@@ -18,6 +18,10 @@ export function getMessageTrayContainer() {
   return Main.messageTray.get_first_child();
 }
 
+export function getBannerBin() {
+  return (Main.messageTray as unknown as { _bannerBin: St.Widget })._bannerBin;
+}
+
 export function resolveNotificationWidgets(
   messageTrayContainer: Clutter.Actor | null | undefined,
 ): NotificationWidgets | null {

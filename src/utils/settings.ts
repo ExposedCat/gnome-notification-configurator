@@ -3,15 +3,26 @@ import type Gio from "gi://Gio?version=2.0";
 import type { NotificationTheme } from "./constants.js";
 import { DEFAULT_THEME } from "./constants.js";
 import { TypedEventEmitter } from "./event-emitter.js";
-import type { Margins, NotificationAction, Position } from "./normalize.js";
+import type {
+  Margins,
+  NotificationAction,
+  Position,
+  VerticalPosition,
+} from "./normalize.js";
 import {
   normalizeAction,
   normalizeMargins,
   normalizePosition,
   normalizeTheme,
+  normalizeVerticalPosition,
 } from "./normalize.js";
 
-export type { Margins, NotificationAction, Position } from "./normalize.js";
+export type {
+  Margins,
+  NotificationAction,
+  Position,
+  VerticalPosition,
+} from "./normalize.js";
 
 export type Matcher = {
   title: string;
@@ -37,6 +48,7 @@ export type Configuration = {
   display: {
     enableFullscreen: boolean;
     notificationPosition: Position;
+    verticalPosition: VerticalPosition;
   };
   colors: {
     enabled: boolean;
@@ -79,6 +91,7 @@ type SettingsEvents = {
   filteringEnabledChanged: [boolean];
   notificationThresholdChanged: [number];
   notificationPositionChanged: [Position];
+  verticalPositionChanged: [VerticalPosition];
   fullscreenEnabledChanged: [boolean];
   notificationTimeoutChanged: [number];
   ignoreIdleChanged: [boolean];
@@ -128,6 +141,7 @@ export class SettingsManager {
       display: {
         enableFullscreen: false,
         notificationPosition: "center",
+        verticalPosition: "top",
       },
       colors: {
         enabled: true,
@@ -172,7 +186,11 @@ export class SettingsManager {
         ignoreIdle: true,
       },
       urgency: { alwaysNormalUrgency: false },
-      display: { enableFullscreen: false, notificationPosition: "center" },
+      display: {
+        enableFullscreen: false,
+        notificationPosition: "center",
+        verticalPosition: "top",
+      },
       colors: { enabled: false, theme: { ...DEFAULT_THEME } },
       margins: { enabled: false, top: 0, bottom: 0, left: 0, right: 0 },
     };
@@ -220,6 +238,10 @@ export class SettingsManager {
     return this._globalConfiguration.display.notificationPosition;
   }
 
+  get verticalPosition() {
+    return this._globalConfiguration.display.verticalPosition;
+  }
+
   getPositionFor(source: string, title: string, body: string): Position {
     const pattern = this.findPatternBy(
       source,
@@ -230,6 +252,23 @@ export class SettingsManager {
     return (
       pattern?.display.notificationPosition ??
       this._globalConfiguration.display.notificationPosition
+    );
+  }
+
+  getVerticalPositionFor(
+    source: string,
+    title: string,
+    body: string,
+  ): VerticalPosition {
+    const pattern = this.findPatternBy(
+      source,
+      title,
+      body,
+      (pattern) => pattern.overrides.display,
+    );
+    return (
+      pattern?.display.verticalPosition ??
+      this._globalConfiguration.display.verticalPosition
     );
   }
 
@@ -370,6 +409,7 @@ export class SettingsManager {
         "notificationPositionChanged",
         this.notificationPosition,
       );
+      this.events.emit("verticalPositionChanged", this.verticalPosition);
       this.events.emit("fullscreenEnabledChanged", this._fullscreenEnabled);
       this.events.emit("notificationTimeoutChanged", this._notificationTimeout);
       this.events.emit("ignoreIdleChanged", this._ignoreIdle);
@@ -433,6 +473,9 @@ export class SettingsManager {
               : false,
           notificationPosition: normalizePosition(
             parsed.display?.notificationPosition,
+          ),
+          verticalPosition: normalizeVerticalPosition(
+            parsed.display?.verticalPosition,
           ),
         },
         colors: {
@@ -550,6 +593,9 @@ export class SettingsManager {
             : false,
         notificationPosition: normalizePosition(
           object.display?.notificationPosition,
+        ),
+        verticalPosition: normalizeVerticalPosition(
+          object.display?.verticalPosition,
         ),
       },
       filtering: {

@@ -3,6 +3,7 @@ import { DEFAULT_THEME } from "./constants.js";
 
 export type NotificationAction = "hide" | "close";
 export type Position = "fill" | "left" | "right" | "center";
+export type VerticalPosition = "fill" | "top" | "center" | "bottom";
 export type Margins = {
   top: number;
   bottom: number;
@@ -24,6 +25,12 @@ export function normalizePosition(value: unknown): Position {
   return value === "fill" || value === "left" || value === "right"
     ? value
     : "center";
+}
+
+export function normalizeVerticalPosition(value: unknown): VerticalPosition {
+  return value === "fill" || value === "center" || value === "bottom"
+    ? value
+    : "top";
 }
 
 export function normalizeNumber(candidate: unknown, fallback: number): number {

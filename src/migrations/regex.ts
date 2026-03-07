@@ -101,12 +101,20 @@ function createGlobalConfiguration(
       notificationPosition: normalizePosition(
         oldSettings.get_string("notification-position"),
       ),
+      verticalPosition: "top",
     },
     colors: {
       enabled: oldSettings.get_boolean("enable-custom-colors"),
       theme: {
         ...DEFAULT_THEME,
       },
+    },
+    margins: {
+      enabled: false,
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
     },
   };
 }
