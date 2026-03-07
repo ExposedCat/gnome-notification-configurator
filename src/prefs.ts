@@ -168,7 +168,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       margin_top: 6,
     });
     addButton.connect("clicked", () => {
-      const newPattern = this.createDefaultPattern();
+      const newPattern = SettingsManager.defaultPatternConfiguration();
       this.patterns.push(newPattern);
       this.savePatterns();
       this.rebuildPatternsList(window);
@@ -755,35 +755,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     } catch {
       row.add_css_class("error");
     }
-  }
-
-  private createDefaultPattern(): PatternConfiguration {
-    return {
-      enabled: true,
-      shortName: "",
-      matcher: { title: "", body: "", appName: "" },
-      overrides: {
-        rateLimiting: false,
-        timeout: false,
-        urgency: false,
-        display: false,
-        colors: false,
-      },
-      filtering: { enabled: false, action: "hide" },
-      rateLimiting: {
-        enabled: false,
-        notificationThreshold: 5000,
-        action: "close",
-      },
-      timeout: {
-        enabled: false,
-        notificationTimeout: 4000,
-        ignoreIdle: true,
-      },
-      urgency: { alwaysNormalUrgency: false },
-      display: { enableFullscreen: false, notificationPosition: "center" },
-      colors: { enabled: false, theme: { ...DEFAULT_THEME } },
-    };
   }
 
   private addTestSection(page: Adw.PreferencesPage) {

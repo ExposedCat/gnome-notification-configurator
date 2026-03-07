@@ -1,11 +1,17 @@
 import type Gio from "gi://Gio";
 
 import { DEFAULT_THEME } from "../utils/constants.js";
+import {
+  normalizeAction,
+  normalizePosition,
+  normalizeTheme,
+} from "../utils/normalize.js";
 import type {
   GlobalConfiguration,
+  Matcher,
   PatternConfiguration,
-  Position,
 } from "../utils/settings.js";
+import { SettingsManager } from "../utils/settings.js";
 
 const OLD_KEYS = [
   "notification-threshold",
@@ -38,12 +44,6 @@ type LegacyFilter = {
   body?: unknown;
   appName?: unknown;
   action?: unknown;
-};
-
-type Matcher = {
-  title: string;
-  body: string;
-  appName: string;
 };
 
 export function migrateRegexSchema(currentSettings: Gio.Settings) {
@@ -98,7 +98,7 @@ function createGlobalConfiguration(
     },
     display: {
       enableFullscreen: oldSettings.get_boolean("enable-fullscreen"),
-      notificationPosition: asPosition(
+      notificationPosition: normalizePosition(
         oldSettings.get_string("notification-position"),
       ),
     },
@@ -145,7 +145,7 @@ function createPatternConfigurations(
     };
     const pattern = getOrCreatePattern(patternsByMatcher, matcher);
     pattern.filtering.enabled = filteringEnabled;
-    pattern.filtering.action = asFilterAction(candidate.action);
+    pattern.filtering.action = normalizeAction(candidate.action);
     if (!pattern.shortName.trim()) {
       pattern.shortName = createShortName(matcher);
     }
@@ -171,51 +171,9 @@ function getOrCreatePattern(
     return existing;
   }
 
-  const created = createDefaultPattern(matcher);
+  const created = SettingsManager.defaultPatternConfiguration(matcher);
   patternsByMatcher.set(matcherKey, created);
   return created;
-}
-
-function createDefaultPattern(matcher: Matcher): PatternConfiguration {
-  return {
-    enabled: true,
-    shortName: createShortName(matcher),
-    matcher,
-    overrides: {
-      rateLimiting: false,
-      timeout: false,
-      urgency: false,
-      display: false,
-      colors: false,
-    },
-    rateLimiting: {
-      enabled: false,
-      notificationThreshold: 5000,
-      action: "close",
-    },
-    timeout: {
-      enabled: false,
-      notificationTimeout: 4000,
-      ignoreIdle: true,
-    },
-    urgency: {
-      alwaysNormalUrgency: false,
-    },
-    display: {
-      enableFullscreen: false,
-      notificationPosition: "center",
-    },
-    filtering: {
-      enabled: false,
-      action: "hide",
-    },
-    colors: {
-      enabled: false,
-      theme: {
-        ...DEFAULT_THEME,
-      },
-    },
-  };
 }
 
 function createShortName(matcher: Matcher): string {
@@ -233,75 +191,8 @@ function buildMatcherKey(matcher: Matcher): string {
   return `${matcher.title}\u0000${matcher.body}\u0000${matcher.appName}`;
 }
 
-function normalizeTheme(candidate: LegacyTheme | null | undefined) {
-  if (!candidate || typeof candidate !== "object") {
-    return {
-      ...DEFAULT_THEME,
-    };
-  }
-
-  return {
-    appNameColor: asColor(candidate.appNameColor, DEFAULT_THEME.appNameColor),
-    timeColor: asColor(candidate.timeColor, DEFAULT_THEME.timeColor),
-    backgroundColor: asColor(
-      candidate.backgroundColor,
-      DEFAULT_THEME.backgroundColor,
-    ),
-    titleColor: asColor(candidate.titleColor, DEFAULT_THEME.titleColor),
-    bodyColor: asColor(candidate.bodyColor, DEFAULT_THEME.bodyColor),
-    appNameFontSize: asNumber(
-      candidate.appNameFontSize,
-      DEFAULT_THEME.appNameFontSize,
-    ),
-    timeFontSize: asNumber(candidate.timeFontSize, DEFAULT_THEME.timeFontSize),
-    titleFontSize: asNumber(
-      candidate.titleFontSize,
-      DEFAULT_THEME.titleFontSize,
-    ),
-    bodyFontSize: asNumber(candidate.bodyFontSize, DEFAULT_THEME.bodyFontSize),
-  };
-}
-
-function asPosition(value: string): Position {
-  if (value === "fill" || value === "left" || value === "right") {
-    return value;
-  }
-  return "center";
-}
-
-function asFilterAction(value: unknown): "hide" | "close" {
-  if (value === "hide" || value === "close") {
-    return value;
-  }
-  return "hide";
-}
-
 function asString(value: unknown): string {
   return typeof value === "string" ? value : "";
-}
-
-function asNumber(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
-}
-
-function asColor(
-  value: unknown,
-  fallback: number[],
-): [number, number, number, number] {
-  if (!Array.isArray(value) || value.length !== 4) {
-    return [
-      asNumber(fallback[0], 0),
-      asNumber(fallback[1], 0),
-      asNumber(fallback[2], 0),
-      asNumber(fallback[3], 1),
-    ];
-  }
-
-  const red = asNumber(value[0], fallback[0]);
-  const green = asNumber(value[1], fallback[1]);
-  const blue = asNumber(value[2], fallback[2]);
-  const alpha = asNumber(value[3], fallback[3]);
-  return [red, green, blue, alpha];
 }
 
 function safeParseObject(value: string): Record<string, unknown> | null {

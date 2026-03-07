@@ -4,16 +4,20 @@ import type { Notification } from "@girs/gnome-shell/ui/messageTray";
 import type { NotificationTheme } from "./constants.js";
 import { DEFAULT_THEME } from "./constants.js";
 import { TypedEventEmitter } from "./event-emitter.js";
+import type { NotificationAction, Position } from "./normalize.js";
+import {
+  normalizeAction,
+  normalizePosition,
+  normalizeTheme,
+} from "./normalize.js";
 
-export type Position = "fill" | "left" | "right" | "center";
+export type { NotificationAction, Position } from "./normalize.js";
 
 export type Matcher = {
   title: string;
   body: string;
   appName: string;
 };
-
-export type NotificationAction = "hide" | "close";
 
 export type Configuration = {
   enabled: boolean;
@@ -123,6 +127,37 @@ export class SettingsManager {
           ...DEFAULT_THEME,
         },
       },
+    };
+  }
+
+  static defaultPatternConfiguration(
+    matcher: Matcher = { title: "", body: "", appName: "" },
+  ): PatternConfiguration {
+    return {
+      enabled: true,
+      shortName: "",
+      matcher,
+      overrides: {
+        rateLimiting: false,
+        timeout: false,
+        urgency: false,
+        display: false,
+        colors: false,
+      },
+      filtering: { enabled: false, action: "hide" },
+      rateLimiting: {
+        enabled: false,
+        notificationThreshold: 5000,
+        action: "close",
+      },
+      timeout: {
+        enabled: false,
+        notificationTimeout: 4000,
+        ignoreIdle: true,
+      },
+      urgency: { alwaysNormalUrgency: false },
+      display: { enableFullscreen: false, notificationPosition: "center" },
+      colors: { enabled: false, theme: { ...DEFAULT_THEME } },
     };
   }
 
@@ -350,7 +385,7 @@ export class SettingsManager {
             typeof parsed.rateLimiting?.notificationThreshold === "number"
               ? parsed.rateLimiting.notificationThreshold
               : 5000,
-          action: this.normalizeAction(parsed.rateLimiting?.action, "close"),
+          action: normalizeAction(parsed.rateLimiting?.action, "close"),
         },
         timeout: {
           enabled:
@@ -377,7 +412,7 @@ export class SettingsManager {
             typeof parsed.display?.enableFullscreen === "boolean"
               ? parsed.display.enableFullscreen
               : false,
-          notificationPosition: this.normalizePosition(
+          notificationPosition: normalizePosition(
             parsed.display?.notificationPosition,
           ),
         },
@@ -386,7 +421,7 @@ export class SettingsManager {
             typeof parsed.colors?.enabled === "boolean"
               ? parsed.colors.enabled
               : true,
-          theme: this.normalizeTheme(parsed.colors?.theme),
+          theme: normalizeTheme(parsed.colors?.theme),
         },
       };
     } catch {
@@ -456,7 +491,7 @@ export class SettingsManager {
           typeof object.rateLimiting?.notificationThreshold === "number"
             ? object.rateLimiting.notificationThreshold
             : 5000,
-        action: this.normalizeAction(object.rateLimiting?.action, "close"),
+        action: normalizeAction(object.rateLimiting?.action, "close"),
       },
       timeout: {
         enabled:
@@ -483,7 +518,7 @@ export class SettingsManager {
           typeof object.display?.enableFullscreen === "boolean"
             ? object.display.enableFullscreen
             : false,
-        notificationPosition: this.normalizePosition(
+        notificationPosition: normalizePosition(
           object.display?.notificationPosition,
         ),
       },
@@ -492,91 +527,16 @@ export class SettingsManager {
           typeof object.filtering?.enabled === "boolean"
             ? object.filtering.enabled
             : false,
-        action: this.normalizeAction(object.filtering?.action),
+        action: normalizeAction(object.filtering?.action),
       },
       colors: {
         enabled:
           typeof object.colors?.enabled === "boolean"
             ? object.colors.enabled
             : false,
-        theme: this.normalizeTheme(object.colors?.theme),
+        theme: normalizeTheme(object.colors?.theme),
       },
     };
-  }
-
-  private normalizeAction(
-    value: unknown,
-    fallback: NotificationAction = "hide",
-  ): NotificationAction {
-    if (value === "close" || value === "hide") {
-      return value;
-    }
-    return fallback;
-  }
-
-  private normalizePosition(value: unknown): Position {
-    return value === "fill" || value === "left" || value === "right"
-      ? value
-      : "center";
-  }
-
-  private normalizeTheme(theme: unknown): NotificationTheme {
-    const candidate = (theme ?? {}) as Partial<NotificationTheme>;
-    return {
-      appNameColor: this.normalizeColor(
-        candidate.appNameColor,
-        DEFAULT_THEME.appNameColor,
-      ),
-      timeColor: this.normalizeColor(
-        candidate.timeColor,
-        DEFAULT_THEME.timeColor,
-      ),
-      backgroundColor: this.normalizeColor(
-        candidate.backgroundColor,
-        DEFAULT_THEME.backgroundColor,
-      ),
-      titleColor: this.normalizeColor(
-        candidate.titleColor,
-        DEFAULT_THEME.titleColor,
-      ),
-      bodyColor: this.normalizeColor(
-        candidate.bodyColor,
-        DEFAULT_THEME.bodyColor,
-      ),
-      appNameFontSize: this.normalizeNumber(
-        candidate.appNameFontSize,
-        DEFAULT_THEME.appNameFontSize,
-      ),
-      timeFontSize: this.normalizeNumber(
-        candidate.timeFontSize,
-        DEFAULT_THEME.timeFontSize,
-      ),
-      titleFontSize: this.normalizeNumber(
-        candidate.titleFontSize,
-        DEFAULT_THEME.titleFontSize,
-      ),
-      bodyFontSize: this.normalizeNumber(
-        candidate.bodyFontSize,
-        DEFAULT_THEME.bodyFontSize,
-      ),
-    };
-  }
-
-  private normalizeColor(candidate: unknown, fallback: number[]): number[] {
-    if (!Array.isArray(candidate) || candidate.length !== 4) {
-      return [...fallback];
-    }
-    const normalizedColor: number[] = [];
-    for (const [index, value] of candidate.entries()) {
-      normalizedColor.push(this.normalizeNumber(value, fallback[index]));
-    }
-    return normalizedColor;
-  }
-
-  private normalizeNumber(candidate: unknown, fallback: number): number {
-    return typeof candidate === "number" && Number.isFinite(candidate)
-      ? candidate
-      : fallback;
   }
 
   private findMatchingPattern(

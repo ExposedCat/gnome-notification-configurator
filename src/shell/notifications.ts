@@ -1,5 +1,4 @@
 import Clutter from "gi://Clutter";
-import type St from "gi://St";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 
 import { FullscreenAdapter } from "../managers/message-tray/fullscreen.js";
@@ -13,6 +12,10 @@ import { SourceManager } from "../managers/source/manager.js";
 import { ProcessingAdapter } from "../managers/source/processing.js";
 
 import type { Position, SettingsManager } from "../utils/settings.js";
+import {
+  getMessageTrayContainer,
+  resolveNotificationWidgets,
+} from "./notification-widgets.js";
 
 export class NotificationsManager {
   private messageTrayManager: MessageTrayManager;
@@ -64,26 +67,12 @@ export class NotificationsManager {
         NotificationsManager.ALIGNMENT_MAP[position];
     });
 
-    const messageTrayContainer = Main.messageTray.get_first_child();
+    const messageTrayContainer = getMessageTrayContainer();
     this.positionSignalId = messageTrayContainer?.connect("child-added", () => {
-      const notificationContainer =
-        messageTrayContainer?.get_first_child() as St.Widget | null;
-      const notification = notificationContainer?.get_first_child();
-      const header = notification?.get_child_at_index(0);
-      const headerContent = header?.get_child_at_index(
-        1,
-      ) as St.BoxLayout | null;
-      const headerContentSource = headerContent?.get_child_at_index(
-        0,
-      ) as St.Bin;
-      const headerContentSourceText =
-        headerContentSource?.get_first_child() as Clutter.Text;
+      const widgets = resolveNotificationWidgets(messageTrayContainer);
+      if (!widgets) return;
 
-      if (!headerContentSourceText) return;
-
-      const position = settingsManager.getPositionFor(
-        headerContentSourceText.text,
-      );
+      const position = settingsManager.getPositionFor(widgets.sourceText.text);
       Main.messageTray.bannerAlignment =
         NotificationsManager.ALIGNMENT_MAP[position];
     });
@@ -103,8 +92,7 @@ export class NotificationsManager {
     this.disable();
 
     if (typeof this.positionSignalId === "number") {
-      const messageTrayContainer = Main.messageTray.get_first_child();
-      messageTrayContainer?.disconnect(this.positionSignalId);
+      getMessageTrayContainer()?.disconnect(this.positionSignalId);
       this.positionSignalId = undefined;
     }
 
