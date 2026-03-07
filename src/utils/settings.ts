@@ -44,6 +44,7 @@ export type PatternOverrides = {
   rateLimiting: boolean;
   timeout: boolean;
   urgency: boolean;
+  display: boolean;
   colors: boolean;
 };
 
@@ -167,6 +168,24 @@ export class SettingsManager {
     return this._globalConfiguration.display.notificationPosition;
   }
 
+  getPositionFor(appName: string): Position {
+    for (const pattern of this._patterns) {
+      if (!pattern.enabled || !pattern.overrides.display) {
+        continue;
+      }
+      if (pattern.matcher.title.trim() || pattern.matcher.body.trim()) {
+        continue;
+      }
+      if (
+        pattern.matcher.appName.trim() &&
+        this.matchesRegex(appName, pattern.matcher.appName)
+      ) {
+        return pattern.display.notificationPosition;
+      }
+    }
+    return this._globalConfiguration.display.notificationPosition;
+  }
+
   getFilterFor(
     notification: Notification,
     source: string,
@@ -240,7 +259,9 @@ export class SettingsManager {
       urgency: overrides.urgency
         ? matchedPattern.urgency
         : this._globalConfiguration.urgency,
-      display: this._globalConfiguration.display,
+      display: overrides.display
+        ? matchedPattern.display
+        : this._globalConfiguration.display,
       colors: overrides.colors
         ? matchedPattern.colors
         : this._globalConfiguration.colors,
@@ -416,6 +437,10 @@ export class SettingsManager {
         urgency:
           typeof object.overrides?.urgency === "boolean"
             ? object.overrides.urgency
+            : false,
+        display:
+          typeof object.overrides?.display === "boolean"
+            ? object.overrides.display
             : false,
         colors:
           typeof object.overrides?.colors === "boolean"

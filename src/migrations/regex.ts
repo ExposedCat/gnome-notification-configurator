@@ -185,6 +185,7 @@ function createDefaultPattern(matcher: Matcher): PatternConfiguration {
       rateLimiting: false,
       timeout: false,
       urgency: false,
+      display: false,
       colors: false,
     },
     rateLimiting: {

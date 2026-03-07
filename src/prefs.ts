@@ -535,12 +535,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     urgencyGroup.add(forceNormalRow);
     updateUrgencyVisibility();
 
-    if (!overrides) {
-      const displayGroup = new Adw.PreferencesGroup({
-        title: _("Display"),
-      });
-      page.add(displayGroup);
+    const displayGroup = new Adw.PreferencesGroup({
+      title: _("Display"),
+    });
+    page.add(displayGroup);
 
+    if (!overrides) {
       const fullscreenRow = new Adw.SwitchRow({
         title: _("Enable Notifications in Fullscreen"),
         subtitle: _(
@@ -553,28 +553,44 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
         onSave();
       });
       displayGroup.add(fullscreenRow);
-
-      const positionRow = new Adw.ComboRow({
-        title: _("Notification Position"),
-        subtitle: _("Choose where notifications appear on screen"),
-      });
-      const positionModel = new Gtk.StringList();
-      positionModel.append(_("Fill Screen"));
-      positionModel.append(_("Left"));
-      positionModel.append(_("Center"));
-      positionModel.append(_("Right"));
-      positionRow.set_model(positionModel);
-      const positionIndex = POSITION_VALUES.indexOf(
-        config.display.notificationPosition,
-      );
-      positionRow.set_selected(positionIndex >= 0 ? positionIndex : 2);
-      positionRow.connect("notify::selected", () => {
-        config.display.notificationPosition =
-          POSITION_VALUES[positionRow.get_selected()] ?? "center";
-        onSave();
-      });
-      displayGroup.add(positionRow);
     }
+
+    const positionRow = new Adw.ComboRow({
+      title: _("Notification Position"),
+      subtitle: _("Choose where notifications appear on screen"),
+    });
+    const positionModel = new Gtk.StringList();
+    positionModel.append(_("Fill Screen"));
+    positionModel.append(_("Left"));
+    positionModel.append(_("Center"));
+    positionModel.append(_("Right"));
+    positionRow.set_model(positionModel);
+    const positionIndex = POSITION_VALUES.indexOf(
+      config.display.notificationPosition,
+    );
+    positionRow.set_selected(positionIndex >= 0 ? positionIndex : 2);
+    positionRow.connect("notify::selected", () => {
+      config.display.notificationPosition =
+        POSITION_VALUES[positionRow.get_selected()] ?? "center";
+      onSave();
+    });
+
+    const updateDisplayVisibility = () => {
+      positionRow.set_visible(!overrides || overrides.display);
+    };
+
+    if (overrides) {
+      this.addOverrideRow(
+        displayGroup,
+        overrides,
+        "display",
+        onSave,
+        updateDisplayVisibility,
+      );
+    }
+
+    displayGroup.add(positionRow);
+    updateDisplayVisibility();
 
     const colorsGroup = new Adw.PreferencesGroup({
       title: _("Appearance"),
@@ -750,6 +766,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
         rateLimiting: false,
         timeout: false,
         urgency: false,
+        display: false,
         colors: false,
       },
       filtering: { enabled: false, action: "hide" },
