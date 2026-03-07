@@ -3,921 +3,816 @@ import Gdk from "gi://Gdk";
 import Gio from "gi://Gio";
 import Gtk from "gi://Gtk";
 import {
-	ExtensionPreferences,
-	gettext as _,
+  ExtensionPreferences,
+  gettext as _,
 } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
+import { migrateRegexSchema } from "./migrations/regex.js";
 import type { NotificationTheme } from "./utils/constants.js";
 import { DEFAULT_THEME } from "./utils/constants.js";
-import type { NotificationFilter } from "./utils/settings.js";
+import type {
+  Configuration,
+  GlobalConfiguration,
+  PatternConfiguration,
+  PatternOverrides,
+  Position,
+} from "./utils/settings.js";
+import { SettingsManager } from "./utils/settings.js";
 
-type AppThemeEntry = {
-	name: string;
-	theme: NotificationTheme;
+type ColorKey =
+  | "appNameColor"
+  | "timeColor"
+  | "backgroundColor"
+  | "titleColor"
+  | "bodyColor";
+
+type FontSizeKey =
+  | "appNameFontSize"
+  | "timeFontSize"
+  | "titleFontSize"
+  | "bodyFontSize";
+
+type ThemeField = {
+  label: string;
+  colorKey: ColorKey;
+  fontKey: FontSizeKey | null;
 };
 
-type FilterEntry = {
-	filter: NotificationFilter;
-};
+const POSITION_VALUES: Position[] = ["fill", "left", "center", "right"];
+
+const THEME_FIELDS: ThemeField[] = [
+  { label: "Background", colorKey: "backgroundColor", fontKey: null },
+  { label: "Title", colorKey: "titleColor", fontKey: "titleFontSize" },
+  { label: "Body Text", colorKey: "bodyColor", fontKey: "bodyFontSize" },
+  {
+    label: "App Name",
+    colorKey: "appNameColor",
+    fontKey: "appNameFontSize",
+  },
+  { label: "Time", colorKey: "timeColor", fontKey: "timeFontSize" },
+];
 
 export default class NotificationConfiguratorPreferences extends ExtensionPreferences {
-	private settings!: Gio.Settings;
-	private appThemesList!: Gtk.ListBox;
-	private appThemesData: AppThemeEntry[] = [];
-	private thresholdRow!: Adw.SpinRow;
-	private appThemesGroup!: Adw.PreferencesGroup;
-	private addButton!: Gtk.Button;
-
-	private filtersList!: Gtk.ListBox;
-	private filtersData: FilterEntry[] = [];
-	private filtersGroup!: Adw.PreferencesGroup;
-	private addFilterButton!: Gtk.Button;
-
-	fillPreferencesWindow(window: Adw.PreferencesWindow) {
-		this.settings = this.getSettings();
-		this.loadAppThemesData();
-		this.loadFiltersData();
-
-		const generalPage = new Adw.PreferencesPage({
-			title: _("General"),
-			icon_name: "preferences-system-symbolic",
-		});
-		window.add(generalPage);
-
-		this.addTestSection(generalPage);
-
-		const rateLimitGroup = new Adw.PreferencesGroup({
-			title: _("Rate Limiting"),
-			description: _("Control notification frequency per application"),
-		});
-		generalPage.add(rateLimitGroup);
-
-		const enableRateLimitRow = new Adw.SwitchRow({
-			title: _("Enable Rate Limiting"),
-			subtitle: _("Prevent duplicate notifications within threshold time"),
-		});
-		this.settings.bind(
-			"enable-rate-limiting",
-			enableRateLimitRow,
-			"active",
-			Gio.SettingsBindFlags.DEFAULT,
-		);
-		rateLimitGroup.add(enableRateLimitRow);
-
-		this.thresholdRow = new Adw.SpinRow({
-			title: _("Notification Threshold"),
-			subtitle: _(
-				"Time in milliseconds before allowing duplicate notifications",
-			),
-			adjustment: new Gtk.Adjustment({
-				lower: 100,
-				upper: 60000,
-				step_increment: 100,
-				page_increment: 1000,
-			}),
-		});
-		this.settings.bind(
-			"notification-threshold",
-			this.thresholdRow,
-			"value",
-			Gio.SettingsBindFlags.DEFAULT,
-		);
-		rateLimitGroup.add(this.thresholdRow);
-
-		this.thresholdRow.set_sensitive(
-			this.settings.get_boolean("enable-rate-limiting"),
-		);
-
-		enableRateLimitRow.connect("notify::active", () => {
-			this.thresholdRow.set_sensitive(enableRateLimitRow.get_active());
-		});
-
-		const timeoutGroup = new Adw.PreferencesGroup({
-			title: _("Notification Timeout"),
-			description: _("Control how long notifications stay visible"),
-		});
-		generalPage.add(timeoutGroup);
-
-		const timeoutRow = new Adw.SpinRow({
-			title: _("Notification Timeout"),
-			subtitle: _(
-				"Time in milliseconds before auto-dismiss (0 = never dismiss)",
-			),
-			adjustment: new Gtk.Adjustment({
-				lower: 0,
-				upper: 30000,
-				step_increment: 500,
-				page_increment: 1000,
-			}),
-		});
-		this.settings.bind(
-			"notification-timeout",
-			timeoutRow,
-			"value",
-			Gio.SettingsBindFlags.DEFAULT,
-		);
-		timeoutGroup.add(timeoutRow);
-
-		const ignoreIdleRow = new Adw.SwitchRow({
-			title: _("Ignore Idle State"),
-			subtitle: _("Keep showing notifications even when user is idle"),
-		});
-		this.settings.bind(
-			"ignore-idle",
-			ignoreIdleRow,
-			"active",
-			Gio.SettingsBindFlags.DEFAULT,
-		);
-		timeoutGroup.add(ignoreIdleRow);
-
-		const forceNormalRow = new Adw.SwitchRow({
-			title: _("Force Normal Urgency"),
-			subtitle: _("Make all notifications use normal urgency level"),
-		});
-		this.settings.bind(
-			"always-normal-urgency",
-			forceNormalRow,
-			"active",
-			Gio.SettingsBindFlags.DEFAULT,
-		);
-		timeoutGroup.add(forceNormalRow);
-
-		const generalGroup = new Adw.PreferencesGroup({
-			title: _("General Settings"),
-			description: _("Basic notification configuration"),
-		});
-		generalPage.add(generalGroup);
-
-		const positionRow = new Adw.ComboRow({
-			title: _("Notification Position"),
-			subtitle: _("Choose where notifications appear on screen"),
-		});
-
-		const positionModel = new Gtk.StringList();
-		positionModel.append(_("Fill Screen"));
-		positionModel.append(_("Left"));
-		positionModel.append(_("Center"));
-		positionModel.append(_("Right"));
-		positionRow.set_model(positionModel);
-
-		const currentPosition = this.settings.get_string("notification-position");
-		const positionMap = { fill: 0, left: 1, center: 2, right: 3 };
-		positionRow.set_selected(
-			positionMap[currentPosition as keyof typeof positionMap] ?? 2,
-		);
-
-		positionRow.connect("notify::selected", () => {
-			const selected = positionRow.get_selected();
-			const positions = ["fill", "left", "center", "right"];
-			this.settings.set_string("notification-position", positions[selected]);
-		});
-
-		generalGroup.add(positionRow);
-
-		const fullscreenGroup = new Adw.PreferencesGroup({
-			title: _("Fullscreen Notifications"),
-			description: _("Control notification behavior in fullscreen mode"),
-		});
-		generalPage.add(fullscreenGroup);
-
-		const enableFullscreenRow = new Adw.SwitchRow({
-			title: _("Enable notifications in Fullscreen"),
-			subtitle: _(
-				"Show notifications even when applications are in fullscreen",
-			),
-		});
-		this.settings.bind(
-			"enable-fullscreen",
-			enableFullscreenRow,
-			"active",
-			Gio.SettingsBindFlags.DEFAULT,
-		);
-		fullscreenGroup.add(enableFullscreenRow);
-
-		const filteringPage = new Adw.PreferencesPage({
-			title: _("Filtering"),
-			icon_name: "action-unavailable-symbolic",
-		});
-		window.add(filteringPage);
-
-		this.addTestSection(filteringPage);
-
-		const filterGroup = new Adw.PreferencesGroup({
-			title: _("Notification Filters"),
-			description: _(
-				"Block or hide notifications using regular expressions to match title, body text, or application name",
-			),
-		});
-		filteringPage.add(filterGroup);
-
-		const enableFilteringRow = new Adw.SwitchRow({
-			title: _("Enable Filtering"),
-			subtitle: _("Apply notification filters"),
-		});
-		this.settings.bind(
-			"enable-filtering",
-			enableFilteringRow,
-			"active",
-			Gio.SettingsBindFlags.DEFAULT,
-		);
-		filterGroup.add(enableFilteringRow);
-
-		this.filtersGroup = new Adw.PreferencesGroup({
-			title: _("Active Filters"),
-			description: _(
-				"Configure filters using RegExp patterns. Examples: '^Error' (starts with), 'update|upgrade' (contains either), '\\d+' (contains numbers)",
-			),
-		});
-		filteringPage.add(this.filtersGroup);
-
-		this.filtersList = new Gtk.ListBox({
-			selection_mode: Gtk.SelectionMode.NONE,
-			css_classes: ["boxed-list"],
-		});
-		this.filtersGroup.add(this.filtersList);
-
-		this.addFilterButton = new Gtk.Button({
-			label: _("Add Filter"),
-			css_classes: ["suggested-action"],
-			margin_top: 6,
-		});
-		this.addFilterButton.connect("clicked", () => {
-			this.addFilterEntry({
-				title: "",
-				body: "",
-				appName: "",
-				action: "hide",
-			});
-		});
-
-		const addFilterGroup = new Adw.PreferencesGroup();
-		addFilterGroup.add(this.addFilterButton);
-		filteringPage.add(addFilterGroup);
-
-		const filteringEnabled = this.settings.get_boolean("enable-filtering");
-		this.filtersGroup.set_sensitive(filteringEnabled);
-		addFilterGroup.set_sensitive(filteringEnabled);
-
-		enableFilteringRow.connect("notify::active", () => {
-			const enabled = enableFilteringRow.get_active();
-			this.filtersGroup.set_sensitive(enabled);
-			addFilterGroup.set_sensitive(enabled);
-
-			let rowChild = this.filtersList.get_first_child();
-			while (rowChild) {
-				rowChild.set_sensitive(enabled);
-				rowChild = rowChild.get_next_sibling();
-			}
-		});
-
-		this.populateFiltersList();
-
-		const themesPage = new Adw.PreferencesPage({
-			title: _("Themes"),
-			icon_name: "applications-graphics-symbolic",
-		});
-		window.add(themesPage);
-
-		this.addTestSection(themesPage);
-
-		const themeGroup = new Adw.PreferencesGroup({
-			title: _("Notification Themes"),
-			description: _("Customize notification appearance by application"),
-		});
-		themesPage.add(themeGroup);
-
-		const enableColorsRow = new Adw.SwitchRow({
-			title: _("Enable Custom Colors"),
-			subtitle: _("Apply custom colors to notifications"),
-		});
-		this.settings.bind(
-			"enable-custom-colors",
-			enableColorsRow,
-			"active",
-			Gio.SettingsBindFlags.DEFAULT,
-		);
-		themeGroup.add(enableColorsRow);
-
-		this.appThemesGroup = new Adw.PreferencesGroup({
-			title: _("Application Themes"),
-			description: _(
-				"Set custom themes for specific applications using app names or RegExp patterns",
-			),
-		});
-		themesPage.add(this.appThemesGroup);
-
-		this.appThemesList = new Gtk.ListBox({
-			selection_mode: Gtk.SelectionMode.NONE,
-			css_classes: ["boxed-list"],
-		});
-		this.appThemesGroup.add(this.appThemesList);
-
-		this.addButton = new Gtk.Button({
-			label: _("Add Application Theme"),
-			css_classes: ["suggested-action"],
-			margin_top: 6,
-		});
-		this.addButton.connect("clicked", () => {
-			this.addAppThemeEntry("", { ...DEFAULT_THEME });
-		});
-
-		const addThemeGroup = new Adw.PreferencesGroup();
-		addThemeGroup.add(this.addButton);
-		themesPage.add(addThemeGroup);
-
-		const themesEnabled = this.settings.get_boolean("enable-custom-colors");
-		this.appThemesGroup.set_sensitive(themesEnabled);
-		addThemeGroup.set_sensitive(themesEnabled);
-
-		enableColorsRow.connect("notify::active", () => {
-			const enabled = enableColorsRow.get_active();
-			this.appThemesGroup.set_sensitive(enabled);
-			addThemeGroup.set_sensitive(enabled);
-
-			let rowChild = this.appThemesList.get_first_child();
-			while (rowChild) {
-				rowChild.set_sensitive(enabled);
-				rowChild = rowChild.get_next_sibling();
-			}
-		});
-
-		this.populateAppThemesList();
-
-		this.setCleanup(window);
-	}
-
-	private loadFiltersData() {
-		try {
-			const blockListJson = this.settings.get_string("block-list");
-			const blockList = JSON.parse(blockListJson);
-
-			this.filtersData = blockList.map((filter: NotificationFilter) => ({
-				filter,
-			}));
-		} catch {
-			this.filtersData = [];
-		}
-	}
-
-	private saveFiltersData() {
-		const filters = this.filtersData.map((entry) => entry.filter);
-		this.settings.set_string("block-list", JSON.stringify(filters));
-	}
-
-	private populateFiltersList() {
-		let child = this.filtersList.get_first_child();
-		while (child) {
-			const next = child.get_next_sibling();
-			this.filtersList.remove(child);
-			child = next;
-		}
-
-		const filteringEnabled = this.settings.get_boolean("enable-filtering");
-		for (let index = 0; index < this.filtersData.length; index++) {
-			this.addFilterRow(index);
-		}
-
-		let rowChild = this.filtersList.get_first_child();
-		while (rowChild) {
-			rowChild.set_sensitive(filteringEnabled);
-			rowChild = rowChild.get_next_sibling();
-		}
-	}
-
-	private addFilterEntry(filter: NotificationFilter) {
-		const index = this.filtersData.length;
-		this.filtersData.push({ filter });
-		this.addFilterRow(index);
-		this.saveFiltersData();
-
-		const filteringEnabled = this.settings.get_boolean("enable-filtering");
-		const lastChild = this.filtersList.get_last_child();
-		if (lastChild) {
-			lastChild.set_sensitive(filteringEnabled);
-		}
-	}
-
-	private addFilterRow(index: number) {
-		const entry = this.filtersData[index];
-
-		const mainBox = new Gtk.Box({
-			orientation: Gtk.Orientation.VERTICAL,
-			spacing: 12,
-			margin_top: 12,
-			margin_bottom: 12,
-			margin_start: 12,
-			margin_end: 12,
-		});
-
-		const headerRow = new Gtk.Box({
-			orientation: Gtk.Orientation.HORIZONTAL,
-			spacing: 12,
-		});
-
-		const actionLabel = new Gtk.Label({
-			label: _("Action:"),
-			halign: Gtk.Align.START,
-		});
-
-		const actionCombo = new Gtk.ComboBoxText();
-		actionCombo.append("hide", _("Hide notification"));
-		actionCombo.append("close", _("Close notification"));
-		actionCombo.set_active_id(entry.filter.action);
-
-		actionCombo.connect("changed", () => {
-			const activeId = actionCombo.get_active_id();
-			if (activeId) {
-				this.filtersData[index].filter.action = activeId as "hide" | "close";
-				this.saveFiltersData();
-			}
-		});
-
-		const removeButton = new Gtk.Button({
-			icon_name: "user-trash-symbolic",
-			css_classes: ["destructive-action"],
-			valign: Gtk.Align.CENTER,
-		});
-
-		removeButton.connect("clicked", () => {
-			this.filtersData.splice(index, 1);
-			this.populateFiltersList();
-			this.saveFiltersData();
-		});
-
-		headerRow.append(actionLabel);
-		headerRow.append(actionCombo);
-		headerRow.append(removeButton);
-
-		const fieldsGrid = new Gtk.Grid({
-			column_spacing: 12,
-			row_spacing: 6,
-			margin_top: 6,
-		});
-
-		const titleLabel = new Gtk.Label({
-			label: _("Title matches regex:"),
-			halign: Gtk.Align.START,
-		});
-		fieldsGrid.attach(titleLabel, 0, 0, 1, 1);
-
-		const titleEntry = new Gtk.Entry({
-			text: entry.filter.title,
-			placeholder_text: _("Match pattern (RegExp)"),
-			hexpand: true,
-		});
-		titleEntry.connect("changed", () => {
-			const pattern = titleEntry.get_text();
-			this.filtersData[index].filter.title = pattern;
-			this.validateRegexEntry(titleEntry, pattern);
-			this.saveFiltersData();
-		});
-		this.validateRegexEntry(titleEntry, entry.filter.title);
-		fieldsGrid.attach(titleEntry, 1, 0, 1, 1);
-
-		const bodyLabel = new Gtk.Label({
-			label: _("Body matches regex:"),
-			halign: Gtk.Align.START,
-		});
-		fieldsGrid.attach(bodyLabel, 0, 1, 1, 1);
-
-		const bodyEntry = new Gtk.Entry({
-			text: entry.filter.body,
-			placeholder_text: _("Match pattern (RegExp)"),
-			hexpand: true,
-		});
-		bodyEntry.connect("changed", () => {
-			const pattern = bodyEntry.get_text();
-			this.filtersData[index].filter.body = pattern;
-			this.validateRegexEntry(bodyEntry, pattern);
-			this.saveFiltersData();
-		});
-		this.validateRegexEntry(bodyEntry, entry.filter.body);
-		fieldsGrid.attach(bodyEntry, 1, 1, 1, 1);
-
-		const appNameLabel = new Gtk.Label({
-			label: _("App name matches regex:"),
-			halign: Gtk.Align.START,
-		});
-		fieldsGrid.attach(appNameLabel, 0, 2, 1, 1);
-
-		const appNameEntry = new Gtk.Entry({
-			text: entry.filter.appName,
-			placeholder_text: _("Match pattern (RegExp)"),
-			hexpand: true,
-		});
-		appNameEntry.connect("changed", () => {
-			const pattern = appNameEntry.get_text();
-			this.filtersData[index].filter.appName = pattern;
-			this.validateRegexEntry(appNameEntry, pattern);
-			this.saveFiltersData();
-		});
-		this.validateRegexEntry(appNameEntry, entry.filter.appName);
-		fieldsGrid.attach(appNameEntry, 1, 2, 1, 1);
-
-		mainBox.append(headerRow);
-		mainBox.append(fieldsGrid);
-
-		if (index < this.filtersData.length - 1) {
-			const separator = new Gtk.Separator({
-				orientation: Gtk.Orientation.HORIZONTAL,
-				margin_top: 6,
-			});
-			mainBox.append(separator);
-		}
-
-		const listBoxRow = new Gtk.ListBoxRow({
-			child: mainBox,
-			activatable: false,
-			selectable: false,
-		});
-
-		this.filtersList.append(listBoxRow);
-	}
-
-	private validateRegexEntry(entry: Gtk.Entry, pattern: string) {
-		if (!pattern?.trim()) {
-			entry.remove_css_class("error");
-			entry.set_tooltip_text("");
-			return;
-		}
-
-		try {
-			new RegExp(pattern, "i");
-			entry.remove_css_class("error");
-			entry.set_tooltip_text("");
-		} catch (error) {
-			entry.add_css_class("error");
-			entry.set_tooltip_text(`Invalid regex pattern: ${error}`);
-		}
-	}
-
-	private loadAppThemesData() {
-		try {
-			const appColorsJson = this.settings.get_string("app-themes");
-			const appColors = JSON.parse(appColorsJson);
-
-			this.appThemesData = Object.entries(appColors).map(([name, theme]) => ({
-				name,
-				theme: theme as NotificationTheme,
-			}));
-		} catch {
-			this.appThemesData = [];
-		}
-	}
-
-	private saveAppThemesData() {
-		const themes = this.appThemesData.reduce(
-			(list, entry) => {
-				if (entry.name.trim()) {
-					list[entry.name] = {
-						...DEFAULT_THEME,
-						...entry.theme,
-					};
-				}
-				return list;
-			},
-			{} as Record<string, NotificationTheme>,
-		);
-
-		this.settings.set_string("app-themes", JSON.stringify(themes));
-	}
-
-	private populateAppThemesList() {
-		let child = this.appThemesList.get_first_child();
-		while (child) {
-			const next = child.get_next_sibling();
-			this.appThemesList.remove(child);
-			child = next;
-		}
-
-		for (let index = 0; index < this.appThemesData.length; index++) {
-			this.addAppThemeRow(index);
-		}
-
-		const themesEnabled = this.settings.get_boolean("enable-custom-colors");
-		let rowChild = this.appThemesList.get_first_child();
-		while (rowChild) {
-			rowChild.set_sensitive(themesEnabled);
-			rowChild = rowChild.get_next_sibling();
-		}
-	}
-
-	private addAppThemeEntry(name: string, theme: NotificationTheme) {
-		const index = this.appThemesData.length;
-		this.appThemesData.push({ name, theme });
-		this.addAppThemeRow(index);
-		this.saveAppThemesData();
-	}
-
-	private addAppThemeRow(index: number) {
-		const entry = this.appThemesData[index];
-
-		const mainBox = new Gtk.Box({
-			orientation: Gtk.Orientation.VERTICAL,
-			spacing: 12,
-			margin_top: 12,
-			margin_bottom: 12,
-			margin_start: 12,
-			margin_end: 12,
-		});
-
-		const headerRow = new Gtk.Box({
-			orientation: Gtk.Orientation.HORIZONTAL,
-			spacing: 12,
-		});
-
-		const nameEntry = new Gtk.Entry({
-			text: entry.name,
-			placeholder_text: _("Match pattern (RegExp)"),
-			hexpand: true,
-		});
-
-		nameEntry.connect("changed", () => {
-			const pattern = nameEntry.get_text();
-			this.appThemesData[index].name = pattern;
-			this.validateRegexEntry(nameEntry, pattern);
-			this.saveAppThemesData();
-		});
-		this.validateRegexEntry(nameEntry, entry.name);
-
-		const removeButton = new Gtk.Button({
-			icon_name: "user-trash-symbolic",
-			css_classes: ["destructive-action"],
-			valign: Gtk.Align.CENTER,
-		});
-
-		removeButton.connect("clicked", () => {
-			this.appThemesData.splice(index, 1);
-			this.populateAppThemesList();
-			this.saveAppThemesData();
-		});
-
-		headerRow.append(nameEntry);
-		headerRow.append(removeButton);
-
-		const themeGrid = new Gtk.Grid({
-			column_spacing: 12,
-			row_spacing: 6,
-			margin_top: 6,
-		});
-
-		const themeEntries = [
-			{
-				key: "backgroundColor",
-				label: _("Background"),
-				colorKey: "backgroundColor",
-				fontKey: null,
-			},
-			{
-				key: "titleColor",
-				label: _("Title"),
-				colorKey: "titleColor",
-				fontKey: "titleFontSize",
-			},
-			{
-				key: "bodyColor",
-				label: _("Body Text"),
-				colorKey: "bodyColor",
-				fontKey: "bodyFontSize",
-			},
-			{
-				key: "appNameColor",
-				label: _("App Name"),
-				colorKey: "appNameColor",
-				fontKey: "appNameFontSize",
-			},
-			{
-				key: "timeColor",
-				label: _("Time"),
-				colorKey: "timeColor",
-				fontKey: "timeFontSize",
-			},
-		] as const;
-
-		themeEntries.forEach((themeEntry, themeIndex) => {
-			const row = themeIndex;
-
-			const label = new Gtk.Label({
-				label: themeEntry.label,
-				halign: Gtk.Align.START,
-				css_classes: ["caption"],
-			});
-			themeGrid.attach(label, 0, row, 1, 1);
-
-			const colorButton = new Gtk.ColorButton({
-				use_alpha: false,
-				halign: Gtk.Align.START,
-			});
-
-			const [red, green, blue, alpha] = entry.theme[themeEntry.colorKey];
-			colorButton.set_rgba(new Gdk.RGBA({ red, green, blue, alpha }));
-
-			colorButton.connect("color-set", () => {
-				const color = colorButton.get_rgba();
-				this.appThemesData[index].theme[themeEntry.colorKey] = [
-					color.red,
-					color.green,
-					color.blue,
-					color.alpha,
-				];
-				this.saveAppThemesData();
-			});
-
-			themeGrid.attach(colorButton, 1, row, 1, 1);
-
-			if (themeEntry.fontKey) {
-				const fontSizeValue =
-					entry.theme[themeEntry.fontKey] ?? DEFAULT_THEME[themeEntry.fontKey];
-
-				const fontSizeButton = new Gtk.SpinButton({
-					adjustment: new Gtk.Adjustment({
-						lower: 8,
-						upper: 32,
-						step_increment: 1,
-						page_increment: 2,
-					}),
-					value: fontSizeValue,
-					halign: Gtk.Align.START,
-				});
-
-				fontSizeButton.connect("value-changed", () => {
-					this.appThemesData[index].theme[themeEntry.fontKey] =
-						fontSizeButton.get_value();
-					this.saveAppThemesData();
-				});
-
-				themeGrid.attach(fontSizeButton, 2, row, 1, 1);
-
-				const fontLabel = new Gtk.Label({
-					label: _("px"),
-					halign: Gtk.Align.START,
-					css_classes: ["caption"],
-				});
-				themeGrid.attach(fontLabel, 3, row, 1, 1);
-			} else {
-				// Add empty space for background row to maintain alignment
-				const emptySpace = new Gtk.Label({
-					label: "",
-					halign: Gtk.Align.START,
-				});
-				themeGrid.attach(emptySpace, 2, row, 2, 1);
-			}
-		});
-
-		mainBox.append(headerRow);
-		mainBox.append(themeGrid);
-
-		if (index < this.appThemesData.length - 1) {
-			const separator = new Gtk.Separator({
-				orientation: Gtk.Orientation.HORIZONTAL,
-				margin_top: 6,
-			});
-			mainBox.append(separator);
-		}
-
-		const listBoxRow = new Gtk.ListBoxRow({
-			child: mainBox,
-			activatable: false,
-			selectable: false,
-		});
-
-		const themesEnabled = this.settings.get_boolean("enable-custom-colors");
-		listBoxRow.set_sensitive(themesEnabled);
-
-		this.appThemesList.append(listBoxRow);
-	}
-
-	private sendNotification(appName: string, title: string, body: string) {
-		try {
-			const proc = Gio.Subprocess.new(
-				[
-					"notify-send",
-					`--app-name=${appName}`,
-					"--icon=dialog-information",
-					title,
-					body,
-				],
-				Gio.SubprocessFlags.NONE,
-			);
-			proc.wait_async(null, null);
-		} catch (error) {
-			console.error("Failed to send notification:", error);
-		}
-	}
-
-	private setCleanup(window: Adw.PreferencesWindow) {
-		window.connect("close-request", () => {
-			// biome-ignore lint/style/noNonNullAssertion: cleanup
-			this.settings = null!;
-			// biome-ignore lint/style/noNonNullAssertion: cleanup
-			this.appThemesList = null!;
-			this.appThemesData = [];
-			// biome-ignore lint/style/noNonNullAssertion: cleanup
-			this.thresholdRow = null!;
-			// biome-ignore lint/style/noNonNullAssertion: cleanup
-			this.appThemesGroup = null!;
-			// biome-ignore lint/style/noNonNullAssertion: cleanup
-			this.addButton = null!;
-			// biome-ignore lint/style/noNonNullAssertion: cleanup
-			this.filtersList = null!;
-			this.filtersData = [];
-			// biome-ignore lint/style/noNonNullAssertion: cleanup
-			this.filtersGroup = null!;
-			// biome-ignore lint/style/noNonNullAssertion: cleanup
-			this.addFilterButton = null!;
-		});
-	}
-
-	private addTestSection(page: Adw.PreferencesPage) {
-		const testGroup = new Adw.PreferencesGroup({
-			title: _("Test Notifications"),
-		});
-		page.add(testGroup);
-
-		const testList = new Gtk.ListBox({
-			selection_mode: Gtk.SelectionMode.NONE,
-			css_classes: ["boxed-list"],
-		});
-		testGroup.add(testList);
-
-		const mainBox = new Gtk.Box({
-			orientation: Gtk.Orientation.VERTICAL,
-			spacing: 12,
-			margin_top: 12,
-			margin_bottom: 12,
-			margin_start: 12,
-			margin_end: 12,
-		});
-
-		const testGrid = new Gtk.Grid({
-			column_spacing: 12,
-			row_spacing: 6,
-		});
-
-		const appLabel = new Gtk.Label({
-			label: _("App Name:"),
-			halign: Gtk.Align.START,
-		});
-		testGrid.attach(appLabel, 0, 0, 1, 1);
-
-		const appEntry = new Gtk.Entry({
-			text: _("Test Application Name"),
-			placeholder_text: _("Application name"),
-			hexpand: true,
-		});
-		testGrid.attach(appEntry, 1, 0, 1, 1);
-
-		const titleLabel = new Gtk.Label({
-			label: _("Title:"),
-			halign: Gtk.Align.START,
-		});
-		testGrid.attach(titleLabel, 0, 1, 1, 1);
-
-		const titleEntry = new Gtk.Entry({
-			text: _("Test Notification Title"),
-			placeholder_text: _("Notification title"),
-			hexpand: true,
-		});
-		testGrid.attach(titleEntry, 1, 1, 1, 1);
-
-		const bodyLabel = new Gtk.Label({
-			label: _("Body:"),
-			halign: Gtk.Align.START,
-		});
-		testGrid.attach(bodyLabel, 0, 2, 1, 1);
-
-		const bodyEntry = new Gtk.Entry({
-			text: _("Test Notification Body"),
-			placeholder_text: _("Notification body text"),
-			hexpand: true,
-		});
-		testGrid.attach(bodyEntry, 1, 2, 1, 1);
-
-		mainBox.append(testGrid);
-
-		const listBoxRow = new Gtk.ListBoxRow({
-			child: mainBox,
-			activatable: false,
-			selectable: false,
-		});
-
-		testList.append(listBoxRow);
-
-		const testButton = new Gtk.Button({
-			label: _("Send Test Notification"),
-			css_classes: ["suggested-action"],
-			margin_top: 6,
-		});
-
-		testButton.connect("clicked", () => {
-			const appName = appEntry.get_text() || _("Test App");
-			const title = titleEntry.get_text() || _("Test Notification");
-			const body = bodyEntry.get_text() || _("This is a test notification");
-			this.sendNotification(appName, title, body);
-		});
-
-		const testButtonGroup = new Adw.PreferencesGroup();
-		testButtonGroup.add(testButton);
-		page.add(testButtonGroup);
-	}
+  private settings!: Gio.Settings;
+  private globalConfig!: GlobalConfiguration;
+  private patterns!: PatternConfiguration[];
+  private patternsList!: Gtk.ListBox;
+
+  fillPreferencesWindow(window: Adw.PreferencesWindow) {
+    this.settings = this.getSettings();
+    migrateRegexSchema(this.settings);
+    this.loadData();
+
+    const globalPage = new Adw.PreferencesPage({
+      title: _("Global"),
+      icon_name: "preferences-system-symbolic",
+    });
+    window.add(globalPage);
+    this.buildGlobalPage(globalPage);
+
+    const patternsPage = new Adw.PreferencesPage({
+      title: _("Patterns"),
+      icon_name: "view-list-symbolic",
+    });
+    window.add(patternsPage);
+    this.buildPatternsPage(window, patternsPage);
+
+    window.connect("close-request", () => {
+      // biome-ignore lint/style/noNonNullAssertion: cleanup
+      this.settings = null!;
+      // biome-ignore lint/style/noNonNullAssertion: cleanup
+      this.globalConfig = null!;
+      this.patterns = [];
+      // biome-ignore lint/style/noNonNullAssertion: cleanup
+      this.patternsList = null!;
+    });
+  }
+
+  private loadData() {
+    try {
+      const parsed = JSON.parse(this.settings.get_string("global") ?? "{}");
+      this.globalConfig =
+        parsed && typeof parsed === "object" && parsed.enabled !== undefined
+          ? parsed
+          : SettingsManager.defaultGlobalConfiguration();
+    } catch {
+      this.globalConfig = SettingsManager.defaultGlobalConfiguration();
+    }
+
+    try {
+      const parsed = JSON.parse(this.settings.get_string("patterns") ?? "[]");
+      this.patterns = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      this.patterns = [];
+    }
+  }
+
+  private saveGlobal() {
+    this.settings.set_string("global", JSON.stringify(this.globalConfig));
+  }
+
+  private savePatterns() {
+    this.settings.set_string("patterns", JSON.stringify(this.patterns));
+  }
+
+  private buildGlobalPage(page: Adw.PreferencesPage) {
+    const enabledGroup = new Adw.PreferencesGroup();
+    page.add(enabledGroup);
+
+    const enabledRow = new Adw.SwitchRow({
+      title: _("Enabled"),
+      subtitle: _("Master switch for all notification configuration"),
+    });
+    enabledRow.set_active(this.globalConfig.enabled);
+    enabledRow.connect("notify::active", () => {
+      this.globalConfig.enabled = enabledRow.get_active();
+      this.saveGlobal();
+    });
+    enabledGroup.add(enabledRow);
+
+    this.addConfigurationGroups(
+      page,
+      this.globalConfig,
+      () => this.saveGlobal(),
+      null,
+    );
+
+    this.addTestSection(page);
+  }
+
+  private buildPatternsPage(
+    window: Adw.PreferencesWindow,
+    page: Adw.PreferencesPage,
+  ) {
+    const patternsGroup = new Adw.PreferencesGroup({
+      title: _("Notification Patterns"),
+      description: _(
+        "Per-pattern overrides that apply to matching notifications",
+      ),
+    });
+    page.add(patternsGroup);
+
+    this.patternsList = new Gtk.ListBox({
+      selection_mode: Gtk.SelectionMode.NONE,
+      css_classes: ["boxed-list"],
+    });
+    patternsGroup.add(this.patternsList);
+    this.rebuildPatternsList(window);
+
+    const addGroup = new Adw.PreferencesGroup();
+    page.add(addGroup);
+
+    const addButton = new Gtk.Button({
+      label: _("New Pattern"),
+      css_classes: ["suggested-action"],
+      margin_top: 6,
+    });
+    addButton.connect("clicked", () => {
+      const newPattern = SettingsManager.defaultPatternConfiguration();
+      this.patterns.push(newPattern);
+      this.savePatterns();
+      this.rebuildPatternsList(window);
+      this.openPatternDetail(window, this.patterns.length - 1);
+    });
+    addGroup.add(addButton);
+  }
+
+  private rebuildPatternsList(window: Adw.PreferencesWindow) {
+    let child = this.patternsList.get_first_child();
+    while (child) {
+      const next = child.get_next_sibling();
+      this.patternsList.remove(child);
+      child = next;
+    }
+
+    for (const [index, pattern] of this.patterns.entries()) {
+      const row = new Adw.ActionRow({
+        title: pattern.shortName || _("Unnamed Pattern"),
+        subtitle: this.buildPatternSubtitle(pattern),
+        activatable: true,
+      });
+      row.add_suffix(new Gtk.Image({ icon_name: "go-next-symbolic" }));
+      row.connect("activated", () => {
+        this.openPatternDetail(window, index);
+      });
+      this.patternsList.append(row);
+    }
+  }
+
+  private buildPatternSubtitle(pattern: PatternConfiguration): string {
+    const parts: string[] = [];
+    if (pattern.matcher.appName.trim()) {
+      parts.push(`App: ${pattern.matcher.appName}`);
+    }
+    if (pattern.matcher.title.trim()) {
+      parts.push(`Title: ${pattern.matcher.title}`);
+    }
+    if (pattern.matcher.body.trim()) {
+      parts.push(`Body: ${pattern.matcher.body}`);
+    }
+    return parts.length > 0 ? parts.join(" · ") : _("No matchers configured");
+  }
+
+  private openPatternDetail(window: Adw.PreferencesWindow, index: number) {
+    const pattern = this.patterns[index];
+    const detailPage = new Adw.PreferencesPage();
+
+    const identityGroup = new Adw.PreferencesGroup({
+      title: _("Pattern Identity"),
+    });
+    detailPage.add(identityGroup);
+
+    const shortNameRow = new Adw.EntryRow({
+      title: _("Short Name"),
+    });
+    shortNameRow.set_text(pattern.shortName);
+    shortNameRow.connect("changed", () => {
+      pattern.shortName = shortNameRow.get_text();
+      this.savePatterns();
+    });
+    identityGroup.add(shortNameRow);
+
+    const enabledRow = new Adw.SwitchRow({
+      title: _("Enabled"),
+      subtitle: _("Enable this pattern override"),
+    });
+    enabledRow.set_active(pattern.enabled);
+    enabledRow.connect("notify::active", () => {
+      pattern.enabled = enabledRow.get_active();
+      this.savePatterns();
+    });
+    identityGroup.add(enabledRow);
+
+    const matcherGroup = new Adw.PreferencesGroup({
+      title: _("Matchers"),
+      description: _("RegExp patterns to match notifications"),
+    });
+    detailPage.add(matcherGroup);
+
+    const appNameRow = this.createRegexEntryRow(
+      _("App Name"),
+      pattern.matcher.appName,
+      (value) => {
+        pattern.matcher.appName = value;
+        this.savePatterns();
+      },
+    );
+    matcherGroup.add(appNameRow);
+
+    const titleRow = this.createRegexEntryRow(
+      _("Title"),
+      pattern.matcher.title,
+      (value) => {
+        pattern.matcher.title = value;
+        this.savePatterns();
+      },
+    );
+    matcherGroup.add(titleRow);
+
+    const bodyRow = this.createRegexEntryRow(
+      _("Body"),
+      pattern.matcher.body,
+      (value) => {
+        pattern.matcher.body = value;
+        this.savePatterns();
+      },
+    );
+    matcherGroup.add(bodyRow);
+
+    const filterGroup = new Adw.PreferencesGroup({
+      title: _("Filtering"),
+      description: _("Block or hide matching notifications"),
+    });
+    detailPage.add(filterGroup);
+
+    const filterActionRow = new Adw.ComboRow({
+      title: _("Filter Action"),
+      subtitle: _("What to do with matching notifications"),
+    });
+    const actionModel = new Gtk.StringList();
+    actionModel.append(_("Hide notification"));
+    actionModel.append(_("Close notification"));
+    filterActionRow.set_model(actionModel);
+    filterActionRow.set_selected(pattern.filtering.action === "close" ? 1 : 0);
+    filterActionRow.set_visible(pattern.filtering.enabled);
+    filterActionRow.connect("notify::selected", () => {
+      pattern.filtering.action =
+        filterActionRow.get_selected() === 1 ? "close" : "hide";
+      this.savePatterns();
+    });
+
+    const filterEnabledRow = new Adw.SwitchRow({
+      title: _("Enable Filtering"),
+      subtitle: _("Apply filter action to matching notifications"),
+    });
+    filterEnabledRow.set_active(pattern.filtering.enabled);
+    filterEnabledRow.connect("notify::active", () => {
+      pattern.filtering.enabled = filterEnabledRow.get_active();
+      this.savePatterns();
+      filterActionRow.set_visible(pattern.filtering.enabled);
+    });
+    filterGroup.add(filterEnabledRow);
+    filterGroup.add(filterActionRow);
+
+    this.addConfigurationGroups(
+      detailPage,
+      pattern,
+      () => this.savePatterns(),
+      pattern.overrides,
+    );
+
+    this.addTestSection(detailPage);
+
+    const deleteGroup = new Adw.PreferencesGroup();
+    detailPage.add(deleteGroup);
+
+    const deleteButton = new Gtk.Button({
+      label: _("Delete Pattern"),
+      css_classes: ["destructive-action"],
+      margin_top: 12,
+    });
+    deleteButton.connect("clicked", () => {
+      this.patterns.splice(index, 1);
+      this.savePatterns();
+      this.rebuildPatternsList(window);
+      window.pop_subpage();
+    });
+    deleteGroup.add(deleteButton);
+
+    const toolbarView = new Adw.ToolbarView();
+    toolbarView.add_top_bar(new Adw.HeaderBar());
+    toolbarView.set_content(detailPage);
+
+    const navigationPage = new Adw.NavigationPage({
+      title: pattern.shortName || _("Pattern"),
+      child: toolbarView,
+    });
+    navigationPage.connect("hidden", () => {
+      this.rebuildPatternsList(window);
+    });
+
+    window.push_subpage(navigationPage);
+  }
+
+  private addConfigurationGroups(
+    page: Adw.PreferencesPage,
+    config: Configuration,
+    onSave: () => void,
+    overrides: PatternOverrides | null,
+  ) {
+    const rateLimitGroup = new Adw.PreferencesGroup({
+      title: _("Rate Limiting"),
+      description: _("Control notification frequency per application"),
+    });
+    page.add(rateLimitGroup);
+
+    const thresholdRow = new Adw.SpinRow({
+      title: _("Notification Threshold"),
+      subtitle: _(
+        "Time in milliseconds before allowing duplicate notifications",
+      ),
+      adjustment: new Gtk.Adjustment({
+        lower: 100,
+        upper: 60000,
+        step_increment: 100,
+        page_increment: 1000,
+        value: config.rateLimiting.notificationThreshold,
+      }),
+    });
+    thresholdRow.connect("notify::value", () => {
+      config.rateLimiting.notificationThreshold = thresholdRow.get_value();
+      onSave();
+    });
+
+    const rateLimitActionRow = new Adw.ComboRow({
+      title: _("Action"),
+      subtitle: _("What to do with rate-limited notifications"),
+    });
+    const rateLimitActionModel = new Gtk.StringList();
+    rateLimitActionModel.append(_("Close notification"));
+    rateLimitActionModel.append(_("Hide notification"));
+    rateLimitActionRow.set_model(rateLimitActionModel);
+    rateLimitActionRow.set_selected(
+      config.rateLimiting.action === "hide" ? 1 : 0,
+    );
+    rateLimitActionRow.connect("notify::selected", () => {
+      config.rateLimiting.action =
+        rateLimitActionRow.get_selected() === 1 ? "hide" : "close";
+      onSave();
+    });
+
+    const rateLimitEnabledRow = new Adw.SwitchRow({
+      title: _("Enable Rate Limiting"),
+      subtitle: _("Prevent duplicate notifications within threshold time"),
+    });
+    rateLimitEnabledRow.set_active(config.rateLimiting.enabled);
+
+    const updateRateLimitVisibility = () => {
+      const active = !overrides || overrides.rateLimiting;
+      rateLimitEnabledRow.set_visible(active);
+      thresholdRow.set_visible(active && config.rateLimiting.enabled);
+      rateLimitActionRow.set_visible(active && config.rateLimiting.enabled);
+    };
+
+    rateLimitEnabledRow.connect("notify::active", () => {
+      config.rateLimiting.enabled = rateLimitEnabledRow.get_active();
+      onSave();
+      updateRateLimitVisibility();
+    });
+
+    if (overrides) {
+      this.addOverrideRow(
+        rateLimitGroup,
+        overrides,
+        "rateLimiting",
+        onSave,
+        updateRateLimitVisibility,
+      );
+    }
+
+    rateLimitGroup.add(rateLimitEnabledRow);
+    rateLimitGroup.add(thresholdRow);
+    rateLimitGroup.add(rateLimitActionRow);
+    updateRateLimitVisibility();
+
+    const timeoutGroup = new Adw.PreferencesGroup({
+      title: _("Notification Timeout"),
+      description: _("Control how long notifications stay visible"),
+    });
+    page.add(timeoutGroup);
+
+    const timeoutRow = new Adw.SpinRow({
+      title: _("Timeout Duration"),
+      subtitle: _(
+        "Time in milliseconds before auto-dismiss (0 = never dismiss)",
+      ),
+      adjustment: new Gtk.Adjustment({
+        lower: 0,
+        upper: 30000,
+        step_increment: 500,
+        page_increment: 1000,
+        value: config.timeout.notificationTimeout,
+      }),
+    });
+    timeoutRow.connect("notify::value", () => {
+      config.timeout.notificationTimeout = timeoutRow.get_value();
+      onSave();
+    });
+
+    const ignoreIdleRow = new Adw.SwitchRow({
+      title: _("Ignore Idle State"),
+      subtitle: _("Keep showing notifications even when user is idle"),
+    });
+    ignoreIdleRow.set_active(config.timeout.ignoreIdle);
+    ignoreIdleRow.connect("notify::active", () => {
+      config.timeout.ignoreIdle = ignoreIdleRow.get_active();
+      onSave();
+    });
+
+    const timeoutEnabledRow = new Adw.SwitchRow({
+      title: _("Enable Timeout Override"),
+      subtitle: _("Override default notification timeout"),
+    });
+    timeoutEnabledRow.set_active(config.timeout.enabled);
+
+    const updateTimeoutVisibility = () => {
+      const active = !overrides || overrides.timeout;
+      timeoutEnabledRow.set_visible(active);
+      timeoutRow.set_visible(active && config.timeout.enabled);
+      ignoreIdleRow.set_visible(active && config.timeout.enabled);
+    };
+
+    timeoutEnabledRow.connect("notify::active", () => {
+      config.timeout.enabled = timeoutEnabledRow.get_active();
+      onSave();
+      updateTimeoutVisibility();
+    });
+
+    if (overrides) {
+      this.addOverrideRow(
+        timeoutGroup,
+        overrides,
+        "timeout",
+        onSave,
+        updateTimeoutVisibility,
+      );
+    }
+
+    timeoutGroup.add(timeoutEnabledRow);
+    timeoutGroup.add(timeoutRow);
+    timeoutGroup.add(ignoreIdleRow);
+    updateTimeoutVisibility();
+
+    const urgencyGroup = new Adw.PreferencesGroup({
+      title: _("Urgency"),
+    });
+    page.add(urgencyGroup);
+
+    const forceNormalRow = new Adw.SwitchRow({
+      title: _("Force Normal Urgency"),
+      subtitle: _("Make all notifications use normal urgency level"),
+    });
+    forceNormalRow.set_active(config.urgency.alwaysNormalUrgency);
+    forceNormalRow.connect("notify::active", () => {
+      config.urgency.alwaysNormalUrgency = forceNormalRow.get_active();
+      onSave();
+    });
+
+    const updateUrgencyVisibility = () => {
+      forceNormalRow.set_visible(!overrides || overrides.urgency);
+    };
+
+    if (overrides) {
+      this.addOverrideRow(
+        urgencyGroup,
+        overrides,
+        "urgency",
+        onSave,
+        updateUrgencyVisibility,
+      );
+    }
+
+    urgencyGroup.add(forceNormalRow);
+    updateUrgencyVisibility();
+
+    const displayGroup = new Adw.PreferencesGroup({
+      title: _("Display"),
+    });
+    page.add(displayGroup);
+
+    if (!overrides) {
+      const fullscreenRow = new Adw.SwitchRow({
+        title: _("Enable Notifications in Fullscreen"),
+        subtitle: _(
+          "Show notifications even when applications are in fullscreen",
+        ),
+      });
+      fullscreenRow.set_active(config.display.enableFullscreen);
+      fullscreenRow.connect("notify::active", () => {
+        config.display.enableFullscreen = fullscreenRow.get_active();
+        onSave();
+      });
+      displayGroup.add(fullscreenRow);
+    }
+
+    const positionRow = new Adw.ComboRow({
+      title: _("Notification Position"),
+      subtitle: _("Choose where notifications appear on screen"),
+    });
+    const positionModel = new Gtk.StringList();
+    positionModel.append(_("Fill Screen"));
+    positionModel.append(_("Left"));
+    positionModel.append(_("Center"));
+    positionModel.append(_("Right"));
+    positionRow.set_model(positionModel);
+    const positionIndex = POSITION_VALUES.indexOf(
+      config.display.notificationPosition,
+    );
+    positionRow.set_selected(positionIndex >= 0 ? positionIndex : 2);
+    positionRow.connect("notify::selected", () => {
+      config.display.notificationPosition =
+        POSITION_VALUES[positionRow.get_selected()] ?? "center";
+      onSave();
+    });
+
+    const updateDisplayVisibility = () => {
+      positionRow.set_visible(!overrides || overrides.display);
+    };
+
+    if (overrides) {
+      this.addOverrideRow(
+        displayGroup,
+        overrides,
+        "display",
+        onSave,
+        updateDisplayVisibility,
+      );
+    }
+
+    displayGroup.add(positionRow);
+    updateDisplayVisibility();
+
+    const colorsGroup = new Adw.PreferencesGroup({
+      title: _("Appearance"),
+      description: _("Customize notification colors and font sizes"),
+    });
+    page.add(colorsGroup);
+
+    const colorsEnabledRow = new Adw.SwitchRow({
+      title: _("Enable Custom Colors"),
+      subtitle: _("Apply custom colors to notifications"),
+    });
+    colorsEnabledRow.set_active(config.colors.enabled);
+
+    const themeRows = this.addThemeEditor(
+      colorsGroup,
+      config.colors.theme,
+      onSave,
+    );
+
+    const updateColorsVisibility = () => {
+      const active = !overrides || overrides.colors;
+      colorsEnabledRow.set_visible(active);
+      for (const row of themeRows) {
+        row.set_visible(active && config.colors.enabled);
+      }
+    };
+
+    colorsEnabledRow.connect("notify::active", () => {
+      config.colors.enabled = colorsEnabledRow.get_active();
+      onSave();
+      updateColorsVisibility();
+    });
+
+    if (overrides) {
+      this.addOverrideRow(
+        colorsGroup,
+        overrides,
+        "colors",
+        onSave,
+        updateColorsVisibility,
+      );
+    }
+
+    colorsGroup.add(colorsEnabledRow);
+    for (const row of themeRows) {
+      colorsGroup.add(row);
+    }
+    updateColorsVisibility();
+  }
+
+  private addOverrideRow(
+    group: Adw.PreferencesGroup,
+    overrides: PatternOverrides,
+    key: keyof PatternOverrides,
+    onSave: () => void,
+    updateVisibility: () => void,
+  ) {
+    const row = new Adw.SwitchRow({
+      title: _("Override"),
+      subtitle: _("Override global setting for this pattern"),
+    });
+    row.set_active(overrides[key]);
+    row.connect("notify::active", () => {
+      overrides[key] = row.get_active();
+      onSave();
+      updateVisibility();
+    });
+    group.add(row);
+  }
+
+  private addThemeEditor(
+    _group: Adw.PreferencesGroup,
+    theme: NotificationTheme,
+    onSave: () => void,
+  ): Adw.ActionRow[] {
+    const rows: Adw.ActionRow[] = [];
+
+    for (const field of THEME_FIELDS) {
+      const row = new Adw.ActionRow({
+        title: _(field.label),
+      });
+
+      const colorValue = theme[field.colorKey];
+      const colorButton = new Gtk.ColorButton({
+        use_alpha: false,
+        valign: Gtk.Align.CENTER,
+      });
+      colorButton.set_rgba(
+        new Gdk.RGBA({
+          red: colorValue[0] ?? 0,
+          green: colorValue[1] ?? 0,
+          blue: colorValue[2] ?? 0,
+          alpha: colorValue[3] ?? 1,
+        }),
+      );
+      colorButton.connect("color-set", () => {
+        const rgba = colorButton.get_rgba();
+        theme[field.colorKey] = [rgba.red, rgba.green, rgba.blue, rgba.alpha];
+        onSave();
+      });
+      row.add_suffix(colorButton);
+
+      if (field.fontKey) {
+        const fontKey = field.fontKey;
+        const fontSizeValue = theme[fontKey] ?? DEFAULT_THEME[fontKey];
+
+        const fontSizeButton = new Gtk.SpinButton({
+          adjustment: new Gtk.Adjustment({
+            lower: 0,
+            upper: 32,
+            step_increment: 1,
+            page_increment: 2,
+          }),
+          value: fontSizeValue,
+          valign: Gtk.Align.CENTER,
+        });
+        fontSizeButton.connect("value-changed", () => {
+          theme[fontKey] = fontSizeButton.get_value();
+          onSave();
+        });
+        row.add_suffix(fontSizeButton);
+
+        row.add_suffix(
+          new Gtk.Label({
+            label: _("px"),
+            css_classes: ["caption"],
+            valign: Gtk.Align.CENTER,
+          }),
+        );
+      }
+
+      rows.push(row);
+    }
+
+    return rows;
+  }
+
+  private createRegexEntryRow(
+    title: string,
+    initialValue: string,
+    onChanged: (value: string) => void,
+  ): Adw.EntryRow {
+    const row = new Adw.EntryRow({ title });
+    row.set_text(initialValue);
+    row.connect("changed", () => {
+      const text = row.get_text();
+      onChanged(text);
+      this.validateRegexRow(row, text);
+    });
+    this.validateRegexRow(row, initialValue);
+    return row;
+  }
+
+  private validateRegexRow(row: Adw.EntryRow, pattern: string) {
+    if (!pattern.trim()) {
+      row.remove_css_class("error");
+      return;
+    }
+    try {
+      new RegExp(pattern, "i");
+      row.remove_css_class("error");
+    } catch {
+      row.add_css_class("error");
+    }
+  }
+
+  private addTestSection(page: Adw.PreferencesPage) {
+    const testGroup = new Adw.PreferencesGroup({
+      title: _("Test Notifications"),
+    });
+    page.add(testGroup);
+
+    const appEntry = new Adw.EntryRow({
+      title: _("App Name"),
+    });
+    appEntry.set_text(_("Test Application Name"));
+    testGroup.add(appEntry);
+
+    const titleEntry = new Adw.EntryRow({
+      title: _("Title"),
+    });
+    titleEntry.set_text(_("Test Notification Title"));
+    testGroup.add(titleEntry);
+
+    const bodyEntry = new Adw.EntryRow({
+      title: _("Body"),
+    });
+    bodyEntry.set_text(_("Test Notification Body"));
+    testGroup.add(bodyEntry);
+
+    const testButtonGroup = new Adw.PreferencesGroup();
+    page.add(testButtonGroup);
+
+    const testButton = new Gtk.Button({
+      label: _("Send Test Notification"),
+      css_classes: ["suggested-action"],
+      margin_top: 6,
+    });
+    testButton.connect("clicked", () => {
+      const appName = appEntry.get_text() || _("Test App");
+      const title = titleEntry.get_text() || _("Test Notification");
+      const body = bodyEntry.get_text() || _("This is a test notification");
+      this.sendNotification(appName, title, body);
+    });
+    testButtonGroup.add(testButton);
+  }
+
+  private sendNotification(appName: string, title: string, body: string) {
+    try {
+      const proc = Gio.Subprocess.new(
+        [
+          "notify-send",
+          `--app-name=${appName}`,
+          "--icon=dialog-information",
+          title,
+          body,
+        ],
+        Gio.SubprocessFlags.NONE,
+      );
+      proc.wait_async(null, null);
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    }
+  }
 }

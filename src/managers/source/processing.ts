@@ -2,51 +2,62 @@ import type { SettingsManager } from "../../utils/settings.js";
 import type { AddNotificationHook } from "./manager.js";
 
 export class ProcessingAdapter {
-	private timings: Record<string, number> = {};
+  private timings: Record<string, number> = {};
 
-	constructor(private settingsManager: SettingsManager) {}
+  constructor(private settingsManager: SettingsManager) {}
 
-	createHook(): AddNotificationHook {
-		const settingsManager = this.settingsManager;
-		const timings = this.timings;
+  createHook(): AddNotificationHook {
+    const settingsManager = this.settingsManager;
+    const timings = this.timings;
 
-		return (_original, notification, { block }) => {
-			const sourceTitle = notification.source?.title ?? "UNK_SRC";
+    return (_original, notification, { block }) => {
+      const sourceTitle = notification.source?.title ?? "UNK_SRC";
+      const configuration = settingsManager.getConfigurationForNotification(
+        notification,
+        sourceTitle,
+      );
 
-			if (settingsManager.rateLimitingEnabled) {
-				const threshold = settingsManager.notificationThreshold;
-				const lastNotification = timings[sourceTitle];
+      if (!configuration.enabled) {
+        return;
+      }
 
-				if (lastNotification && Date.now() - lastNotification < threshold) {
-					notification.acknowledged = true;
-				}
+      if (configuration.rateLimiting.enabled) {
+        const threshold = configuration.rateLimiting.notificationThreshold;
+        const lastNotification = timings[sourceTitle];
 
-				timings[sourceTitle] = Date.now();
-			}
+        if (lastNotification && Date.now() - lastNotification < threshold) {
+          if (configuration.rateLimiting.action === "close") {
+            block();
+            timings[sourceTitle] = Date.now();
+            return;
+          }
+          notification.acknowledged = true;
+        }
 
-			if (settingsManager.filteringEnabled) {
-				const filterAction = settingsManager.getFilterFor(
-					notification,
-					sourceTitle,
-				);
+        timings[sourceTitle] = Date.now();
+      }
 
-				if (filterAction === "close") {
-					block();
-					return;
-				}
+      const filterAction = settingsManager.getFilterFor(
+        notification,
+        sourceTitle,
+      );
 
-				if (filterAction === "hide") {
-					notification.acknowledged = true;
-				}
-			}
-		};
-	}
+      if (filterAction === "close") {
+        block();
+        return;
+      }
 
-	register(manager: import("./manager.js").SourceManager): void {
-		manager.registerAddNotificationHook(this.createHook());
-	}
+      if (filterAction === "hide") {
+        notification.acknowledged = true;
+      }
+    };
+  }
 
-	dispose(): void {
-		this.timings = {};
-	}
+  register(manager: import("./manager.js").SourceManager): void {
+    manager.registerAddNotificationHook(this.createHook());
+  }
+
+  dispose(): void {
+    this.timings = {};
+  }
 }

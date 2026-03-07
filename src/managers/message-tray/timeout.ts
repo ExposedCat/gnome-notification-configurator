@@ -2,37 +2,37 @@ import type { SettingsManager } from "../../utils/settings.js";
 import type { UpdateNotificationTimeoutHook } from "./manager.js";
 
 export class TimeoutAdapter {
-	private listenerId?: number;
+  private listenerId?: number;
 
-	constructor(private settingsManager: SettingsManager) {}
+  constructor(private settingsManager: SettingsManager) {}
 
-	createHook(): UpdateNotificationTimeoutHook {
-		const settingsManager = this.settingsManager;
+  createHook(): UpdateNotificationTimeoutHook {
+    const settingsManager = this.settingsManager;
 
-		return (_original, timeout) => {
-			if (timeout !== null && timeout > 0) {
-				return settingsManager.notificationTimeout > 0
-					? settingsManager.notificationTimeout
-					: null;
-			}
+    return (_original, timeout) => {
+      if (timeout !== null && timeout > 0) {
+        return settingsManager.notificationTimeout > 0
+          ? settingsManager.notificationTimeout
+          : null;
+      }
 
-			return timeout;
-		};
-	}
+      return timeout;
+    };
+  }
 
-	register(manager: import("./manager.js").MessageTrayManager): void {
-		this.listenerId = this.settingsManager.events.on(
-			"notificationTimeoutChanged",
-			() => {},
-		);
+  register(manager: import("./manager.js").MessageTrayManager): void {
+    this.listenerId = this.settingsManager.events.on(
+      "notificationTimeoutChanged",
+      () => {},
+    );
 
-		manager.registerUpdateNotificationTimeoutHook(this.createHook());
-	}
+    manager.registerUpdateNotificationTimeoutHook(this.createHook());
+  }
 
-	dispose(): void {
-		if (this.listenerId !== undefined) {
-			this.settingsManager.events.off(this.listenerId);
-			this.listenerId = undefined;
-		}
-	}
+  dispose(): void {
+    if (this.listenerId !== undefined) {
+      this.settingsManager.events.off(this.listenerId);
+      this.listenerId = undefined;
+    }
+  }
 }

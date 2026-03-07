@@ -11,78 +11,100 @@ import { UrgencyAdapter } from "../managers/source/urgency.js";
 import { SourceManager } from "../managers/source/manager.js";
 import { ProcessingAdapter } from "../managers/source/processing.js";
 
-import type { SettingsManager } from "../utils/settings.js";
+import type { Position, SettingsManager } from "../utils/settings.js";
+import {
+  getMessageTrayContainer,
+  resolveNotificationWidgets,
+} from "./notification-widgets.js";
 
 export class NotificationsManager {
-	private messageTrayManager: MessageTrayManager;
-	private sourceManager: SourceManager;
+  private messageTrayManager: MessageTrayManager;
+  private sourceManager: SourceManager;
 
-	private fullscreenAdapter: FullscreenAdapter;
-	private idleAdapter: IdleAdapter;
-	private timeoutAdapter: TimeoutAdapter;
-	private urgencyAdapter: UrgencyAdapter;
-	private processingAdapter: ProcessingAdapter;
+  private fullscreenAdapter: FullscreenAdapter;
+  private idleAdapter: IdleAdapter;
+  private timeoutAdapter: TimeoutAdapter;
+  private urgencyAdapter: UrgencyAdapter;
+  private processingAdapter: ProcessingAdapter;
 
-	constructor(settingsManager: SettingsManager) {
-		this.messageTrayManager = new MessageTrayManager(settingsManager);
-		this.sourceManager = new SourceManager(settingsManager);
+  constructor(settingsManager: SettingsManager) {
+    this.messageTrayManager = new MessageTrayManager(settingsManager);
+    this.sourceManager = new SourceManager(settingsManager);
 
-		this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
-		this.idleAdapter = new IdleAdapter(settingsManager);
-		this.timeoutAdapter = new TimeoutAdapter(settingsManager);
-		this.urgencyAdapter = new UrgencyAdapter(settingsManager);
-		this.processingAdapter = new ProcessingAdapter(settingsManager);
+    this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
+    this.idleAdapter = new IdleAdapter(settingsManager);
+    this.timeoutAdapter = new TimeoutAdapter(settingsManager);
+    this.urgencyAdapter = new UrgencyAdapter(settingsManager);
+    this.processingAdapter = new ProcessingAdapter(settingsManager);
 
-		this.fullscreenAdapter.register(this.messageTrayManager);
-		this.idleAdapter.register(this.messageTrayManager);
-		this.timeoutAdapter.register(this.messageTrayManager);
-		this.urgencyAdapter.register(this.sourceManager);
-		this.processingAdapter.register(this.sourceManager);
+    this.fullscreenAdapter.register(this.messageTrayManager);
+    this.idleAdapter.register(this.messageTrayManager);
+    this.timeoutAdapter.register(this.messageTrayManager);
+    this.urgencyAdapter.register(this.sourceManager);
+    this.processingAdapter.register(this.sourceManager);
 
-		this.setupPositioning(settingsManager);
+    this.setupPositioning(settingsManager);
 
-		this.enable();
-	}
+    this.enable();
+  }
 
-	private setupPositioning(settingsManager: SettingsManager) {
-		const setPosition = (position: "fill" | "left" | "right" | "center") => {
-			Main.messageTray.bannerAlignment = {
-				fill: Clutter.ActorAlign.FILL,
-				left: Clutter.ActorAlign.START,
-				right: Clutter.ActorAlign.END,
-				center: Clutter.ActorAlign.CENTER,
-			}[position];
-		};
+  private positionSignalId?: number;
 
-		setPosition(settingsManager.notificationPosition);
+  private static readonly ALIGNMENT_MAP: Record<Position, Clutter.ActorAlign> =
+    {
+      fill: Clutter.ActorAlign.FILL,
+      left: Clutter.ActorAlign.START,
+      right: Clutter.ActorAlign.END,
+      center: Clutter.ActorAlign.CENTER,
+    };
 
-		settingsManager.events.on("notificationPositionChanged", (position) => {
-			setPosition(position);
-		});
-	}
+  private setupPositioning(settingsManager: SettingsManager) {
+    Main.messageTray.bannerAlignment =
+      NotificationsManager.ALIGNMENT_MAP[settingsManager.notificationPosition];
 
-	private enable() {
-		this.messageTrayManager.enable();
-		this.sourceManager.enable();
-	}
+    settingsManager.events.on("notificationPositionChanged", (position) => {
+      Main.messageTray.bannerAlignment =
+        NotificationsManager.ALIGNMENT_MAP[position];
+    });
 
-	private disable() {
-		this.sourceManager.disable();
-		this.messageTrayManager.disable();
-	}
+    const messageTrayContainer = getMessageTrayContainer();
+    this.positionSignalId = messageTrayContainer?.connect("child-added", () => {
+      const widgets = resolveNotificationWidgets(messageTrayContainer);
+      if (!widgets) return;
 
-	dispose() {
-		this.disable();
+      const position = settingsManager.getPositionFor(widgets.sourceText.text);
+      Main.messageTray.bannerAlignment =
+        NotificationsManager.ALIGNMENT_MAP[position];
+    });
+  }
 
-		this.fullscreenAdapter.dispose();
-		this.idleAdapter.dispose();
-		this.timeoutAdapter.dispose();
-		this.urgencyAdapter.dispose();
-		this.processingAdapter.dispose();
+  private enable() {
+    this.messageTrayManager.enable();
+    this.sourceManager.enable();
+  }
 
-		this.messageTrayManager.dispose();
-		this.sourceManager.dispose();
+  private disable() {
+    this.sourceManager.disable();
+    this.messageTrayManager.disable();
+  }
 
-		Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
-	}
+  dispose() {
+    this.disable();
+
+    if (typeof this.positionSignalId === "number") {
+      getMessageTrayContainer()?.disconnect(this.positionSignalId);
+      this.positionSignalId = undefined;
+    }
+
+    this.fullscreenAdapter.dispose();
+    this.idleAdapter.dispose();
+    this.timeoutAdapter.dispose();
+    this.urgencyAdapter.dispose();
+    this.processingAdapter.dispose();
+
+    this.messageTrayManager.dispose();
+    this.sourceManager.dispose();
+
+    Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
+  }
 }
