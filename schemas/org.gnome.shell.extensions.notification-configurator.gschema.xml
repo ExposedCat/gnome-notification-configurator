@@ -2,7 +2,20 @@
 <schemalist gettext-domain="gnome-shell-extensions">
   <schema id="org.gnome.shell.extensions.notification-configurator" path="/org/gnome/shell/extensions/notification-configurator/">
 
-    <!-- Notification threshold in milliseconds -->
+    <!-- V2 -->
+    <key name="global" type="s">
+      <default>'{}'</default>
+      <summary>Global configuration</summary>
+      <description>JSON object with the global notification configuration</description>
+    </key>
+
+    <key name="patterns" type="s">
+      <default>'[]'</default>
+      <summary>Pattern configurations</summary>
+      <description>JSON array of per-pattern notification configurations</description>
+    </key>
+
+    <!-- LEGACY -->
     <key name="notification-threshold" type="i">
       <default>5000</default>
       <summary>Notification threshold</summary>
@@ -10,14 +23,12 @@
       <range min="100" max="60000"/>
     </key>
 
-    <!-- App themes mapping stored as JSON string -->
     <key name="app-themes" type="s">
       <default>'{}'</default>
       <summary>Application color mappings</summary>
       <description>JSON object mapping application names to their notification colors</description>
     </key>
 
-    <!-- Enable/disable features -->
     <key name="enable-rate-limiting" type="b">
       <default>true</default>
       <summary>Enable notification rate limiting</summary>
@@ -48,14 +59,12 @@
       <description>Position of notifications on screen: fill, left, right, or center</description>
     </key>
 
-    <!-- Notification block list stored as JSON string -->
     <key name="block-list" type="s">
       <default>'[]'</default>
       <summary>Notification block list</summary>
       <description>JSON array of notification filter objects with title, body, appName, and action fields</description>
     </key>
 
-    <!-- Notification timeout settings -->
     <key name="notification-timeout" type="i">
       <default>4000</default>
       <summary>Notification timeout</summary>

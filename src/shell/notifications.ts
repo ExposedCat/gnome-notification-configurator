@@ -14,75 +14,75 @@ import { ProcessingAdapter } from "../managers/source/processing.js";
 import type { SettingsManager } from "../utils/settings.js";
 
 export class NotificationsManager {
-	private messageTrayManager: MessageTrayManager;
-	private sourceManager: SourceManager;
+  private messageTrayManager: MessageTrayManager;
+  private sourceManager: SourceManager;
 
-	private fullscreenAdapter: FullscreenAdapter;
-	private idleAdapter: IdleAdapter;
-	private timeoutAdapter: TimeoutAdapter;
-	private urgencyAdapter: UrgencyAdapter;
-	private processingAdapter: ProcessingAdapter;
+  private fullscreenAdapter: FullscreenAdapter;
+  private idleAdapter: IdleAdapter;
+  private timeoutAdapter: TimeoutAdapter;
+  private urgencyAdapter: UrgencyAdapter;
+  private processingAdapter: ProcessingAdapter;
 
-	constructor(settingsManager: SettingsManager) {
-		this.messageTrayManager = new MessageTrayManager(settingsManager);
-		this.sourceManager = new SourceManager(settingsManager);
+  constructor(settingsManager: SettingsManager) {
+    this.messageTrayManager = new MessageTrayManager(settingsManager);
+    this.sourceManager = new SourceManager(settingsManager);
 
-		this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
-		this.idleAdapter = new IdleAdapter(settingsManager);
-		this.timeoutAdapter = new TimeoutAdapter(settingsManager);
-		this.urgencyAdapter = new UrgencyAdapter(settingsManager);
-		this.processingAdapter = new ProcessingAdapter(settingsManager);
+    this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
+    this.idleAdapter = new IdleAdapter(settingsManager);
+    this.timeoutAdapter = new TimeoutAdapter(settingsManager);
+    this.urgencyAdapter = new UrgencyAdapter(settingsManager);
+    this.processingAdapter = new ProcessingAdapter(settingsManager);
 
-		this.fullscreenAdapter.register(this.messageTrayManager);
-		this.idleAdapter.register(this.messageTrayManager);
-		this.timeoutAdapter.register(this.messageTrayManager);
-		this.urgencyAdapter.register(this.sourceManager);
-		this.processingAdapter.register(this.sourceManager);
+    this.fullscreenAdapter.register(this.messageTrayManager);
+    this.idleAdapter.register(this.messageTrayManager);
+    this.timeoutAdapter.register(this.messageTrayManager);
+    this.urgencyAdapter.register(this.sourceManager);
+    this.processingAdapter.register(this.sourceManager);
 
-		this.setupPositioning(settingsManager);
+    this.setupPositioning(settingsManager);
 
-		this.enable();
-	}
+    this.enable();
+  }
 
-	private setupPositioning(settingsManager: SettingsManager) {
-		const setPosition = (position: "fill" | "left" | "right" | "center") => {
-			Main.messageTray.bannerAlignment = {
-				fill: Clutter.ActorAlign.FILL,
-				left: Clutter.ActorAlign.START,
-				right: Clutter.ActorAlign.END,
-				center: Clutter.ActorAlign.CENTER,
-			}[position];
-		};
+  private setupPositioning(settingsManager: SettingsManager) {
+    const setPosition = (position: "fill" | "left" | "right" | "center") => {
+      Main.messageTray.bannerAlignment = {
+        fill: Clutter.ActorAlign.FILL,
+        left: Clutter.ActorAlign.START,
+        right: Clutter.ActorAlign.END,
+        center: Clutter.ActorAlign.CENTER,
+      }[position];
+    };
 
-		setPosition(settingsManager.notificationPosition);
+    setPosition(settingsManager.notificationPosition);
 
-		settingsManager.events.on("notificationPositionChanged", (position) => {
-			setPosition(position);
-		});
-	}
+    settingsManager.events.on("notificationPositionChanged", (position) => {
+      setPosition(position);
+    });
+  }
 
-	private enable() {
-		this.messageTrayManager.enable();
-		this.sourceManager.enable();
-	}
+  private enable() {
+    this.messageTrayManager.enable();
+    this.sourceManager.enable();
+  }
 
-	private disable() {
-		this.sourceManager.disable();
-		this.messageTrayManager.disable();
-	}
+  private disable() {
+    this.sourceManager.disable();
+    this.messageTrayManager.disable();
+  }
 
-	dispose() {
-		this.disable();
+  dispose() {
+    this.disable();
 
-		this.fullscreenAdapter.dispose();
-		this.idleAdapter.dispose();
-		this.timeoutAdapter.dispose();
-		this.urgencyAdapter.dispose();
-		this.processingAdapter.dispose();
+    this.fullscreenAdapter.dispose();
+    this.idleAdapter.dispose();
+    this.timeoutAdapter.dispose();
+    this.urgencyAdapter.dispose();
+    this.processingAdapter.dispose();
 
-		this.messageTrayManager.dispose();
-		this.sourceManager.dispose();
+    this.messageTrayManager.dispose();
+    this.sourceManager.dispose();
 
-		Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
-	}
+    Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
+  }
 }

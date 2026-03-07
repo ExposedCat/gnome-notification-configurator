@@ -1,34 +1,34 @@
 {
-	"categories": [
-		{
-			"title": "## 🚀 Features",
-			"rules": [{ "pattern": "^feat(\\(.+\\))?: .+$", "on_property": "title" }]
-		},
-		{
-			"title": "## 🐛 Bug Fixes",
-			"rules": [{ "pattern": "^fix(\\(.+\\))?: .+$", "on_property": "title" }]
-		},
-		{
-			"title": "## ⚠️ Breaking Changes",
-			"rules": [{ "pattern": "^.*!: .+$", "on_property": "title" }]
-		},
-		{
-			"title": "## ✅ Tests",
-			"rules": [{ "pattern": "^test(\\(.+\\))?: .+$", "on_property": "title" }]
-		},
-		{
-			"title": "## 🚧 Maintenance",
-			"rules": [
-				{ "pattern": "^(refactor|style): .+$", "on_property": "title" },
-				{ "pattern": "^chore(\\(.+\\))?: .+$", "on_property": "title" },
-				{ "pattern": "^ci(\\(.+\\))?: .+$", "on_property": "title" }
-			]
-		}
-	],
-	"sort": {
-		"order": "ASC",
-		"on_property": "mergedAt"
-	},
-	"template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
-	"commit_template": "- #{{TITLE}}"
+  "categories": [
+    {
+      "title": "## 🚀 Features",
+      "rules": [{ "pattern": "^feat(\\(.+\\))?: .+$", "on_property": "title" }]
+    },
+    {
+      "title": "## 🐛 Bug Fixes",
+      "rules": [{ "pattern": "^fix(\\(.+\\))?: .+$", "on_property": "title" }]
+    },
+    {
+      "title": "## ⚠️ Breaking Changes",
+      "rules": [{ "pattern": "^.*!: .+$", "on_property": "title" }]
+    },
+    {
+      "title": "## ✅ Tests",
+      "rules": [{ "pattern": "^test(\\(.+\\))?: .+$", "on_property": "title" }]
+    },
+    {
+      "title": "## 🚧 Maintenance",
+      "rules": [
+        { "pattern": "^(refactor|style): .+$", "on_property": "title" },
+        { "pattern": "^chore(\\(.+\\))?: .+$", "on_property": "title" },
+        { "pattern": "^ci(\\(.+\\))?: .+$", "on_property": "title" }
+      ]
+    }
+  ],
+  "sort": {
+    "order": "ASC",
+    "on_property": "mergedAt"
+  },
+  "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
+  "commit_template": "- #{{TITLE}}"
 }

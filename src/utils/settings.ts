@@ -2,317 +2,593 @@ import type Gio from "gi://Gio?version=2.0";
 
 import type { Notification } from "@girs/gnome-shell/ui/messageTray";
 import type { NotificationTheme } from "./constants.js";
+import { DEFAULT_THEME } from "./constants.js";
 import { TypedEventEmitter } from "./event-emitter.js";
-
-export type NotificationFilter = {
-	title: string;
-	body: string;
-	appName: string;
-	action: "hide" | "close";
-};
-
-type SettingsEvents = {
-	colorsEnabledChanged: [boolean];
-	rateLimitingEnabledChanged: [boolean];
-	filteringEnabledChanged: [boolean];
-	notificationThresholdChanged: [number];
-	notificationPositionChanged: [Position];
-	fullscreenEnabledChanged: [boolean];
-	notificationTimeoutChanged: [number];
-	ignoreIdleChanged: [boolean];
-	alwaysNormalUrgencyChanged: [boolean];
-};
 
 export type Position = "fill" | "left" | "right" | "center";
 
+export type Matcher = {
+  title: string;
+  body: string;
+  appName: string;
+};
+
+type FilterAction = "hide" | "close";
+
+export type Configuration = {
+  enabled: boolean;
+  rateLimiting: {
+    enabled: boolean;
+    notificationThreshold: number;
+  };
+  timeout: {
+    enabled: boolean;
+    notificationTimeout: number;
+    ignoreIdle: boolean;
+  };
+  urgency: {
+    alwaysNormalUrgency: boolean;
+  };
+  display: {
+    enableFullscreen: boolean;
+    notificationPosition: Position;
+  };
+  colors: {
+    enabled: boolean;
+    theme: NotificationTheme;
+  };
+};
+
+export type PatternOverrides = {
+  rateLimiting: boolean;
+  timeout: boolean;
+  urgency: boolean;
+  colors: boolean;
+};
+
+export type PatternConfigurationPrefs = {
+  shortName: string;
+  matcher: Matcher;
+  overrides: PatternOverrides;
+  filtering: {
+    enabled: boolean;
+    action: FilterAction;
+  };
+};
+
+export type GlobalConfiguration = Configuration;
+export type PatternConfiguration = Configuration & PatternConfigurationPrefs;
+
+type SettingsEvents = {
+  colorsEnabledChanged: [boolean];
+  rateLimitingEnabledChanged: [boolean];
+  filteringEnabledChanged: [boolean];
+  notificationThresholdChanged: [number];
+  notificationPositionChanged: [Position];
+  fullscreenEnabledChanged: [boolean];
+  notificationTimeoutChanged: [number];
+  ignoreIdleChanged: [boolean];
+  alwaysNormalUrgencyChanged: [boolean];
+};
+
 export class SettingsManager {
-	private settings: Gio.Settings;
-	private settingSignals: number[] = [];
+  private settings: Gio.Settings;
+  private settingSignals: number[] = [];
 
-	private _colorsEnabled!: boolean;
-	private _rateLimitingEnabled!: boolean;
-	private _filteringEnabled!: boolean;
-	private _fullscreenEnabled!: boolean;
-	private _notificationThreshold!: number;
-	private _notificationTimeout!: number;
-	private _ignoreIdle!: boolean;
-	private _alwaysNormalUrgency!: boolean;
-	private _themes: Record<string, NotificationTheme | undefined> = {};
-	private _blockList: NotificationFilter[] = [];
+  private _colorsEnabled = true;
+  private _rateLimitingEnabled = true;
+  private _filteringEnabled = false;
+  private _fullscreenEnabled = false;
+  private _notificationThreshold = 5000;
+  private _notificationTimeout = 4000;
+  private _ignoreIdle = true;
+  private _alwaysNormalUrgency = false;
+  private _globalConfiguration: GlobalConfiguration =
+    SettingsManager.defaultGlobalConfiguration();
+  private _patterns: PatternConfiguration[] = [];
 
-	events = new TypedEventEmitter<SettingsEvents>();
+  events = new TypedEventEmitter<SettingsEvents>();
 
-	constructor(settings: Gio.Settings) {
-		this.settings = settings;
-		this.listen();
-		this.load();
-	}
+  constructor(settings: Gio.Settings) {
+    this.settings = settings;
+    this.listen();
+    this.load();
+  }
 
-	dispose() {
-		for (const signal of this.settingSignals) {
-			this.settings.disconnect(signal);
-		}
-	}
+  static defaultGlobalConfiguration(): GlobalConfiguration {
+    return {
+      enabled: true,
+      rateLimiting: {
+        enabled: true,
+        notificationThreshold: 5000,
+      },
+      timeout: {
+        enabled: true,
+        notificationTimeout: 4000,
+        ignoreIdle: true,
+      },
+      urgency: {
+        alwaysNormalUrgency: false,
+      },
+      display: {
+        enableFullscreen: false,
+        notificationPosition: "center",
+      },
+      colors: {
+        enabled: true,
+        theme: {
+          ...DEFAULT_THEME,
+        },
+      },
+    };
+  }
 
-	get colorsEnabled() {
-		return this._colorsEnabled;
-	}
+  dispose() {
+    for (const signal of this.settingSignals) {
+      this.settings.disconnect(signal);
+    }
+  }
 
-	get rateLimitingEnabled() {
-		return this._rateLimitingEnabled;
-	}
+  get colorsEnabled() {
+    return this._colorsEnabled;
+  }
 
-	get filteringEnabled() {
-		return this._filteringEnabled;
-	}
+  get rateLimitingEnabled() {
+    return this._rateLimitingEnabled;
+  }
 
-	get fullscreenEnabled() {
-		return this._fullscreenEnabled;
-	}
+  get filteringEnabled() {
+    return this._filteringEnabled;
+  }
 
-	get notificationThreshold() {
-		return this._notificationThreshold;
-	}
+  get fullscreenEnabled() {
+    return this._fullscreenEnabled;
+  }
 
-	get notificationTimeout() {
-		return this._notificationTimeout;
-	}
+  get notificationThreshold() {
+    return this._notificationThreshold;
+  }
 
-	get ignoreIdle() {
-		return this._ignoreIdle;
-	}
+  get notificationTimeout() {
+    return this._notificationTimeout;
+  }
 
-	get alwaysNormalUrgency() {
-		return this._alwaysNormalUrgency;
-	}
+  get ignoreIdle() {
+    return this._ignoreIdle;
+  }
 
-	get notificationPosition() {
-		return (this.settings.get_string("notification-position") ??
-			"center") as Position;
-	}
+  get alwaysNormalUrgency() {
+    return this._alwaysNormalUrgency;
+  }
 
-	get blockList() {
-		return this._blockList;
-	}
+  get notificationPosition() {
+    return this._globalConfiguration.display.notificationPosition;
+  }
 
-	getFilterFor(
-		notification: Notification,
-		source: string,
-	): NotificationFilter["action"] | null {
-		for (const { title, body, appName, action } of this._blockList) {
-			if (!title.trim() && !appName.trim() && !body.trim()) {
-				continue;
-			}
+  getFilterFor(
+    notification: Notification,
+    source: string,
+  ): FilterAction | null {
+    for (const pattern of this._patterns) {
+      if (!pattern.enabled || !pattern.filtering.enabled) {
+        continue;
+      }
+      if (this.matchesPattern(pattern.matcher, notification, source)) {
+        return pattern.filtering.action;
+      }
+    }
+    return null;
+  }
 
-			const matches = [
-				!title.trim() ||
-					(notification.title?.trim() &&
-						this.matchesRegex(notification.title, title)),
+  isValidRegexPattern(pattern: string): boolean {
+    if (!pattern.trim()) {
+      return true;
+    }
+    try {
+      new RegExp(pattern, "i");
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
-				!appName.trim() ||
-					(source.trim() && this.matchesRegex(source, appName)),
+  getThemeFor(appName: string) {
+    for (const pattern of this._patterns) {
+      if (
+        !pattern.enabled ||
+        !pattern.overrides.colors ||
+        !pattern.colors.enabled
+      ) {
+        continue;
+      }
+      if (pattern.matcher.title.trim() || pattern.matcher.body.trim()) {
+        continue;
+      }
+      if (
+        pattern.matcher.appName.trim() &&
+        this.matchesRegex(appName, pattern.matcher.appName)
+      ) {
+        return pattern.colors.theme;
+      }
+    }
+    if (this._globalConfiguration.colors.enabled) {
+      return this._globalConfiguration.colors.theme;
+    }
+    return undefined;
+  }
 
-				!body.trim() ||
-					(notification.body?.trim() &&
-						this.matchesRegex(notification.body, body)),
-			];
+  getConfigurationForNotification(
+    notification: Notification,
+    source: string,
+  ): Configuration {
+    const matchedPattern = this.findMatchingPattern(notification, source);
+    if (!matchedPattern || !matchedPattern.enabled) {
+      return this._globalConfiguration;
+    }
+    const overrides = matchedPattern.overrides;
+    return {
+      ...this._globalConfiguration,
+      enabled: matchedPattern.enabled,
+      rateLimiting: overrides.rateLimiting
+        ? matchedPattern.rateLimiting
+        : this._globalConfiguration.rateLimiting,
+      timeout: overrides.timeout
+        ? matchedPattern.timeout
+        : this._globalConfiguration.timeout,
+      urgency: overrides.urgency
+        ? matchedPattern.urgency
+        : this._globalConfiguration.urgency,
+      display: this._globalConfiguration.display,
+      colors: overrides.colors
+        ? matchedPattern.colors
+        : this._globalConfiguration.colors,
+    };
+  }
 
-			if (matches.every(Boolean)) {
-				return action;
-			}
-		}
-		return null;
-	}
+  private load() {
+    this._globalConfiguration = this.parseGlobalConfiguration(
+      this.settings.get_string("global"),
+    );
+    this._patterns = this.parsePatternConfigurations(
+      this.settings.get_string("patterns"),
+    );
+    this._colorsEnabled =
+      this._globalConfiguration.colors.enabled ||
+      this._patterns.some(
+        (pattern) =>
+          pattern.enabled && pattern.overrides.colors && pattern.colors.enabled,
+      );
+    this._rateLimitingEnabled =
+      this._globalConfiguration.rateLimiting.enabled ||
+      this._patterns.some(
+        (pattern) =>
+          pattern.enabled &&
+          pattern.overrides.rateLimiting &&
+          pattern.rateLimiting.enabled,
+      );
+    this._filteringEnabled = this._patterns.some(
+      (pattern) => pattern.enabled && pattern.filtering.enabled,
+    );
+    this._fullscreenEnabled =
+      this._globalConfiguration.display.enableFullscreen;
+    this._notificationThreshold =
+      this._globalConfiguration.rateLimiting.notificationThreshold;
+    this._notificationTimeout =
+      this._globalConfiguration.timeout.notificationTimeout;
+    this._ignoreIdle = this._globalConfiguration.timeout.ignoreIdle;
+    this._alwaysNormalUrgency =
+      this._globalConfiguration.urgency.alwaysNormalUrgency;
+  }
 
-	isValidRegexPattern(pattern: string): boolean {
-		if (!pattern.trim()) {
-			return true;
-		}
+  private listen() {
+    const emitChanges = () => {
+      this.events.emit("colorsEnabledChanged", this._colorsEnabled);
+      this.events.emit("rateLimitingEnabledChanged", this._rateLimitingEnabled);
+      this.events.emit("filteringEnabledChanged", this._filteringEnabled);
+      this.events.emit(
+        "notificationThresholdChanged",
+        this._notificationThreshold,
+      );
+      this.events.emit(
+        "notificationPositionChanged",
+        this.notificationPosition,
+      );
+      this.events.emit("fullscreenEnabledChanged", this._fullscreenEnabled);
+      this.events.emit("notificationTimeoutChanged", this._notificationTimeout);
+      this.events.emit("ignoreIdleChanged", this._ignoreIdle);
+      this.events.emit("alwaysNormalUrgencyChanged", this._alwaysNormalUrgency);
+    };
 
-		try {
-			new RegExp(pattern, "i");
-			return true;
-		} catch {
-			return false;
-		}
-	}
+    this.settingSignals.push(
+      this.settings.connect("changed::global", () => {
+        this.load();
+        emitChanges();
+      }),
+    );
+    this.settingSignals.push(
+      this.settings.connect("changed::patterns", () => {
+        this.load();
+        emitChanges();
+      }),
+    );
+  }
 
-	private matchesRegex(text: string, pattern: string): boolean {
-		if (!pattern.trim()) {
-			return false;
-		}
+  private parseGlobalConfiguration(value: string): GlobalConfiguration {
+    try {
+      const parsed = JSON.parse(value) as Partial<GlobalConfiguration>;
+      return {
+        enabled: typeof parsed.enabled === "boolean" ? parsed.enabled : true,
+        rateLimiting: {
+          enabled:
+            typeof parsed.rateLimiting?.enabled === "boolean"
+              ? parsed.rateLimiting.enabled
+              : true,
+          notificationThreshold:
+            typeof parsed.rateLimiting?.notificationThreshold === "number"
+              ? parsed.rateLimiting.notificationThreshold
+              : 5000,
+        },
+        timeout: {
+          enabled:
+            typeof parsed.timeout?.enabled === "boolean"
+              ? parsed.timeout.enabled
+              : true,
+          notificationTimeout:
+            typeof parsed.timeout?.notificationTimeout === "number"
+              ? parsed.timeout.notificationTimeout
+              : 4000,
+          ignoreIdle:
+            typeof parsed.timeout?.ignoreIdle === "boolean"
+              ? parsed.timeout.ignoreIdle
+              : true,
+        },
+        urgency: {
+          alwaysNormalUrgency:
+            typeof parsed.urgency?.alwaysNormalUrgency === "boolean"
+              ? parsed.urgency.alwaysNormalUrgency
+              : false,
+        },
+        display: {
+          enableFullscreen:
+            typeof parsed.display?.enableFullscreen === "boolean"
+              ? parsed.display.enableFullscreen
+              : false,
+          notificationPosition: this.normalizePosition(
+            parsed.display?.notificationPosition,
+          ),
+        },
+        colors: {
+          enabled:
+            typeof parsed.colors?.enabled === "boolean"
+              ? parsed.colors.enabled
+              : true,
+          theme: this.normalizeTheme(parsed.colors?.theme),
+        },
+      };
+    } catch {
+      return SettingsManager.defaultGlobalConfiguration();
+    }
+  }
 
-		try {
-			const regex = new RegExp(pattern, "i");
-			return regex.test(text);
-		} catch {
-			return false;
-		}
-	}
+  private parsePatternConfigurations(value: string): PatternConfiguration[] {
+    try {
+      const parsed = JSON.parse(value);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      const patterns: PatternConfiguration[] = [];
+      for (const candidate of parsed) {
+        patterns.push(this.normalizePattern(candidate));
+      }
+      return patterns;
+    } catch {
+      return [];
+    }
+  }
 
-	getThemeFor(appName: string) {
-		for (const [pattern, color] of Object.entries(this._themes)) {
-			const hasRegexChars = /[.*+?^${}()|[\]\\]/.test(pattern);
+  private normalizePattern(candidate: unknown): PatternConfiguration {
+    const object = (candidate ?? {}) as Partial<PatternConfiguration>;
+    return {
+      enabled: typeof object.enabled === "boolean" ? object.enabled : true,
+      shortName: typeof object.shortName === "string" ? object.shortName : "",
+      matcher: {
+        title:
+          typeof object.matcher?.title === "string" ? object.matcher.title : "",
+        body:
+          typeof object.matcher?.body === "string" ? object.matcher.body : "",
+        appName:
+          typeof object.matcher?.appName === "string"
+            ? object.matcher.appName
+            : "",
+      },
+      overrides: {
+        rateLimiting:
+          typeof object.overrides?.rateLimiting === "boolean"
+            ? object.overrides.rateLimiting
+            : false,
+        timeout:
+          typeof object.overrides?.timeout === "boolean"
+            ? object.overrides.timeout
+            : false,
+        urgency:
+          typeof object.overrides?.urgency === "boolean"
+            ? object.overrides.urgency
+            : false,
+        colors:
+          typeof object.overrides?.colors === "boolean"
+            ? object.overrides.colors
+            : false,
+      },
+      rateLimiting: {
+        enabled:
+          typeof object.rateLimiting?.enabled === "boolean"
+            ? object.rateLimiting.enabled
+            : false,
+        notificationThreshold:
+          typeof object.rateLimiting?.notificationThreshold === "number"
+            ? object.rateLimiting.notificationThreshold
+            : 5000,
+      },
+      timeout: {
+        enabled:
+          typeof object.timeout?.enabled === "boolean"
+            ? object.timeout.enabled
+            : false,
+        notificationTimeout:
+          typeof object.timeout?.notificationTimeout === "number"
+            ? object.timeout.notificationTimeout
+            : 4000,
+        ignoreIdle:
+          typeof object.timeout?.ignoreIdle === "boolean"
+            ? object.timeout.ignoreIdle
+            : true,
+      },
+      urgency: {
+        alwaysNormalUrgency:
+          typeof object.urgency?.alwaysNormalUrgency === "boolean"
+            ? object.urgency.alwaysNormalUrgency
+            : false,
+      },
+      display: {
+        enableFullscreen:
+          typeof object.display?.enableFullscreen === "boolean"
+            ? object.display.enableFullscreen
+            : false,
+        notificationPosition: this.normalizePosition(
+          object.display?.notificationPosition,
+        ),
+      },
+      filtering: {
+        enabled:
+          typeof object.filtering?.enabled === "boolean"
+            ? object.filtering.enabled
+            : false,
+        action: this.normalizeFilterAction(object.filtering?.action),
+      },
+      colors: {
+        enabled:
+          typeof object.colors?.enabled === "boolean"
+            ? object.colors.enabled
+            : false,
+        theme: this.normalizeTheme(object.colors?.theme),
+      },
+    };
+  }
 
-			if (hasRegexChars) {
-				if (this.matchesRegex(appName, pattern)) {
-					return color as NotificationTheme;
-				}
-			} else {
-				if (
-					pattern.toLowerCase().includes(appName.toLowerCase()) ||
-					appName.toLowerCase().includes(pattern.toLowerCase())
-				) {
-					return color as NotificationTheme;
-				}
-			}
-		}
-		return undefined;
-	}
+  private normalizeFilterAction(value: unknown): FilterAction {
+    return value === "close" ? "close" : "hide";
+  }
 
-	private load() {
-		this._colorsEnabled = this.settings.get_boolean("enable-custom-colors");
-		this._rateLimitingEnabled = this.settings.get_boolean(
-			"enable-rate-limiting",
-		);
-		this._filteringEnabled = this.settings.get_boolean("enable-filtering");
-		this._fullscreenEnabled = this.settings.get_boolean("enable-fullscreen");
-		this._notificationThreshold = this.settings.get_int(
-			"notification-threshold",
-		);
-		this._notificationTimeout = this.settings.get_int("notification-timeout");
-		this._ignoreIdle = this.settings.get_boolean("ignore-idle");
-		this._alwaysNormalUrgency = this.settings.get_boolean(
-			"always-normal-urgency",
-		);
-		this.loadThemes();
-		this.loadBlockList();
-	}
+  private normalizePosition(value: unknown): Position {
+    return value === "fill" || value === "left" || value === "right"
+      ? value
+      : "center";
+  }
 
-	private loadThemes() {
-		const colors = this.settings.get_string("app-themes");
-		try {
-			this._themes = JSON.parse(colors);
-		} catch (error) {
-			console.error("Failed to parse app themes JSON:", error);
-			this.settings.set_string("app-themes", "{}");
-		}
-	}
+  private normalizeTheme(theme: unknown): NotificationTheme {
+    const candidate = (theme ?? {}) as Partial<NotificationTheme>;
+    return {
+      appNameColor: this.normalizeColor(
+        candidate.appNameColor,
+        DEFAULT_THEME.appNameColor,
+      ),
+      timeColor: this.normalizeColor(
+        candidate.timeColor,
+        DEFAULT_THEME.timeColor,
+      ),
+      backgroundColor: this.normalizeColor(
+        candidate.backgroundColor,
+        DEFAULT_THEME.backgroundColor,
+      ),
+      titleColor: this.normalizeColor(
+        candidate.titleColor,
+        DEFAULT_THEME.titleColor,
+      ),
+      bodyColor: this.normalizeColor(
+        candidate.bodyColor,
+        DEFAULT_THEME.bodyColor,
+      ),
+      appNameFontSize: this.normalizeNumber(
+        candidate.appNameFontSize,
+        DEFAULT_THEME.appNameFontSize,
+      ),
+      timeFontSize: this.normalizeNumber(
+        candidate.timeFontSize,
+        DEFAULT_THEME.timeFontSize,
+      ),
+      titleFontSize: this.normalizeNumber(
+        candidate.titleFontSize,
+        DEFAULT_THEME.titleFontSize,
+      ),
+      bodyFontSize: this.normalizeNumber(
+        candidate.bodyFontSize,
+        DEFAULT_THEME.bodyFontSize,
+      ),
+    };
+  }
 
-	private loadBlockList() {
-		const blockListJson = this.settings.get_string("block-list");
-		try {
-			this._blockList = JSON.parse(blockListJson);
-			this.validateBlockListPatterns();
-		} catch (error) {
-			console.error("Failed to parse block list JSON:", error);
-			this.settings.set_string("block-list", "[]");
-			this._blockList = [];
-		}
-	}
+  private normalizeColor(candidate: unknown, fallback: number[]): number[] {
+    if (!Array.isArray(candidate) || candidate.length !== 4) {
+      return [...fallback];
+    }
+    const normalizedColor: number[] = [];
+    for (const [index, value] of candidate.entries()) {
+      normalizedColor.push(this.normalizeNumber(value, fallback[index]));
+    }
+    return normalizedColor;
+  }
 
-	private validateBlockListPatterns() {
-		for (const filter of this._blockList) {
-			if (filter.title?.trim()) {
-				this.isValidRegexPattern(filter.title);
-			}
-			if (filter.body?.trim()) {
-				this.isValidRegexPattern(filter.body);
-			}
-			if (filter.appName?.trim()) {
-				this.isValidRegexPattern(filter.appName);
-			}
-		}
-	}
+  private normalizeNumber(candidate: unknown, fallback: number): number {
+    return typeof candidate === "number" && Number.isFinite(candidate)
+      ? candidate
+      : fallback;
+  }
 
-	private listen() {
-		this.settingSignals.push(
-			this.settings.connect("changed::enable-custom-colors", () => {
-				this._colorsEnabled = this.settings.get_boolean("enable-custom-colors");
-				this.events.emit("colorsEnabledChanged", this._colorsEnabled);
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::app-themes", () => {
-				this.loadThemes();
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::block-list", () => {
-				this.loadBlockList();
-			}),
-		);
+  private findMatchingPattern(
+    notification: Notification,
+    source: string,
+  ): PatternConfiguration | null {
+    for (const pattern of this._patterns) {
+      if (!pattern.enabled) {
+        continue;
+      }
+      if (this.matchesPattern(pattern.matcher, notification, source)) {
+        return pattern;
+      }
+    }
+    return null;
+  }
 
-		this.settingSignals.push(
-			this.settings.connect("changed::enable-rate-limiting", () => {
-				this._rateLimitingEnabled = this.settings.get_boolean(
-					"enable-rate-limiting",
-				);
-				this.events.emit(
-					"rateLimitingEnabledChanged",
-					this._rateLimitingEnabled,
-				);
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::enable-filtering", () => {
-				this._filteringEnabled = this.settings.get_boolean("enable-filtering");
-				this.events.emit("filteringEnabledChanged", this._filteringEnabled);
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::notification-threshold", () => {
-				this._notificationThreshold = this.settings.get_int(
-					"notification-threshold",
-				);
-				this.events.emit(
-					"notificationThresholdChanged",
-					this._notificationThreshold,
-				);
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::notification-position", () => {
-				this.events.emit(
-					"notificationPositionChanged",
-					this.notificationPosition,
-				);
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::enable-fullscreen", () => {
-				this._fullscreenEnabled =
-					this.settings.get_boolean("enable-fullscreen");
-				this.events.emit("fullscreenEnabledChanged", this._fullscreenEnabled);
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::notification-timeout", () => {
-				this._notificationTimeout = this.settings.get_int(
-					"notification-timeout",
-				);
-				this.events.emit(
-					"notificationTimeoutChanged",
-					this._notificationTimeout,
-				);
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::ignore-idle", () => {
-				this._ignoreIdle = this.settings.get_boolean("ignore-idle");
-				this.events.emit("ignoreIdleChanged", this._ignoreIdle);
-			}),
-		);
-		this.settingSignals.push(
-			this.settings.connect("changed::always-normal-urgency", () => {
-				this._alwaysNormalUrgency = this.settings.get_boolean(
-					"always-normal-urgency",
-				);
-				this.events.emit(
-					"alwaysNormalUrgencyChanged",
-					this._alwaysNormalUrgency,
-				);
-			}),
-		);
-	}
+  private matchesPattern(
+    matcher: Matcher,
+    notification: Notification,
+    source: string,
+  ): boolean {
+    const notificationTitle = notification.title ?? "";
+    const notificationBody = notification.body ?? "";
+    const titleMatches =
+      !matcher.title.trim() ||
+      (Boolean(notificationTitle.trim()) &&
+        this.matchesRegex(notificationTitle, matcher.title));
+    const bodyMatches =
+      !matcher.body.trim() ||
+      (Boolean(notificationBody.trim()) &&
+        this.matchesRegex(notificationBody, matcher.body));
+    const appNameMatches =
+      !matcher.appName.trim() ||
+      (Boolean(source.trim()) && this.matchesRegex(source, matcher.appName));
+    return titleMatches && bodyMatches && appNameMatches;
+  }
+
+  private matchesRegex(text: string, pattern: string): boolean {
+    if (!pattern.trim()) {
+      return false;
+    }
+    try {
+      const regex = new RegExp(pattern, "i");
+      return regex.test(text);
+    } catch {
+      return false;
+    }
+  }
 }
