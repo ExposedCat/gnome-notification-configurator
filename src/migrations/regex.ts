@@ -86,6 +86,7 @@ function createGlobalConfiguration(
     rateLimiting: {
       enabled: oldSettings.get_boolean("enable-rate-limiting"),
       notificationThreshold: oldSettings.get_int("notification-threshold"),
+      action: "close",
     },
     timeout: {
       enabled: true,
@@ -189,6 +190,7 @@ function createDefaultPattern(matcher: Matcher): PatternConfiguration {
     rateLimiting: {
       enabled: false,
       notificationThreshold: 5000,
+      action: "close",
     },
     timeout: {
       enabled: false,

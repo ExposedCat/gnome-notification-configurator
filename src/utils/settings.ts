@@ -13,13 +13,14 @@ export type Matcher = {
   appName: string;
 };
 
-type FilterAction = "hide" | "close";
+export type NotificationAction = "hide" | "close";
 
 export type Configuration = {
   enabled: boolean;
   rateLimiting: {
     enabled: boolean;
     notificationThreshold: number;
+    action: NotificationAction;
   };
   timeout: {
     enabled: boolean;
@@ -52,7 +53,7 @@ export type PatternConfigurationPrefs = {
   overrides: PatternOverrides;
   filtering: {
     enabled: boolean;
-    action: FilterAction;
+    action: NotificationAction;
   };
 };
 
@@ -101,6 +102,7 @@ export class SettingsManager {
       rateLimiting: {
         enabled: true,
         notificationThreshold: 5000,
+        action: "close",
       },
       timeout: {
         enabled: true,
@@ -168,7 +170,7 @@ export class SettingsManager {
   getFilterFor(
     notification: Notification,
     source: string,
-  ): FilterAction | null {
+  ): NotificationAction | null {
     for (const pattern of this._patterns) {
       if (!pattern.enabled || !pattern.filtering.enabled) {
         continue;
@@ -327,6 +329,7 @@ export class SettingsManager {
             typeof parsed.rateLimiting?.notificationThreshold === "number"
               ? parsed.rateLimiting.notificationThreshold
               : 5000,
+          action: this.normalizeAction(parsed.rateLimiting?.action, "close"),
         },
         timeout: {
           enabled:
@@ -428,6 +431,7 @@ export class SettingsManager {
           typeof object.rateLimiting?.notificationThreshold === "number"
             ? object.rateLimiting.notificationThreshold
             : 5000,
+        action: this.normalizeAction(object.rateLimiting?.action, "close"),
       },
       timeout: {
         enabled:
@@ -463,7 +467,7 @@ export class SettingsManager {
           typeof object.filtering?.enabled === "boolean"
             ? object.filtering.enabled
             : false,
-        action: this.normalizeFilterAction(object.filtering?.action),
+        action: this.normalizeAction(object.filtering?.action),
       },
       colors: {
         enabled:
@@ -475,8 +479,14 @@ export class SettingsManager {
     };
   }
 
-  private normalizeFilterAction(value: unknown): FilterAction {
-    return value === "close" ? "close" : "hide";
+  private normalizeAction(
+    value: unknown,
+    fallback: NotificationAction = "hide",
+  ): NotificationAction {
+    if (value === "close" || value === "hide") {
+      return value;
+    }
+    return fallback;
   }
 
   private normalizePosition(value: unknown): Position {

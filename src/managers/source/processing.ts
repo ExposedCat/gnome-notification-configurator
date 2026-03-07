@@ -26,6 +26,11 @@ export class ProcessingAdapter {
         const lastNotification = timings[sourceTitle];
 
         if (lastNotification && Date.now() - lastNotification < threshold) {
+          if (configuration.rateLimiting.action === "close") {
+            block();
+            timings[sourceTitle] = Date.now();
+            return;
+          }
           notification.acknowledged = true;
         }
 

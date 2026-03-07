@@ -384,6 +384,23 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       onSave();
     });
 
+    const rateLimitActionRow = new Adw.ComboRow({
+      title: _("Action"),
+      subtitle: _("What to do with rate-limited notifications"),
+    });
+    const rateLimitActionModel = new Gtk.StringList();
+    rateLimitActionModel.append(_("Close notification"));
+    rateLimitActionModel.append(_("Hide notification"));
+    rateLimitActionRow.set_model(rateLimitActionModel);
+    rateLimitActionRow.set_selected(
+      config.rateLimiting.action === "hide" ? 1 : 0,
+    );
+    rateLimitActionRow.connect("notify::selected", () => {
+      config.rateLimiting.action =
+        rateLimitActionRow.get_selected() === 1 ? "hide" : "close";
+      onSave();
+    });
+
     const rateLimitEnabledRow = new Adw.SwitchRow({
       title: _("Enable Rate Limiting"),
       subtitle: _("Prevent duplicate notifications within threshold time"),
@@ -394,6 +411,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       const active = !overrides || overrides.rateLimiting;
       rateLimitEnabledRow.set_visible(active);
       thresholdRow.set_visible(active && config.rateLimiting.enabled);
+      rateLimitActionRow.set_visible(active && config.rateLimiting.enabled);
     };
 
     rateLimitEnabledRow.connect("notify::active", () => {
@@ -414,6 +432,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
     rateLimitGroup.add(rateLimitEnabledRow);
     rateLimitGroup.add(thresholdRow);
+    rateLimitGroup.add(rateLimitActionRow);
     updateRateLimitVisibility();
 
     const timeoutGroup = new Adw.PreferencesGroup({
@@ -734,7 +753,11 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
         colors: false,
       },
       filtering: { enabled: false, action: "hide" },
-      rateLimiting: { enabled: false, notificationThreshold: 5000 },
+      rateLimiting: {
+        enabled: false,
+        notificationThreshold: 5000,
+        action: "close",
+      },
       timeout: {
         enabled: false,
         notificationTimeout: 4000,
