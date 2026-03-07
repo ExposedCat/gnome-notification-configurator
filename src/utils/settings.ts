@@ -1,17 +1,17 @@
 import type Gio from "gi://Gio?version=2.0";
 
-import type { Notification } from "@girs/gnome-shell/ui/messageTray";
 import type { NotificationTheme } from "./constants.js";
 import { DEFAULT_THEME } from "./constants.js";
 import { TypedEventEmitter } from "./event-emitter.js";
-import type { NotificationAction, Position } from "./normalize.js";
+import type { Margins, NotificationAction, Position } from "./normalize.js";
 import {
   normalizeAction,
+  normalizeMargins,
   normalizePosition,
   normalizeTheme,
 } from "./normalize.js";
 
-export type { NotificationAction, Position } from "./normalize.js";
+export type { Margins, NotificationAction, Position } from "./normalize.js";
 
 export type Matcher = {
   title: string;
@@ -42,6 +42,13 @@ export type Configuration = {
     enabled: boolean;
     theme: NotificationTheme;
   };
+  margins: {
+    enabled: boolean;
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
 };
 
 export type PatternOverrides = {
@@ -50,6 +57,7 @@ export type PatternOverrides = {
   urgency: boolean;
   display: boolean;
   colors: boolean;
+  margins: boolean;
 };
 
 export type PatternConfigurationPrefs = {
@@ -127,6 +135,13 @@ export class SettingsManager {
           ...DEFAULT_THEME,
         },
       },
+      margins: {
+        enabled: false,
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+      },
     };
   }
 
@@ -143,6 +158,7 @@ export class SettingsManager {
         urgency: false,
         display: false,
         colors: false,
+        margins: false,
       },
       filtering: { enabled: false, action: "hide" },
       rateLimiting: {
@@ -158,6 +174,7 @@ export class SettingsManager {
       urgency: { alwaysNormalUrgency: false },
       display: { enableFullscreen: false, notificationPosition: "center" },
       colors: { enabled: false, theme: { ...DEFAULT_THEME } },
+      margins: { enabled: false, top: 0, bottom: 0, left: 0, right: 0 },
     };
   }
 
@@ -203,37 +220,32 @@ export class SettingsManager {
     return this._globalConfiguration.display.notificationPosition;
   }
 
-  getPositionFor(appName: string): Position {
-    for (const pattern of this._patterns) {
-      if (!pattern.enabled || !pattern.overrides.display) {
-        continue;
-      }
-      if (pattern.matcher.title.trim() || pattern.matcher.body.trim()) {
-        continue;
-      }
-      if (
-        pattern.matcher.appName.trim() &&
-        this.matchesRegex(appName, pattern.matcher.appName)
-      ) {
-        return pattern.display.notificationPosition;
-      }
-    }
-    return this._globalConfiguration.display.notificationPosition;
+  getPositionFor(source: string, title: string, body: string): Position {
+    const pattern = this.findPatternBy(
+      source,
+      title,
+      body,
+      (pattern) => pattern.overrides.display,
+    );
+    return (
+      pattern?.display.notificationPosition ??
+      this._globalConfiguration.display.notificationPosition
+    );
   }
 
   getFilterFor(
-    notification: Notification,
     source: string,
+    title: string,
+    body: string,
   ): NotificationAction | null {
-    for (const pattern of this._patterns) {
-      if (!pattern.enabled || !pattern.filtering.enabled) {
-        continue;
-      }
-      if (this.matchesPattern(pattern.matcher, notification, source)) {
-        return pattern.filtering.action;
-      }
-    }
-    return null;
+    return (
+      this.findPatternBy(
+        source,
+        title,
+        body,
+        (pattern) => pattern.filtering.enabled,
+      )?.filtering.action ?? null
+    );
   }
 
   isValidRegexPattern(pattern: string): boolean {
@@ -248,37 +260,41 @@ export class SettingsManager {
     }
   }
 
-  getThemeFor(appName: string) {
-    for (const pattern of this._patterns) {
-      if (
-        !pattern.enabled ||
-        !pattern.overrides.colors ||
-        !pattern.colors.enabled
-      ) {
-        continue;
-      }
-      if (pattern.matcher.title.trim() || pattern.matcher.body.trim()) {
-        continue;
-      }
-      if (
-        pattern.matcher.appName.trim() &&
-        this.matchesRegex(appName, pattern.matcher.appName)
-      ) {
-        return pattern.colors.theme;
-      }
-    }
+  getThemeFor(source: string, title: string, body: string) {
+    const pattern = this.findPatternBy(
+      source,
+      title,
+      body,
+      (pattern) => pattern.overrides.colors && pattern.colors.enabled,
+    );
+    if (pattern) return pattern.colors.theme;
     if (this._globalConfiguration.colors.enabled) {
       return this._globalConfiguration.colors.theme;
     }
     return undefined;
   }
 
-  getConfigurationForNotification(
-    notification: Notification,
+  getMarginsFor(source: string, title: string, body: string): Margins | null {
+    const pattern = this.findPatternBy(
+      source,
+      title,
+      body,
+      (pattern) => pattern.overrides.margins && pattern.margins.enabled,
+    );
+    if (pattern) return pattern.margins;
+    if (this._globalConfiguration.margins.enabled) {
+      return this._globalConfiguration.margins;
+    }
+    return null;
+  }
+
+  getConfigurationFor(
     source: string,
+    title: string,
+    body: string,
   ): Configuration {
-    const matchedPattern = this.findMatchingPattern(notification, source);
-    if (!matchedPattern || !matchedPattern.enabled) {
+    const matchedPattern = this.findPatternBy(source, title, body);
+    if (!matchedPattern) {
       return this._globalConfiguration;
     }
     const overrides = matchedPattern.overrides;
@@ -300,14 +316,17 @@ export class SettingsManager {
       colors: overrides.colors
         ? matchedPattern.colors
         : this._globalConfiguration.colors,
+      margins: overrides.margins
+        ? matchedPattern.margins
+        : this._globalConfiguration.margins,
     };
   }
 
   private load() {
-    this._globalConfiguration = this.parseGlobalConfiguration(
+    this._globalConfiguration = SettingsManager.parseGlobalConfiguration(
       this.settings.get_string("global"),
     );
-    this._patterns = this.parsePatternConfigurations(
+    this._patterns = SettingsManager.parsePatternConfigurations(
       this.settings.get_string("patterns"),
     );
     this._colorsEnabled =
@@ -371,7 +390,7 @@ export class SettingsManager {
     );
   }
 
-  private parseGlobalConfiguration(value: string): GlobalConfiguration {
+  static parseGlobalConfiguration(value: string): GlobalConfiguration {
     try {
       const parsed = JSON.parse(value) as Partial<GlobalConfiguration>;
       return {
@@ -423,13 +442,20 @@ export class SettingsManager {
               : true,
           theme: normalizeTheme(parsed.colors?.theme),
         },
+        margins: {
+          enabled:
+            typeof parsed.margins?.enabled === "boolean"
+              ? parsed.margins.enabled
+              : false,
+          ...normalizeMargins(parsed.margins),
+        },
       };
     } catch {
       return SettingsManager.defaultGlobalConfiguration();
     }
   }
 
-  private parsePatternConfigurations(value: string): PatternConfiguration[] {
+  static parsePatternConfigurations(value: string): PatternConfiguration[] {
     try {
       const parsed = JSON.parse(value);
       if (!Array.isArray(parsed)) {
@@ -437,7 +463,7 @@ export class SettingsManager {
       }
       const patterns: PatternConfiguration[] = [];
       for (const candidate of parsed) {
-        patterns.push(this.normalizePattern(candidate));
+        patterns.push(SettingsManager.normalizePattern(candidate));
       }
       return patterns;
     } catch {
@@ -445,7 +471,7 @@ export class SettingsManager {
     }
   }
 
-  private normalizePattern(candidate: unknown): PatternConfiguration {
+  static normalizePattern(candidate: unknown): PatternConfiguration {
     const object = (candidate ?? {}) as Partial<PatternConfiguration>;
     return {
       enabled: typeof object.enabled === "boolean" ? object.enabled : true,
@@ -480,6 +506,10 @@ export class SettingsManager {
         colors:
           typeof object.overrides?.colors === "boolean"
             ? object.overrides.colors
+            : false,
+        margins:
+          typeof object.overrides?.margins === "boolean"
+            ? object.overrides.margins
             : false,
       },
       rateLimiting: {
@@ -536,39 +566,45 @@ export class SettingsManager {
             : false,
         theme: normalizeTheme(object.colors?.theme),
       },
+      margins: {
+        enabled:
+          typeof object.margins?.enabled === "boolean"
+            ? object.margins.enabled
+            : false,
+        ...normalizeMargins(object.margins),
+      },
     };
   }
 
-  private findMatchingPattern(
-    notification: Notification,
+  private findPatternBy(
     source: string,
+    title: string,
+    body: string,
+    predicate: (pattern: PatternConfiguration) => boolean = () => true,
   ): PatternConfiguration | null {
     for (const pattern of this._patterns) {
-      if (!pattern.enabled) {
+      if (!pattern.enabled || !predicate(pattern)) {
         continue;
       }
-      if (this.matchesPattern(pattern.matcher, notification, source)) {
+      if (this.matchesMatcher(pattern.matcher, source, title, body)) {
         return pattern;
       }
     }
     return null;
   }
 
-  private matchesPattern(
+  private matchesMatcher(
     matcher: Matcher,
-    notification: Notification,
     source: string,
+    title: string,
+    body: string,
   ): boolean {
-    const notificationTitle = notification.title ?? "";
-    const notificationBody = notification.body ?? "";
     const titleMatches =
       !matcher.title.trim() ||
-      (Boolean(notificationTitle.trim()) &&
-        this.matchesRegex(notificationTitle, matcher.title));
+      (Boolean(title.trim()) && this.matchesRegex(title, matcher.title));
     const bodyMatches =
       !matcher.body.trim() ||
-      (Boolean(notificationBody.trim()) &&
-        this.matchesRegex(notificationBody, matcher.body));
+      (Boolean(body.trim()) && this.matchesRegex(body, matcher.body));
     const appNameMatches =
       !matcher.appName.trim() ||
       (Boolean(source.trim()) && this.matchesRegex(source, matcher.appName));

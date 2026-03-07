@@ -3,6 +3,12 @@ import { DEFAULT_THEME } from "./constants.js";
 
 export type NotificationAction = "hide" | "close";
 export type Position = "fill" | "left" | "right" | "center";
+export type Margins = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
 
 export function normalizeAction(
   value: unknown,
@@ -38,6 +44,16 @@ export function normalizeColor(
     normalized.push(normalizeNumber(value, fallback[index]));
   }
   return normalized;
+}
+
+export function normalizeMargins(candidate: unknown): Margins {
+  const object = (candidate ?? {}) as Partial<Margins>;
+  return {
+    top: normalizeNumber(object.top, 0),
+    bottom: normalizeNumber(object.bottom, 0),
+    left: normalizeNumber(object.left, 0),
+    right: normalizeNumber(object.right, 0),
+  };
 }
 
 export function normalizeTheme(theme: unknown): NotificationTheme {

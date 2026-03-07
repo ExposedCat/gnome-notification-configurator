@@ -9,6 +9,9 @@ export type NotificationWidgets = {
   time: St.Bin;
   title: St.Bin;
   body: St.Bin;
+  sourceName: string;
+  titleText: string;
+  bodyText: string;
 };
 
 export function getMessageTrayContainer() {
@@ -35,5 +38,20 @@ export function resolveNotificationWidgets(
   const title = contentBody?.get_child_at_index(0) as St.Bin;
   const body = contentBody?.get_child_at_index(1) as St.Bin;
 
-  return { container, sourceText, source, time, title, body };
+  const sourceName = sourceText.text ?? "";
+  const titleText =
+    (title?.get_first_child() as Clutter.Text | null)?.text ?? "";
+  const bodyText = (body?.get_first_child() as Clutter.Text | null)?.text ?? "";
+
+  return {
+    container,
+    sourceText,
+    source,
+    time,
+    title,
+    body,
+    sourceName,
+    titleText,
+    bodyText,
+  };
 }

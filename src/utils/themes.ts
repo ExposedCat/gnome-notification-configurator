@@ -78,7 +78,11 @@ export class ThemesManager {
       const widgets = resolveNotificationWidgets(messageTrayContainer);
       if (!widgets) return;
 
-      const theme = this.settingsManager.getThemeFor(widgets.sourceText.text);
+      const theme = this.settingsManager.getThemeFor(
+        widgets.sourceName,
+        widgets.titleText,
+        widgets.bodyText,
+      );
       if (!theme) return;
 
       widgets.source?.set_style(
@@ -106,8 +110,9 @@ export class ThemesManager {
         ),
       );
 
+      const existingStyle = widgets.container?.get_style() ?? "";
       widgets.container?.set_style(
-        this.makeColorStyle(theme.backgroundColor, "background"),
+        `${existingStyle} ${this.makeColorStyle(theme.backgroundColor, "background")}`,
       );
     });
   }

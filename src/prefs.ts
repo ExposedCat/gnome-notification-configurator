@@ -89,22 +89,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
   }
 
   private loadData() {
-    try {
-      const parsed = JSON.parse(this.settings.get_string("global") ?? "{}");
-      this.globalConfig =
-        parsed && typeof parsed === "object" && parsed.enabled !== undefined
-          ? parsed
-          : SettingsManager.defaultGlobalConfiguration();
-    } catch {
-      this.globalConfig = SettingsManager.defaultGlobalConfiguration();
-    }
-
-    try {
-      const parsed = JSON.parse(this.settings.get_string("patterns") ?? "[]");
-      this.patterns = Array.isArray(parsed) ? parsed : [];
-    } catch {
-      this.patterns = [];
-    }
+    this.globalConfig = SettingsManager.parseGlobalConfiguration(
+      this.settings.get_string("global") ?? "{}",
+    );
+    this.patterns = SettingsManager.parsePatternConfigurations(
+      this.settings.get_string("patterns") ?? "[]",
+    );
   }
 
   private saveGlobal() {
@@ -592,11 +582,11 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     displayGroup.add(positionRow);
     updateDisplayVisibility();
 
-    const colorsGroup = new Adw.PreferencesGroup({
+    const appearanceGroup = new Adw.PreferencesGroup({
       title: _("Appearance"),
-      description: _("Customize notification colors and font sizes"),
+      description: _("Customize notification colors, font sizes, and margins"),
     });
-    page.add(colorsGroup);
+    page.add(appearanceGroup);
 
     const colorsEnabledRow = new Adw.SwitchRow({
       title: _("Enable Custom Colors"),
@@ -605,7 +595,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     colorsEnabledRow.set_active(config.colors.enabled);
 
     const themeRows = this.addThemeEditor(
-      colorsGroup,
+      appearanceGroup,
       config.colors.theme,
       onSave,
     );
@@ -626,7 +616,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
     if (overrides) {
       this.addOverrideRow(
-        colorsGroup,
+        appearanceGroup,
         overrides,
         "colors",
         onSave,
@@ -634,11 +624,114 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       );
     }
 
-    colorsGroup.add(colorsEnabledRow);
+    appearanceGroup.add(colorsEnabledRow);
     for (const row of themeRows) {
-      colorsGroup.add(row);
+      appearanceGroup.add(row);
     }
     updateColorsVisibility();
+
+    const marginTopRow = new Adw.SpinRow({
+      title: _("Margin Top"),
+      adjustment: new Gtk.Adjustment({
+        lower: 0,
+        upper: 500,
+        step_increment: 1,
+        page_increment: 10,
+        value: config.margins.top,
+      }),
+    });
+    marginTopRow.connect("notify::value", () => {
+      config.margins.top = marginTopRow.get_value();
+      onSave();
+    });
+
+    const marginBottomRow = new Adw.SpinRow({
+      title: _("Margin Bottom"),
+      adjustment: new Gtk.Adjustment({
+        lower: 0,
+        upper: 500,
+        step_increment: 1,
+        page_increment: 10,
+        value: config.margins.bottom,
+      }),
+    });
+    marginBottomRow.connect("notify::value", () => {
+      config.margins.bottom = marginBottomRow.get_value();
+      onSave();
+    });
+
+    const marginLeftRow = new Adw.SpinRow({
+      title: _("Margin Left"),
+      adjustment: new Gtk.Adjustment({
+        lower: 0,
+        upper: 500,
+        step_increment: 1,
+        page_increment: 10,
+        value: config.margins.left,
+      }),
+    });
+    marginLeftRow.connect("notify::value", () => {
+      config.margins.left = marginLeftRow.get_value();
+      onSave();
+    });
+
+    const marginRightRow = new Adw.SpinRow({
+      title: _("Margin Right"),
+      adjustment: new Gtk.Adjustment({
+        lower: 0,
+        upper: 500,
+        step_increment: 1,
+        page_increment: 10,
+        value: config.margins.right,
+      }),
+    });
+    marginRightRow.connect("notify::value", () => {
+      config.margins.right = marginRightRow.get_value();
+      onSave();
+    });
+
+    const marginsEnabledRow = new Adw.SwitchRow({
+      title: _("Enable Custom Margins"),
+      subtitle: _("Apply custom margins to notifications"),
+    });
+    marginsEnabledRow.set_active(config.margins.enabled);
+
+    const marginRows = [
+      marginTopRow,
+      marginBottomRow,
+      marginLeftRow,
+      marginRightRow,
+    ];
+
+    const updateMarginsVisibility = () => {
+      const active = !overrides || overrides.margins;
+      marginsEnabledRow.set_visible(active);
+      for (const row of marginRows) {
+        row.set_visible(active && config.margins.enabled);
+      }
+    };
+
+    marginsEnabledRow.connect("notify::active", () => {
+      config.margins.enabled = marginsEnabledRow.get_active();
+      onSave();
+      updateMarginsVisibility();
+    });
+
+    if (overrides) {
+      this.addOverrideRow(
+        appearanceGroup,
+        overrides,
+        "margins",
+        onSave,
+        updateMarginsVisibility,
+      );
+    }
+
+    appearanceGroup.add(marginsEnabledRow);
+    for (const row of marginRows) {
+      appearanceGroup.add(row);
+    }
+    updateMarginsVisibility();
   }
 
   private addOverrideRow(

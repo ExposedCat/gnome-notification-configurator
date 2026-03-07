@@ -72,9 +72,26 @@ export class NotificationsManager {
       const widgets = resolveNotificationWidgets(messageTrayContainer);
       if (!widgets) return;
 
-      const position = settingsManager.getPositionFor(widgets.sourceText.text);
+      const { sourceName, titleText, bodyText } = widgets;
+
+      const position = settingsManager.getPositionFor(
+        sourceName,
+        titleText,
+        bodyText,
+      );
       Main.messageTray.bannerAlignment =
         NotificationsManager.ALIGNMENT_MAP[position];
+
+      const margins = settingsManager.getMarginsFor(
+        sourceName,
+        titleText,
+        bodyText,
+      );
+      if (margins) {
+        widgets.container.set_style(
+          `margin-top: ${margins.top}px; margin-bottom: ${margins.bottom}px; margin-left: ${margins.left}px; margin-right: ${margins.right}px;`,
+        );
+      }
     });
   }
 

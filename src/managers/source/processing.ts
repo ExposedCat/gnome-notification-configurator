@@ -12,9 +12,12 @@ export class ProcessingAdapter {
 
     return (_original, notification, { block }) => {
       const sourceTitle = notification.source?.title ?? "UNK_SRC";
-      const configuration = settingsManager.getConfigurationForNotification(
-        notification,
+      const notificationTitle = notification.title ?? "";
+      const notificationBody = notification.body ?? "";
+      const configuration = settingsManager.getConfigurationFor(
         sourceTitle,
+        notificationTitle,
+        notificationBody,
       );
 
       if (!configuration.enabled) {
@@ -38,8 +41,9 @@ export class ProcessingAdapter {
       }
 
       const filterAction = settingsManager.getFilterFor(
-        notification,
         sourceTitle,
+        notificationTitle,
+        notificationBody,
       );
 
       if (filterAction === "close") {

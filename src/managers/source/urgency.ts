@@ -10,9 +10,10 @@ export class UrgencyAdapter {
 
     return (_original, notification, _ctx) => {
       const sourceTitle = notification.source?.title ?? "UNK_SRC";
-      const configuration = settingsManager.getConfigurationForNotification(
-        notification,
+      const configuration = settingsManager.getConfigurationFor(
         sourceTitle,
+        notification.title ?? "",
+        notification.body ?? "",
       );
 
       if (!configuration.enabled) {
