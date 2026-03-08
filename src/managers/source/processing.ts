@@ -31,13 +31,12 @@ export class ProcessingAdapter {
         if (lastNotification && Date.now() - lastNotification < threshold) {
           if (configuration.rateLimiting.action === "close") {
             block();
-            timings[sourceTitle] = Date.now();
             return;
           }
           notification.acknowledged = true;
+        } else {
+          timings[sourceTitle] = Date.now();
         }
-
-        timings[sourceTitle] = Date.now();
       }
 
       const filterAction = settingsManager.getFilterFor(
