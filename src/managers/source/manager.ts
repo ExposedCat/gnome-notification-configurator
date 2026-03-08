@@ -40,13 +40,13 @@ export class SourceManager {
       Source.prototype,
       "addNotification",
       (original) =>
-        function (this: Source, notification: Notification) {
+        function (this: Source, notification) {
           let handled = false;
           let blocked = false;
 
           for (const hook of hooks) {
             hook(
-              (notificationToProcess: Notification) => {
+              (notificationToProcess) => {
                 handled = true;
                 original.call(this, notificationToProcess);
               },

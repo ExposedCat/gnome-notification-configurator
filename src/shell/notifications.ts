@@ -139,7 +139,7 @@ export class NotificationsManager {
       proto,
       "_hideNotification",
       (original) =>
-        function (this: MessageTray.MessageTrayProto, animate: boolean) {
+        function (this: MessageTray.MessageTrayProto, animate) {
           if (self.isVerticalAlignTop()) {
             original.call(this, animate);
             return;

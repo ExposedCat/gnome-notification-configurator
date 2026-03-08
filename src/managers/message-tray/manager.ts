@@ -39,10 +39,9 @@ export class MessageTrayManager {
   }
 
   private patchUpdateState() {
+    const hooks = this.updateStateHooks;
     const messageTrayProto = MessageTray.MessageTray
       .prototype as unknown as MessageTray.MessageTrayProto;
-
-    const hooks = this.updateStateHooks;
 
     this.injectionManager.overrideMethod(
       messageTrayProto,
@@ -80,7 +79,7 @@ export class MessageTrayManager {
       messageTrayProto,
       "_updateNotificationTimeout",
       (original) =>
-        function (this: MessageTray.MessageTrayProto, timeout: number) {
+        function (this: MessageTray.MessageTrayProto, timeout) {
           let finalTimeout: number | null = timeout;
 
           for (const hook of hooks) {
