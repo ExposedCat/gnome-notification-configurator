@@ -1,5 +1,24 @@
 import type { Notification } from "resource:///org/gnome/shell/ui/messageTray.js";
 
+declare module "resource:///org/gnome/shell/extensions/extension.js" {
+  export * from "@girs/gnome-shell/extensions/extension";
+
+  type CreateOverrideFunc<T> = (originalMethod: T) => T;
+
+  export class InjectionManager {
+    overrideMethod<P extends object, K extends string & keyof P>(
+      prototype: P,
+      methodName: K,
+      createOverrideFunc: CreateOverrideFunc<P[K]>,
+    ): void;
+    restoreMethod<P extends object>(
+      prototype: P,
+      methodName: string & keyof P,
+    ): void;
+    clear(): void;
+  }
+}
+
 declare module "resource:///org/gnome/shell/ui/notificationDaemon.js" {
   export * from "@girs/gnome-shell/ui/notificationDaemon";
 

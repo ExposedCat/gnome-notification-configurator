@@ -1,6 +1,7 @@
 import Clutter from "gi://Clutter";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
+import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
 
 import { FullscreenAdapter } from "../managers/message-tray/fullscreen.js";
 import { IdleAdapter } from "../managers/message-tray/idle.js";
@@ -57,9 +58,7 @@ export class NotificationsManager {
   }
 
   private positionSignalId?: number;
-  private originalShowNotification?: () => void;
-  private originalUpdateShowingNotification?: () => void;
-  private originalHideNotification?: (animate: boolean) => void;
+  private injectionManager = new InjectionManager();
 
   private static readonly HORIZONTAL_ALIGNMENT_MAP: Record<
     Position,
@@ -92,92 +91,81 @@ export class NotificationsManager {
     const proto = MessageTray.MessageTray
       .prototype as unknown as MessageTray.MessageTrayProto;
 
-    this.originalShowNotification = proto._showNotification;
-    this.originalUpdateShowingNotification = proto._updateShowingNotification;
-    this.originalHideNotification = proto._hideNotification;
-
     const self = this;
-    const origShow = this.originalShowNotification;
-    const origUpdateShowing = this.originalUpdateShowingNotification;
-    const origHide = this.originalHideNotification;
 
-    proto._showNotification = function (
-      this: MessageTray.MessageTrayProto,
-    ) {
-      origShow.call(this);
-      if (!self.isVerticalAlignTop()) {
-        this._bannerBin.y = 0;
-      }
-    };
-
-    proto._updateShowingNotification = function (
-      this: MessageTray.MessageTrayProto,
-    ) {
-      if (self.isVerticalAlignTop()) {
-        origUpdateShowing.call(this);
-        return;
-      }
-
-      this._notificationState = MessageTray.State.SHOWING;
-      this._bannerBin.remove_all_transitions();
-      this._bannerBin.set_pivot_point(0.5, 0.5);
-      this._bannerBin.scale_x = 0.9;
-      this._bannerBin.scale_y = 0.9;
-      this._bannerBin.ease({
-        opacity: 255,
-        scale_x: 1,
-        scale_y: 1,
-        duration: ANIMATION_TIME,
-        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-        onComplete: () => {
-          this._notificationState = MessageTray.State.SHOWN;
-          this._showNotificationCompleted();
-          this._updateState();
+    this.injectionManager.overrideMethod(
+      proto,
+      "_showNotification",
+      (original) =>
+        function (this: MessageTray.MessageTrayProto) {
+          original.call(this);
+          if (!self.isVerticalAlignTop()) {
+            this._bannerBin.y = 0;
+          }
         },
-      });
-    };
+    );
 
-    proto._hideNotification = function (
-      this: MessageTray.MessageTrayProto,
-      animate: boolean,
-    ) {
-      if (self.isVerticalAlignTop()) {
-        origHide.call(this, animate);
-        return;
-      }
+    this.injectionManager.overrideMethod(
+      proto,
+      "_updateShowingNotification",
+      (original) =>
+        function (this: MessageTray.MessageTrayProto) {
+          if (self.isVerticalAlignTop()) {
+            original.call(this);
+            return;
+          }
 
-      this._notificationFocusGrabber.ungrabFocus();
-      this._banner?.disconnectObject(this);
-      this._resetNotificationLeftTimeout();
-      this._bannerBin.remove_all_transitions();
-
-      const duration = animate ? ANIMATION_TIME : 0;
-      this._notificationState = MessageTray.State.HIDING;
-      this._bannerBin.ease({
-        opacity: 0,
-        scale_x: 0.9,
-        scale_y: 0.9,
-        duration,
-        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-        onStopped: () => {
-          this._notificationState = MessageTray.State.HIDDEN;
-          this._hideNotificationCompleted();
-          this._updateState();
+          this._notificationState = MessageTray.State.SHOWING;
+          this._bannerBin.remove_all_transitions();
+          this._bannerBin.set_pivot_point(0.5, 0.5);
+          this._bannerBin.scale_x = 0.9;
+          this._bannerBin.scale_y = 0.9;
+          this._bannerBin.ease({
+            opacity: 255,
+            scale_x: 1,
+            scale_y: 1,
+            duration: ANIMATION_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onComplete: () => {
+              this._notificationState = MessageTray.State.SHOWN;
+              this._showNotificationCompleted();
+              this._updateState();
+            },
+          });
         },
-      });
-    };
-  }
+    );
 
-  private restoreAnimations() {
-    const proto = MessageTray.MessageTray
-      .prototype as unknown as MessageTray.MessageTrayProto;
+    this.injectionManager.overrideMethod(
+      proto,
+      "_hideNotification",
+      (original) =>
+        function (this: MessageTray.MessageTrayProto, animate: boolean) {
+          if (self.isVerticalAlignTop()) {
+            original.call(this, animate);
+            return;
+          }
 
-    if (this.originalShowNotification)
-      proto._showNotification = this.originalShowNotification;
-    if (this.originalUpdateShowingNotification)
-      proto._updateShowingNotification = this.originalUpdateShowingNotification;
-    if (this.originalHideNotification)
-      proto._hideNotification = this.originalHideNotification;
+          this._notificationFocusGrabber.ungrabFocus();
+          this._banner?.disconnectObject(this);
+          this._resetNotificationLeftTimeout();
+          this._bannerBin.remove_all_transitions();
+
+          const duration = animate ? ANIMATION_TIME : 0;
+          this._notificationState = MessageTray.State.HIDING;
+          this._bannerBin.ease({
+            opacity: 0,
+            scale_x: 0.9,
+            scale_y: 0.9,
+            duration,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onStopped: () => {
+              this._notificationState = MessageTray.State.HIDDEN;
+              this._hideNotificationCompleted();
+              this._updateState();
+            },
+          });
+        },
+    );
   }
 
   private setupPositioning(settingsManager: SettingsManager) {
@@ -198,14 +186,11 @@ export class NotificationsManager {
         NotificationsManager.HORIZONTAL_ALIGNMENT_MAP[position];
     });
 
-    settingsManager.events.on(
-      "verticalPositionChanged",
-      (verticalPosition) => {
-        bannerBin?.set_y_align(
-          NotificationsManager.VERTICAL_ALIGNMENT_MAP[verticalPosition],
-        );
-      },
-    );
+    settingsManager.events.on("verticalPositionChanged", (verticalPosition) => {
+      bannerBin?.set_y_align(
+        NotificationsManager.VERTICAL_ALIGNMENT_MAP[verticalPosition],
+      );
+    });
 
     this.patchAnimations();
 
@@ -258,7 +243,7 @@ export class NotificationsManager {
 
   dispose() {
     this.disable();
-    this.restoreAnimations();
+    this.injectionManager.clear();
 
     if (typeof this.positionSignalId === "number") {
       getMessageTrayContainer()?.disconnect(this.positionSignalId);
