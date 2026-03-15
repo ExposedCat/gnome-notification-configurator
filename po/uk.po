@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Notification Configurator 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 10:32+0200\n"
+"POT-Creation-Date: 2026-03-14 22:59+0100\n"
 "PO-Revision-Date: 2025-07-14 10:33+0200\n"
 "Last-Translator: Artem Prokop <artem.prokop.dev@gmail.com>\n"
 "Language-Team: Ukrainian <artem.prokop.dev@gmail.com>\n"
@@ -18,288 +18,423 @@ msgstr ""
 "n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Gtranslator 48.0\n"
 
-#: dist/prefs.js:29
-msgid "General"
-msgstr "Загальне"
+#: dist/prefs.js:37
+msgid "Global"
+msgstr "Глобальні"
 
-#: dist/prefs.js:35
+#: dist/prefs.js:43
+msgid "Patterns"
+msgstr "Патерни"
+
+#: dist/prefs.js:72 dist/prefs.js:162
+msgid "Enabled"
+msgstr "Увімкнено"
+
+#: dist/prefs.js:73
+msgid "Master switch for all notification configuration"
+msgstr "Головний перемикач для всіх налаштувань повідомлень"
+
+#: dist/prefs.js:86
+msgid "Notification Patterns"
+msgstr "Патерни повідомлень"
+
+#: dist/prefs.js:87
+msgid "Per-pattern overrides that apply to matching notifications"
+msgstr "Налаштування для кожного патерну, що застосовуються до відповідних повідомлень"
+
+#: dist/prefs.js:99
+msgid "New Pattern"
+msgstr "Новий патерн"
+
+#: dist/prefs.js:121
+msgid "Unnamed Pattern"
+msgstr "Безіменний патерн"
+
+#: dist/prefs.js:143
+msgid "No matchers configured"
+msgstr "Збіги не налаштовано"
+
+#: dist/prefs.js:149
+msgid "Pattern Identity"
+msgstr "Ідентифікація патерну"
+
+#: dist/prefs.js:153
+msgid "Short Name"
+msgstr "Коротка назва"
+
+#: dist/prefs.js:163
+msgid "Enable this pattern override"
+msgstr "Увімкнути це перевизначення патерну"
+
+#: dist/prefs.js:172
+msgid "Matchers"
+msgstr "Збіги"
+
+#: dist/prefs.js:173
+msgid "RegExp patterns to match notifications"
+msgstr "Регулярні вирази для збігу з повідомленнями"
+
+#: dist/prefs.js:176 dist/prefs.js:656
+msgid "App Name"
+msgstr "Назва Застосунку"
+
+#: dist/prefs.js:181 dist/prefs.js:661
+msgid "Title"
+msgstr "Заголовок"
+
+#: dist/prefs.js:186 dist/prefs.js:666
+msgid "Body"
+msgstr "Вміст"
+
+#: dist/prefs.js:192
+msgid "Filtering"
+msgstr "Фільтрація"
+
+#: dist/prefs.js:193
+msgid "Block or hide matching notifications"
+msgstr "Блокування або приховування відповідних повідомлень"
+
+#: dist/prefs.js:197
+msgid "Filter Action"
+msgstr "Дія фільтра"
+
+#: dist/prefs.js:198
+msgid "What to do with matching notifications"
+msgstr "Що робити з відповідними повідомленнями"
+
+#: dist/prefs.js:201 dist/prefs.js:278
+msgid "Hide notification"
+msgstr "Сховати повідомлення"
+
+#: dist/prefs.js:202 dist/prefs.js:277
+msgid "Close notification"
+msgstr "Закрити повідомлення"
+
+#: dist/prefs.js:212
+msgid "Enable Filtering"
+msgstr "Увімкнути Фільтрацію Повідомлень"
+
+#: dist/prefs.js:213
+msgid "Apply filter action to matching notifications"
+msgstr "Застосувати дію фільтра до відповідних повідомлень"
+
+#: dist/prefs.js:228
+msgid "Delete Pattern"
+msgstr "Видалити патерн"
+
+#: dist/prefs.js:243
+msgid "Pattern"
+msgstr "Патерн"
+
+#: dist/prefs.js:253
 msgid "Rate Limiting"
 msgstr "Обмеження Частоти"
 
-#: dist/prefs.js:36
+#: dist/prefs.js:254
 msgid "Control notification frequency per application"
 msgstr "Налаштування частоти появи повідомлень окремих додатків"
 
-#: dist/prefs.js:40
-msgid "Enable Rate Limiting"
-msgstr "Увімкнути Обмеження Частоти "
-
-#: dist/prefs.js:41
-msgid "Prevent duplicate notifications within threshold time"
-msgstr "Заборонити повідомлення від додатку протягом певного часу"
-
-#: dist/prefs.js:46
+#: dist/prefs.js:258
 msgid "Notification Threshold"
 msgstr "Поріг Зображення Повідомлень"
 
-#: dist/prefs.js:47
+#: dist/prefs.js:259
 msgid "Time in milliseconds before allowing duplicate notifications"
 msgstr "Час у мілісекундах до зображення наступного повідомлення від додатку"
 
-#: dist/prefs.js:62 dist/prefs.js:67
+#: dist/prefs.js:273
+msgid "Action"
+msgstr "Дія"
+
+#: dist/prefs.js:274
+msgid "What to do with rate-limited notifications"
+msgstr "Що робити з обмеженими за частотою повідомленнями"
+
+#: dist/prefs.js:287
+msgid "Enable Rate Limiting"
+msgstr "Увімкнути Обмеження Частоти"
+
+#: dist/prefs.js:288
+msgid "Prevent duplicate notifications within threshold time"
+msgstr "Заборонити повідомлення від додатку протягом певного часу"
+
+#: dist/prefs.js:310
 msgid "Notification Timeout"
 msgstr "Тайм-аут"
 
-#: dist/prefs.js:63
+#: dist/prefs.js:311
 msgid "Control how long notifications stay visible"
 msgstr "Налаштування часу зображення повідомлень"
 
-#: dist/prefs.js:68
+#: dist/prefs.js:315
+msgid "Timeout Duration"
+msgstr "Тривалість тайм-ауту"
+
+#: dist/prefs.js:316
 msgid "Time in milliseconds before auto-dismiss (0 = never dismiss)"
 msgstr ""
 "Час у мілісекундах до автоматичного приховування повідомлень (0 = ніколи не "
 "приховувати)"
 
-#: dist/prefs.js:79
+#: dist/prefs.js:330
 msgid "Ignore Idle State"
 msgstr "Ігнорувати Неактивність"
 
-#: dist/prefs.js:80
+#: dist/prefs.js:331
 msgid "Keep showing notifications even when user is idle"
 msgstr "Показувати повідомлення навіть коли користувач неактивний"
 
-#: dist/prefs.js:85
+#: dist/prefs.js:339
+msgid "Enable Timeout Override"
+msgstr "Увімкнути перевизначення тайм-ауту"
+
+#: dist/prefs.js:340
+msgid "Override default notification timeout"
+msgstr "Перевизначити стандартний тайм-аут повідомлень"
+
+#: dist/prefs.js:362
+msgid "Urgency"
+msgstr "Терміновість"
+
+#: dist/prefs.js:366
 msgid "Force Normal Urgency"
 msgstr "Примусова Звичайна Терміновість"
 
-#: dist/prefs.js:86
+#: dist/prefs.js:367
 msgid "Make all notifications use normal urgency level"
 msgstr "Примусово встановити звичайну терміновість для всіх повідомлень"
 
-#: dist/prefs.js:91
-msgid "General Settings"
-msgstr "Загальні Налаштування"
+#: dist/prefs.js:383
+msgid "Display"
+msgstr "Відображення"
 
-#: dist/prefs.js:92
-msgid "Basic notification configuration"
-msgstr "Базові налаштування повідомлень"
+#: dist/prefs.js:388
+msgid "Enable Notifications in Fullscreen"
+msgstr "Увімкнути повідомлення в повноекранному режимі"
 
-#: dist/prefs.js:96
-msgid "Notification Position"
-msgstr "Розміщення Повідомлень"
-
-#: dist/prefs.js:97
-msgid "Choose where notifications appear on screen"
-msgstr "Налаштування позиції повідомлень на екрані"
-
-#: dist/prefs.js:100
-msgid "Fill Screen"
-msgstr "Заповнити Ширину Екрану"
-
-#: dist/prefs.js:101
-msgid "Left"
-msgstr "Зліва"
-
-#: dist/prefs.js:102
-msgid "Center"
-msgstr "Центр"
-
-#: dist/prefs.js:103
-msgid "Right"
-msgstr "Зправа"
-
-#: dist/prefs.js:115
-msgid "Fullscreen Notifications"
-msgstr "Повідомлення в Повноекранному Режимі"
-
-#: dist/prefs.js:116
-msgid "Control notification behavior in fullscreen mode"
-msgstr "Налаштування повідомлень в повноекранному режимі"
-
-#: dist/prefs.js:120
-msgid "Enable notifications in Fullscreen"
-msgstr "Увімкнути відомлення в повноекранному режимі"
-
-#: dist/prefs.js:121
+#: dist/prefs.js:389
 msgid "Show notifications even when applications are in fullscreen"
 msgstr ""
 "Зображати повідомлення навіть якщо додаток відкрито в повноекранному режимі"
 
-#: dist/prefs.js:126
-msgid "Filtering"
-msgstr "Фільтрація"
+#: dist/prefs.js:399
+msgid "Horizontal Alignment"
+msgstr "Горизонтальне вирівнювання"
 
-#: dist/prefs.js:132
-msgid "Notification Filters"
-msgstr "Фільтри Повідомлень"
+#: dist/prefs.js:400
+msgid "Horizontal position of notifications on screen"
+msgstr "Горизонтальна позиція повідомлень на екрані"
 
-#: dist/prefs.js:133
-msgid ""
-"Block or hide notifications using regular expressions to match title, body "
-"text, or application name"
-msgstr ""
-"Можливість закривати чи ховати повідомлення використовуючи RegEx шаблони"
+#: dist/prefs.js:403 dist/prefs.js:420
+msgid "Fill"
+msgstr "Заповнити"
 
-#: dist/prefs.js:137
-msgid "Enable Filtering"
-msgstr "Увімкнути Фільтрацію Повідомлень"
+#: dist/prefs.js:404
+msgid "Left"
+msgstr "Зліва"
 
-#: dist/prefs.js:138
-msgid "Apply notification filters"
-msgstr "Налаштування фільтрів повідомлень"
+#: dist/prefs.js:405 dist/prefs.js:422
+msgid "Center"
+msgstr "Центр"
 
-#: dist/prefs.js:143
-msgid "Active Filters"
-msgstr "Фільтрація Повідомлень"
+#: dist/prefs.js:406
+msgid "Right"
+msgstr "Справа"
 
-#: dist/prefs.js:144
-msgid ""
-"Configure filters using RegExp patterns. Examples: '^Error' (starts with), "
-"'update|upgrade' (contains either), '\\d+' (contains numbers)"
-msgstr ""
-"Налаштування фільтрів використовуючи RegExp шаблони. Приклад: '^Error' "
-"(починається з), 'update|upgrade' (містить одне з), '\\d+' (містить цифри)"
+#: dist/prefs.js:416
+msgid "Vertical Alignment"
+msgstr "Вертикальне вирівнювання"
 
-#: dist/prefs.js:153
-msgid "Add Filter"
-msgstr "Додати Фільтр"
+#: dist/prefs.js:417
+msgid "Vertical position of notifications on screen"
+msgstr "Вертикальна позиція повідомлень на екрані"
 
-#: dist/prefs.js:183
-msgid "Themes"
-msgstr "Теми"
+#: dist/prefs.js:421
+msgid "Top"
+msgstr "Вгорі"
 
-#: dist/prefs.js:189
-msgid "Notification Themes"
-msgstr "Теми Повідомлень"
+#: dist/prefs.js:423
+msgid "Bottom"
+msgstr "Внизу"
 
-#: dist/prefs.js:190
-msgid "Customize notification appearance by application"
-msgstr "Налаштування зовнішнього вигляду повідомлень для окремих застосунків"
+#: dist/prefs.js:444
+msgid "Appearance"
+msgstr "Зовнішній вигляд"
 
-#: dist/prefs.js:194
-msgid "Enable Custom Themes"
-msgstr "Увімкнути Кастомні Теми"
+#: dist/prefs.js:445
+msgid "Customize notification colors, font sizes, and margins"
+msgstr "Налаштування кольорів, розмірів шрифтів та відступів повідомлень"
 
-#: dist/prefs.js:195
-msgid "Apply custom themes to notifications"
-msgstr "Встановлення касстомних тем для повідмлень"
+#: dist/prefs.js:449
+msgid "Enable Custom Colors"
+msgstr "Увімкнути власні кольори"
 
-#: dist/prefs.js:200
-msgid "Application Themes"
-msgstr "Теми Застосунків"
+#: dist/prefs.js:450
+msgid "Apply custom colors to notifications"
+msgstr "Застосувати власні кольори до повідомлень"
 
-#: dist/prefs.js:201
-msgid ""
-"Set custom themes for specific applications using app names or RegExp "
-"patterns"
-msgstr ""
-"Встановлення кастомних тем для окремих застосунків через назву застосунку чи "
-"RegEx шаблони"
+#: dist/prefs.js:475
+msgid "Margin Top"
+msgstr "Відступ зверху"
 
-#: dist/prefs.js:210
-msgid "Add Application Theme"
-msgstr "Додати Тему Застосунку"
-
-#: dist/prefs.js:295
-msgid "Action:"
-msgstr "Дія:"
-
-#: dist/prefs.js:299
-msgid "Hide notification"
-msgstr "Сховати повідолмення"
-
-#: dist/prefs.js:300
-msgid "Close notification"
-msgstr "Закрити повідомлення"
-
-#: dist/prefs.js:328
-msgid "Title matches regex:"
-msgstr "Заголовок відповідає RegEx:"
-
-#: dist/prefs.js:334 dist/prefs.js:352 dist/prefs.js:370 dist/prefs.js:474
-msgid "Match pattern (RegExp)"
-msgstr "Шаблон (RegEx)"
-
-#: dist/prefs.js:346
-msgid "Body matches regex:"
-msgstr "Вміст відповідає RegEx:"
-
-#: dist/prefs.js:364
-msgid "App name matches regex:"
-msgstr "Назва застосунку відповідає RegEx:"
-
-#: dist/prefs.js:502
-msgid "Background"
-msgstr "Фон"
+#: dist/prefs.js:489
+msgid "Margin Bottom"
+msgstr "Відступ знизу"
 
 #: dist/prefs.js:503
-msgid "Title"
-msgstr "Заголовок"
+msgid "Margin Left"
+msgstr "Відступ зліва"
 
-#: dist/prefs.js:504
-msgid "Body Text"
-msgstr "Вміст"
+#: dist/prefs.js:517
+msgid "Margin Right"
+msgstr "Відступ справа"
 
-#: dist/prefs.js:505
-msgid "App Name"
-msgstr "Назва Застосунку"
+#: dist/prefs.js:531
+msgid "Enable Custom Margins"
+msgstr "Увімкнути власні відступи"
 
-#: dist/prefs.js:506
-msgid "Time"
-msgstr "Час"
+#: dist/prefs.js:532
+msgid "Apply custom margins to notifications"
+msgstr "Застосувати власні відступи до повідомлень"
 
-#: dist/prefs.js:592
+#: dist/prefs.js:564
+msgid "Override"
+msgstr "Перевизначення"
+
+#: dist/prefs.js:565
+msgid "Override global setting for this pattern"
+msgstr "Перевизначити глобальне налаштування для цього патерну"
+
+#: dist/prefs.js:617
+msgid "px"
+msgstr "px"
+
+#: dist/prefs.js:652
 msgid "Test Notifications"
 msgstr "Тестові Повідомлення"
 
-#: dist/prefs.js:613
-msgid "App Name:"
-msgstr "Назва Застосунку:"
-
-#: dist/prefs.js:618
+#: dist/prefs.js:658
 msgid "Test Application Name"
 msgstr "Тестова Назва Застосунку"
 
-#: dist/prefs.js:619
-msgid "Application name"
-msgstr "Назва застосунку"
-
-#: dist/prefs.js:624
-msgid "Title:"
-msgstr "Заголовок:"
-
-#: dist/prefs.js:629
+#: dist/prefs.js:663
 msgid "Test Notification Title"
 msgstr "Тестовий Заголовок Повідомлення"
 
-#: dist/prefs.js:630
-msgid "Notification title"
-msgstr "Тестовий заголовок"
-
-#: dist/prefs.js:635
-msgid "Body:"
-msgstr "Вміст:"
-
-#: dist/prefs.js:640
+#: dist/prefs.js:668
 msgid "Test Notification Body"
 msgstr "Тестовий Вміст Повідомлення"
 
-#: dist/prefs.js:641
-msgid "Notification body text"
-msgstr "Текст повідомлення"
-
-#: dist/prefs.js:653
+#: dist/prefs.js:673
 msgid "Send Test Notification"
 msgstr "Відправити Тестове Повідомлення"
 
-#: dist/prefs.js:658
+#: dist/prefs.js:678
 msgid "Test App"
 msgstr "Тестовий Застосунок"
 
-#: dist/prefs.js:659
+#: dist/prefs.js:679
 msgid "Test Notification"
 msgstr "Тестове Повідомлення"
 
-#: dist/prefs.js:660
+#: dist/prefs.js:680
 msgid "This is a test notification"
 msgstr "Це тестове повідомлення"
+
+#~ msgid "General"
+#~ msgstr "Загальне"
+
+#~ msgid "General Settings"
+#~ msgstr "Загальні Налаштування"
+
+#~ msgid "Notification Position"
+#~ msgstr "Розміщення Повідомлень"
+
+#~ msgid "Choose where notifications appear on screen"
+#~ msgstr "Налаштування позиції повідомлень на екрані"
+
+#~ msgid "Fill Screen"
+#~ msgstr "Заповнити Ширину Екрану"
+
+#~ msgid "Fullscreen Notifications"
+#~ msgstr "Повідомлення в Повноекранному Режимі"
+
+#~ msgid "Control notification behavior in fullscreen mode"
+#~ msgstr "Налаштування повідомлень в повноекранному режимі"
+
+#~ msgid ""
+#~ "Block or hide notifications using regular expressions to match title, "
+#~ "body text, or application name"
+#~ msgstr ""
+#~ "Можливість закривати чи ховати повідомлення використовуючи RegEx шаблони"
+
+#~ msgid "Apply notification filters"
+#~ msgstr "Налаштування фільтрів повідомлень"
+
+#~ msgid "Active Filters"
+#~ msgstr "Фільтрація Повідомлень"
+
+#~ msgid ""
+#~ "Configure filters using RegExp patterns. Examples: '^Error' (starts "
+#~ "with), 'update|upgrade' (contains either), '\\d+' (contains numbers)"
+#~ msgstr ""
+#~ "Налаштування фільтрів використовуючи RegExp шаблони. Приклад: '^Error' "
+#~ "(починається з), 'update|upgrade' (містить одне з), '\\d+' (містить цифри)"
+
+#~ msgid "Add Filter"
+#~ msgstr "Додати Фільтр"
+
+#~ msgid "Themes"
+#~ msgstr "Теми"
+
+#~ msgid "Notification Themes"
+#~ msgstr "Теми Повідомлень"
+
+#~ msgid "Application Themes"
+#~ msgstr "Теми Застосунків"
+
+#~ msgid ""
+#~ "Set custom themes for specific applications using app names or RegExp "
+#~ "patterns"
+#~ msgstr ""
+#~ "Встановлення кастомних тем для окремих застосунків через назву застосунку "
+#~ "чи RegEx шаблони"
+
+#~ msgid "Add Application Theme"
+#~ msgstr "Додати Тему Застосунку"
+
+#~ msgid "Title matches regex:"
+#~ msgstr "Заголовок відповідає RegEx:"
+
+#~ msgid "Match pattern (RegExp)"
+#~ msgstr "Шаблон (RegEx)"
+
+#~ msgid "Body matches regex:"
+#~ msgstr "Вміст відповідає RegEx:"
+
+#~ msgid "App name matches regex:"
+#~ msgstr "Назва застосунку відповідає RegEx:"
+
+#~ msgid "Background"
+#~ msgstr "Фон"
+
+#~ msgid "Body Text"
+#~ msgstr "Вміст"
+
+#~ msgid "Time"
+#~ msgstr "Час"
+
+#~ msgid "App Name:"
+#~ msgstr "Назва Застосунку:"
+
+#~ msgid "Application name"
+#~ msgstr "Назва застосунку"
+
+#~ msgid "Title:"
+#~ msgstr "Заголовок:"
+
+#~ msgid "Notification title"
+#~ msgstr "Тестовий заголовок"
+
+#~ msgid "Notification body text"
+#~ msgstr "Текст повідомлення"

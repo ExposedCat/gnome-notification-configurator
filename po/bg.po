@@ -2,12 +2,11 @@
 # Copyright (C) 2025-2025 Artem Prokop
 # Artem Prokop <artem.prokop.dev@gmail.com>, 2025.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Notification Configurator 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 10:32+0200\n"
+"POT-Creation-Date: 2026-03-14 22:59+0100\n"
 "PO-Revision-Date: 2025-08-30 13:14+0300\n"
 "Last-Translator: Lyubomir Vasilev <lyubomirv@gmx.com>\n"
 "Language-Team: \n"
@@ -17,294 +16,427 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.6\n"
 
-#: dist/prefs.js:29
-msgid "General"
-msgstr "Общи"
+#: dist/prefs.js:37
+msgid "Global"
+msgstr "Глобални"
 
-#: dist/prefs.js:35
+#: dist/prefs.js:43
+msgid "Patterns"
+msgstr "Патърни"
+
+#: dist/prefs.js:72 dist/prefs.js:162
+msgid "Enabled"
+msgstr "Включено"
+
+#: dist/prefs.js:73
+msgid "Master switch for all notification configuration"
+msgstr "Главен превключвател за цялата конфигурация на известията"
+
+#: dist/prefs.js:86
+msgid "Notification Patterns"
+msgstr "Патърни за известия"
+
+#: dist/prefs.js:87
+msgid "Per-pattern overrides that apply to matching notifications"
+msgstr "Настройки за патърн, приложими към съвпадащи известия"
+
+#: dist/prefs.js:99
+msgid "New Pattern"
+msgstr "Нов патърн"
+
+#: dist/prefs.js:121
+msgid "Unnamed Pattern"
+msgstr "Неименуван патърн"
+
+#: dist/prefs.js:143
+msgid "No matchers configured"
+msgstr "Няма конфигурирани съвпадения"
+
+#: dist/prefs.js:149
+msgid "Pattern Identity"
+msgstr "Идентификация на патърн"
+
+#: dist/prefs.js:153
+msgid "Short Name"
+msgstr "Кратко име"
+
+#: dist/prefs.js:163
+msgid "Enable this pattern override"
+msgstr "Включване на тази настройка за патърн"
+
+#: dist/prefs.js:172
+msgid "Matchers"
+msgstr "Съвпадения"
+
+#: dist/prefs.js:173
+msgid "RegExp patterns to match notifications"
+msgstr "Регулярни изрази за съвпадение с известия"
+
+#: dist/prefs.js:176 dist/prefs.js:656
+msgid "App Name"
+msgstr "Име на приложението"
+
+#: dist/prefs.js:181 dist/prefs.js:661
+msgid "Title"
+msgstr "Заглавие"
+
+#: dist/prefs.js:186 dist/prefs.js:666
+msgid "Body"
+msgstr "Съдържание"
+
+#: dist/prefs.js:192
+msgid "Filtering"
+msgstr "Филтриране"
+
+#: dist/prefs.js:193
+msgid "Block or hide matching notifications"
+msgstr "Блокиране или скриване на съвпадащи известия"
+
+#: dist/prefs.js:197
+msgid "Filter Action"
+msgstr "Действие при филтриране"
+
+#: dist/prefs.js:198
+msgid "What to do with matching notifications"
+msgstr "Какво да се прави със съвпадащите известия"
+
+#: dist/prefs.js:201 dist/prefs.js:278
+msgid "Hide notification"
+msgstr "Скриване на известието"
+
+#: dist/prefs.js:202 dist/prefs.js:277
+msgid "Close notification"
+msgstr "Затваряне на известието"
+
+#: dist/prefs.js:212
+msgid "Enable Filtering"
+msgstr "Включване на филтрирането"
+
+#: dist/prefs.js:213
+msgid "Apply filter action to matching notifications"
+msgstr "Прилагане на действие за филтриране на съвпадащи известия"
+
+#: dist/prefs.js:228
+msgid "Delete Pattern"
+msgstr "Изтриване на патърн"
+
+#: dist/prefs.js:243
+msgid "Pattern"
+msgstr "Патърн"
+
+#: dist/prefs.js:253
 msgid "Rate Limiting"
 msgstr "Ограничаване на честотата"
 
-#: dist/prefs.js:36
+#: dist/prefs.js:254
 msgid "Control notification frequency per application"
 msgstr "Настройки за честотата на известията от едно и също приложение"
 
-#: dist/prefs.js:40
-msgid "Enable Rate Limiting"
-msgstr "Включване на ограничението"
-
-#: dist/prefs.js:41
-msgid "Prevent duplicate notifications within threshold time"
-msgstr "Еднаквите известия ще бъдат блокирани за определеното време"
-
-#: dist/prefs.js:46
+#: dist/prefs.js:258
 msgid "Notification Threshold"
 msgstr "Продължителност на блокирането"
 
-#: dist/prefs.js:47
+#: dist/prefs.js:259
 msgid "Time in milliseconds before allowing duplicate notifications"
 msgstr ""
-"Брой милисекунди, през които едно и също известие няма да се показва "
-"повторно"
+"Брой милисекунди, през които едно и също известие няма да се показва повторно"
 
-#: dist/prefs.js:62 dist/prefs.js:67
+#: dist/prefs.js:273
+msgid "Action"
+msgstr "Действие"
+
+#: dist/prefs.js:274
+msgid "What to do with rate-limited notifications"
+msgstr "Какво да се прави с известията при ограничение на честотата"
+
+#: dist/prefs.js:287
+msgid "Enable Rate Limiting"
+msgstr "Включване на ограничението"
+
+#: dist/prefs.js:288
+msgid "Prevent duplicate notifications within threshold time"
+msgstr "Еднаквите известия ще бъдат блокирани за определеното време"
+
+#: dist/prefs.js:310
 msgid "Notification Timeout"
 msgstr "Продължителност на видимостта на известията"
 
-#: dist/prefs.js:63
+#: dist/prefs.js:311
 msgid "Control how long notifications stay visible"
 msgstr "Настройки за това колко дълго да остават видими известията"
 
-#: dist/prefs.js:68
+#: dist/prefs.js:315
+msgid "Timeout Duration"
+msgstr "Продължителност на тайм-аута"
+
+#: dist/prefs.js:316
 msgid "Time in milliseconds before auto-dismiss (0 = never dismiss)"
 msgstr ""
 "Брой милисекунди, преди известието да бъде скрито (0 = без автоматично "
 "скриване)"
 
-#: dist/prefs.js:79
+#: dist/prefs.js:330
 msgid "Ignore Idle State"
 msgstr "Пренебрегване на състоянието на бездействие"
 
-#: dist/prefs.js:80
+#: dist/prefs.js:331
 msgid "Keep showing notifications even when user is idle"
 msgstr "Показване на известия, дори когато потребителят не прави нищо"
 
-#: dist/prefs.js:85
+#: dist/prefs.js:339
+msgid "Enable Timeout Override"
+msgstr "Включване на промяна на тайм-аута"
+
+#: dist/prefs.js:340
+msgid "Override default notification timeout"
+msgstr "Промяна на стандартния тайм-аут на известията"
+
+#: dist/prefs.js:362
+msgid "Urgency"
+msgstr "Спешност"
+
+#: dist/prefs.js:366
 msgid "Force Normal Urgency"
 msgstr "Принудителен нормален приоритет"
 
-#: dist/prefs.js:86
+#: dist/prefs.js:367
 msgid "Make all notifications use normal urgency level"
 msgstr "Всички известия ще се третират като обикновени"
 
-#: dist/prefs.js:91
-msgid "General Settings"
-msgstr "Общи настройки"
+#: dist/prefs.js:383
+msgid "Display"
+msgstr "Дисплей"
 
-#: dist/prefs.js:92
-msgid "Basic notification configuration"
-msgstr "Общи настройки на известията"
+#: dist/prefs.js:388
+msgid "Enable Notifications in Fullscreen"
+msgstr "Включване на известия в пълноекранен режим"
 
-#: dist/prefs.js:96
-msgid "Notification Position"
-msgstr "Местоположение на известията"
-
-#: dist/prefs.js:97
-msgid "Choose where notifications appear on screen"
-msgstr "Къде в горната част на екрана да се показват известията"
-
-#: dist/prefs.js:100
-msgid "Fill Screen"
-msgstr "Запълване по ширина"
-
-#: dist/prefs.js:101
-msgid "Left"
-msgstr "Вляво"
-
-#: dist/prefs.js:102
-msgid "Center"
-msgstr "В средата"
-
-#: dist/prefs.js:103
-msgid "Right"
-msgstr "Вдясно"
-
-#: dist/prefs.js:115
-msgid "Fullscreen Notifications"
-msgstr "Известия в пълноекранен режим"
-
-#: dist/prefs.js:116
-msgid "Control notification behavior in fullscreen mode"
-msgstr "Настройки за поведението на известията при режим на цял екран"
-
-#: dist/prefs.js:120
-msgid "Enable notifications in Fullscreen"
-msgstr "Разрешаване на известията в пълноекранен режим"
-
-#: dist/prefs.js:121
+#: dist/prefs.js:389
 msgid "Show notifications even when applications are in fullscreen"
 msgstr ""
 "Показване на известия, дори когато има приложение работещо на цял екран"
 
-#: dist/prefs.js:126
-msgid "Filtering"
-msgstr "Филтриране"
+#: dist/prefs.js:399
+msgid "Horizontal Alignment"
+msgstr "Хоризонтално подравняване"
 
-#: dist/prefs.js:132
-msgid "Notification Filters"
-msgstr "Филтриране на известията"
+#: dist/prefs.js:400
+msgid "Horizontal position of notifications on screen"
+msgstr "Хоризонтална позиция на известията на екрана"
 
-#: dist/prefs.js:133
-msgid ""
-"Block or hide notifications using regular expressions to match title, body "
-"text, or application name"
-msgstr ""
-"Блокиране или скриване на конкретни известия чрез използване на регулярен "
-"израз за откриване на съвпадения в заглавието, текста или името на "
-"приложението"
+#: dist/prefs.js:403 dist/prefs.js:420
+msgid "Fill"
+msgstr "Запълване"
 
-#: dist/prefs.js:137
-msgid "Enable Filtering"
-msgstr "Включване на филтрирането"
+#: dist/prefs.js:404
+msgid "Left"
+msgstr "Вляво"
 
-#: dist/prefs.js:138
-msgid "Apply notification filters"
-msgstr "Зададените филтри за известията ще се прилагат"
+#: dist/prefs.js:405 dist/prefs.js:422
+msgid "Center"
+msgstr "В средата"
 
-#: dist/prefs.js:143
-msgid "Active Filters"
-msgstr "Активни филтри"
+#: dist/prefs.js:406
+msgid "Right"
+msgstr "Вдясно"
 
-#: dist/prefs.js:144
-msgid ""
-"Configure filters using RegExp patterns. Examples: '^Error' (starts with), "
-"'update|upgrade' (contains either), '\\d+' (contains numbers)"
-msgstr ""
-"Настройки на филтри чрез регулярни изрази. Ето няколко примера: „^Грешка“ "
-"(^ означава началото на текста), „обновление|надграждане“ (една от двете "
-"думи), „\\d+“ (съдържа число)"
+#: dist/prefs.js:416
+msgid "Vertical Alignment"
+msgstr "Вертикално подравняване"
 
-#: dist/prefs.js:153
-msgid "Add Filter"
-msgstr "Добавяне на филтър"
+#: dist/prefs.js:417
+msgid "Vertical position of notifications on screen"
+msgstr "Вертикална позиция на известията на екрана"
 
-#: dist/prefs.js:183
-msgid "Themes"
-msgstr "Теми"
+#: dist/prefs.js:421
+msgid "Top"
+msgstr "Горе"
 
-#: dist/prefs.js:189
-msgid "Notification Themes"
-msgstr "Теми за известията"
+#: dist/prefs.js:423
+msgid "Bottom"
+msgstr "Долу"
 
-#: dist/prefs.js:190
-msgid "Customize notification appearance by application"
-msgstr ""
-"Настройки за начина, по който изглеждат известията, според приложението"
+#: dist/prefs.js:444
+msgid "Appearance"
+msgstr "Външен вид"
 
-#: dist/prefs.js:194
-msgid "Enable Custom Themes"
+#: dist/prefs.js:445
+msgid "Customize notification colors, font sizes, and margins"
+msgstr "Персонализиране на цветове, размер на шрифта и полета на известията"
+
+#: dist/prefs.js:449
+msgid "Enable Custom Colors"
 msgstr "Включване на персонализираните цветове"
 
-#: dist/prefs.js:195
-msgid "Apply custom themes to notifications"
-msgstr "Прилагане на персонализирани теми за известията"
+#: dist/prefs.js:450
+msgid "Apply custom colors to notifications"
+msgstr "Прилагане на персонализирани цветове на известията"
 
-#: dist/prefs.js:200
-msgid "Application Themes"
-msgstr "Теми според приложението"
+#: dist/prefs.js:475
+msgid "Margin Top"
+msgstr "Поле отгоре"
 
-#: dist/prefs.js:201
-msgid ""
-"Set custom themes for specific applications using app names or RegExp "
-"patterns"
-msgstr ""
-"Задаване на персонализирани теми за конкретни приложения, по име или "
-"регулярен израз"
-
-#: dist/prefs.js:210
-msgid "Add Application Theme"
-msgstr "Добавяне на тема за приложение"
-
-#: dist/prefs.js:295
-msgid "Action:"
-msgstr "Действие:"
-
-#: dist/prefs.js:299
-msgid "Hide notification"
-msgstr "Скриване на известието"
-
-#: dist/prefs.js:300
-msgid "Close notification"
-msgstr "Затваряне на известието"
-
-#: dist/prefs.js:328
-msgid "Title matches regex:"
-msgstr "Заглавието отговаря на следния регулярен израз:"
-
-#: dist/prefs.js:334 dist/prefs.js:352 dist/prefs.js:370 dist/prefs.js:474
-msgid "Match pattern (RegExp)"
-msgstr "Регулярен израз"
-
-#: dist/prefs.js:346
-msgid "Body matches regex:"
-msgstr "Текстът отговаря на следния регулярен израз:"
-
-#: dist/prefs.js:364
-msgid "App name matches regex:"
-msgstr "Името на приложението отговаря на следния регулярен израз:"
-
-#: dist/prefs.js:502
-msgid "Background"
-msgstr "Фон"
+#: dist/prefs.js:489
+msgid "Margin Bottom"
+msgstr "Поле отдолу"
 
 #: dist/prefs.js:503
-msgid "Title"
-msgstr "Заглавие"
+msgid "Margin Left"
+msgstr "Поле отляво"
 
-#: dist/prefs.js:504
-msgid "Body Text"
-msgstr "Текст"
+#: dist/prefs.js:517
+msgid "Margin Right"
+msgstr "Поле отдясно"
 
-#: dist/prefs.js:505
-msgid "App Name"
-msgstr "Име на приложението"
+#: dist/prefs.js:531
+msgid "Enable Custom Margins"
+msgstr "Включване на персонализирани полета"
 
-#: dist/prefs.js:506
-msgid "Time"
-msgstr "Време"
+#: dist/prefs.js:532
+msgid "Apply custom margins to notifications"
+msgstr "Прилагане на персонализирани полета на известията"
 
-#: dist/prefs.js:592
+#: dist/prefs.js:564
+msgid "Override"
+msgstr "Промяна"
+
+#: dist/prefs.js:565
+msgid "Override global setting for this pattern"
+msgstr "Промяна на глобалната настройка за този патърн"
+
+#: dist/prefs.js:617
+msgid "px"
+msgstr "px"
+
+#: dist/prefs.js:652
 msgid "Test Notifications"
 msgstr "Пробно известие"
 
-#: dist/prefs.js:613
-msgid "App Name:"
-msgstr "Име на приложението:"
-
-#: dist/prefs.js:618
+#: dist/prefs.js:658
 msgid "Test Application Name"
 msgstr "Пробно име на приложение"
 
-#: dist/prefs.js:619
-msgid "Application name"
-msgstr "Име на приложение"
-
-#: dist/prefs.js:624
-msgid "Title:"
-msgstr "Заглавие:"
-
-#: dist/prefs.js:629
+#: dist/prefs.js:663
 msgid "Test Notification Title"
 msgstr "Пробно заглавие на известие"
 
-#: dist/prefs.js:630
-msgid "Notification title"
-msgstr "Заглавие за известието"
-
-#: dist/prefs.js:635
-msgid "Body:"
-msgstr "Текст:"
-
-#: dist/prefs.js:640
+#: dist/prefs.js:668
 msgid "Test Notification Body"
 msgstr "Пробен текст на известие"
 
-#: dist/prefs.js:641
-msgid "Notification body text"
-msgstr "Текст за известието"
-
-#: dist/prefs.js:653
+#: dist/prefs.js:673
 msgid "Send Test Notification"
 msgstr "Показване на пробно известие"
 
-#: dist/prefs.js:658
+#: dist/prefs.js:678
 msgid "Test App"
 msgstr "Пробно приложение"
 
-#: dist/prefs.js:659
+#: dist/prefs.js:679
 msgid "Test Notification"
 msgstr "Пробно известие"
 
-#: dist/prefs.js:660
+#: dist/prefs.js:680
 msgid "This is a test notification"
 msgstr "Това е пробно известие"
+
+#~ msgid "General"
+#~ msgstr "Общи"
+
+#~ msgid "General Settings"
+#~ msgstr "Общи настройки"
+
+#~ msgid "Notification Position"
+#~ msgstr "Местоположение на известията"
+
+#~ msgid "Choose where notifications appear on screen"
+#~ msgstr "Къде в горната част на екрана да се показват известията"
+
+#~ msgid "Fill Screen"
+#~ msgstr "Запълване по ширина"
+
+#~ msgid "Fullscreen Notifications"
+#~ msgstr "Известия в пълноекранен режим"
+
+#~ msgid "Control notification behavior in fullscreen mode"
+#~ msgstr "Настройки за поведението на известията при режим на цял екран"
+
+#~ msgid ""
+#~ "Block or hide notifications using regular expressions to match title, "
+#~ "body text, or application name"
+#~ msgstr ""
+#~ "Блокиране или скриване на конкретни известия чрез използване на регулярен "
+#~ "израз за откриване на съвпадения в заглавието, текста или името на "
+#~ "приложението"
+
+#~ msgid "Apply notification filters"
+#~ msgstr "Зададените филтри за известията ще се прилагат"
+
+#~ msgid "Active Filters"
+#~ msgstr "Активни филтри"
+
+#~ msgid ""
+#~ "Configure filters using RegExp patterns. Examples: '^Error' (starts "
+#~ "with), 'update|upgrade' (contains either), '\\d+' (contains numbers)"
+#~ msgstr ""
+#~ "Настройки на филтри чрез регулярни изрази. Ето няколко примера: „^Грешка" "
+#~ "(^ означава началото на текста), „обновление|надграждане" (една от двете "
+#~ "думи), „\\d+" (съдържа число)"
+
+#~ msgid "Add Filter"
+#~ msgstr "Добавяне на филтър"
+
+#~ msgid "Themes"
+#~ msgstr "Теми"
+
+#~ msgid "Notification Themes"
+#~ msgstr "Теми за известията"
+
+#~ msgid "Application Themes"
+#~ msgstr "Теми според приложението"
+
+#~ msgid ""
+#~ "Set custom themes for specific applications using app names or RegExp "
+#~ "patterns"
+#~ msgstr ""
+#~ "Задаване на персонализирани теми за конкретни приложения, по име или "
+#~ "регулярен израз"
+
+#~ msgid "Add Application Theme"
+#~ msgstr "Добавяне на тема за приложение"
+
+#~ msgid "Title matches regex:"
+#~ msgstr "Заглавието отговаря на следния регулярен израз:"
+
+#~ msgid "Match pattern (RegExp)"
+#~ msgstr "Регулярен израз"
+
+#~ msgid "Body matches regex:"
+#~ msgstr "Текстът отговаря на следния регулярен израз:"
+
+#~ msgid "App name matches regex:"
+#~ msgstr "Името на приложението отговаря на следния регулярен израз:"
+
+#~ msgid "Background"
+#~ msgstr "Фон"
+
+#~ msgid "Body Text"
+#~ msgstr "Текст"
+
+#~ msgid "Time"
+#~ msgstr "Време"
+
+#~ msgid "App Name:"
+#~ msgstr "Име на приложението:"
+
+#~ msgid "Application name"
+#~ msgstr "Име на приложение"
+
+#~ msgid "Title:"
+#~ msgstr "Заглавие:"
+
+#~ msgid "Notification title"
+#~ msgstr "Заглавие за известието"
+
+#~ msgid "Notification body text"
+#~ msgstr "Текст за известието"
