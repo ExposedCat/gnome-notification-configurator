@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Notification Configurator 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-14 22:59+0100\n"
+"POT-Creation-Date: 2026-03-17 18:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,322 +17,330 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dist/prefs.js:37
+#: dist/prefs.js:58
 msgid "Global"
 msgstr ""
 
-#: dist/prefs.js:43
+#: dist/prefs.js:64
 msgid "Patterns"
 msgstr ""
 
-#: dist/prefs.js:72 dist/prefs.js:162
+#: dist/prefs.js:93 dist/prefs.js:183
 msgid "Enabled"
 msgstr ""
 
-#: dist/prefs.js:73
+#: dist/prefs.js:94
 msgid "Master switch for all notification configuration"
 msgstr ""
 
-#: dist/prefs.js:86
+#: dist/prefs.js:107
 msgid "Notification Patterns"
 msgstr ""
 
-#: dist/prefs.js:87
+#: dist/prefs.js:108
 msgid "Per-pattern overrides that apply to matching notifications"
 msgstr ""
 
-#: dist/prefs.js:99
+#: dist/prefs.js:120
 msgid "New Pattern"
 msgstr ""
 
-#: dist/prefs.js:121
+#: dist/prefs.js:142
 msgid "Unnamed Pattern"
 msgstr ""
 
-#: dist/prefs.js:143
+#: dist/prefs.js:164
 msgid "No matchers configured"
 msgstr ""
 
-#: dist/prefs.js:149
+#: dist/prefs.js:170
 msgid "Pattern Identity"
 msgstr ""
 
-#: dist/prefs.js:153
+#: dist/prefs.js:174
 msgid "Short Name"
 msgstr ""
 
-#: dist/prefs.js:163
+#: dist/prefs.js:184
 msgid "Enable this pattern override"
 msgstr ""
 
-#: dist/prefs.js:172
+#: dist/prefs.js:193
 msgid "Matchers"
 msgstr ""
 
-#: dist/prefs.js:173
+#: dist/prefs.js:194
 msgid "RegExp patterns to match notifications"
 msgstr ""
 
-#: dist/prefs.js:176 dist/prefs.js:656
+#: dist/prefs.js:197 dist/prefs.js:698
 msgid "App Name"
 msgstr ""
 
-#: dist/prefs.js:181 dist/prefs.js:661
+#: dist/prefs.js:202 dist/prefs.js:703
 msgid "Title"
 msgstr ""
 
-#: dist/prefs.js:186 dist/prefs.js:666
+#: dist/prefs.js:207 dist/prefs.js:708
 msgid "Body"
 msgstr ""
 
-#: dist/prefs.js:192
+#: dist/prefs.js:213
 msgid "Filtering"
 msgstr ""
 
-#: dist/prefs.js:193
+#: dist/prefs.js:214
 msgid "Block or hide matching notifications"
 msgstr ""
 
-#: dist/prefs.js:197
+#: dist/prefs.js:218
 msgid "Filter Action"
 msgstr ""
 
-#: dist/prefs.js:198
+#: dist/prefs.js:219
 msgid "What to do with matching notifications"
 msgstr ""
 
-#: dist/prefs.js:201 dist/prefs.js:278
+#: dist/prefs.js:222 dist/prefs.js:299
 msgid "Hide notification"
 msgstr ""
 
-#: dist/prefs.js:202 dist/prefs.js:277
+#: dist/prefs.js:223 dist/prefs.js:298
 msgid "Close notification"
 msgstr ""
 
-#: dist/prefs.js:212
+#: dist/prefs.js:233
 msgid "Enable Filtering"
 msgstr ""
 
-#: dist/prefs.js:213
+#: dist/prefs.js:234
 msgid "Apply filter action to matching notifications"
 msgstr ""
 
-#: dist/prefs.js:228
+#: dist/prefs.js:249
 msgid "Delete Pattern"
 msgstr ""
 
-#: dist/prefs.js:243
+#: dist/prefs.js:264
 msgid "Pattern"
 msgstr ""
 
-#: dist/prefs.js:253
+#: dist/prefs.js:274
 msgid "Rate Limiting"
 msgstr ""
 
-#: dist/prefs.js:254
+#: dist/prefs.js:275
 msgid "Control notification frequency per application"
 msgstr ""
 
-#: dist/prefs.js:258
+#: dist/prefs.js:279
 msgid "Notification Threshold"
 msgstr ""
 
-#: dist/prefs.js:259
+#: dist/prefs.js:280
 msgid "Time in milliseconds before allowing duplicate notifications"
 msgstr ""
 
-#: dist/prefs.js:273
+#: dist/prefs.js:294
 msgid "Action"
 msgstr ""
 
-#: dist/prefs.js:274
+#: dist/prefs.js:295
 msgid "What to do with rate-limited notifications"
 msgstr ""
 
-#: dist/prefs.js:287
+#: dist/prefs.js:308
 msgid "Enable Rate Limiting"
 msgstr ""
 
-#: dist/prefs.js:288
+#: dist/prefs.js:309
 msgid "Prevent duplicate notifications within threshold time"
 msgstr ""
 
-#: dist/prefs.js:310
+#: dist/prefs.js:331
 msgid "Notification Timeout"
 msgstr ""
 
-#: dist/prefs.js:311
+#: dist/prefs.js:332
 msgid "Control how long notifications stay visible"
 msgstr ""
 
-#: dist/prefs.js:315
+#: dist/prefs.js:336
 msgid "Timeout Duration"
 msgstr ""
 
-#: dist/prefs.js:316
+#: dist/prefs.js:337
 msgid "Time in milliseconds before auto-dismiss (0 = never dismiss)"
 msgstr ""
 
-#: dist/prefs.js:330
+#: dist/prefs.js:351
 msgid "Ignore Idle State"
 msgstr ""
 
-#: dist/prefs.js:331
+#: dist/prefs.js:352
 msgid "Keep showing notifications even when user is idle"
 msgstr ""
 
-#: dist/prefs.js:339
+#: dist/prefs.js:360
 msgid "Enable Timeout Override"
 msgstr ""
 
-#: dist/prefs.js:340
+#: dist/prefs.js:361
 msgid "Override default notification timeout"
 msgstr ""
 
-#: dist/prefs.js:362
+#: dist/prefs.js:383
 msgid "Urgency"
 msgstr ""
 
-#: dist/prefs.js:366
+#: dist/prefs.js:387
 msgid "Force Normal Urgency"
 msgstr ""
 
-#: dist/prefs.js:367
+#: dist/prefs.js:388
 msgid "Make all notifications use normal urgency level"
 msgstr ""
 
-#: dist/prefs.js:383
+#: dist/prefs.js:404
 msgid "Display"
 msgstr ""
 
-#: dist/prefs.js:388
+#: dist/prefs.js:409
 msgid "Enable Notifications in Fullscreen"
 msgstr ""
 
-#: dist/prefs.js:389
+#: dist/prefs.js:410
 msgid "Show notifications even when applications are in fullscreen"
 msgstr ""
 
-#: dist/prefs.js:399
+#: dist/prefs.js:420
 msgid "Horizontal Alignment"
 msgstr ""
 
-#: dist/prefs.js:400
+#: dist/prefs.js:421
 msgid "Horizontal position of notifications on screen"
 msgstr ""
 
-#: dist/prefs.js:403 dist/prefs.js:420
+#: dist/prefs.js:424 dist/prefs.js:441
 msgid "Fill"
 msgstr ""
 
-#: dist/prefs.js:404
+#: dist/prefs.js:425
 msgid "Left"
 msgstr ""
 
-#: dist/prefs.js:405 dist/prefs.js:422
+#: dist/prefs.js:426 dist/prefs.js:443
 msgid "Center"
 msgstr ""
 
-#: dist/prefs.js:406
+#: dist/prefs.js:427
 msgid "Right"
 msgstr ""
 
-#: dist/prefs.js:416
+#: dist/prefs.js:437
 msgid "Vertical Alignment"
 msgstr ""
 
-#: dist/prefs.js:417
+#: dist/prefs.js:438
 msgid "Vertical position of notifications on screen"
 msgstr ""
 
-#: dist/prefs.js:421
+#: dist/prefs.js:442
 msgid "Top"
 msgstr ""
 
-#: dist/prefs.js:423
+#: dist/prefs.js:444
 msgid "Bottom"
 msgstr ""
 
-#: dist/prefs.js:444
+#: dist/prefs.js:465
 msgid "Appearance"
 msgstr ""
 
-#: dist/prefs.js:445
-msgid "Customize notification colors, font sizes, and margins"
+#: dist/prefs.js:466
+msgid "Customize notification styles and margins"
 msgstr ""
 
-#: dist/prefs.js:449
-msgid "Enable Custom Colors"
+#: dist/prefs.js:470
+msgid "Hide App Title Row"
 msgstr ""
 
-#: dist/prefs.js:450
-msgid "Apply custom colors to notifications"
+#: dist/prefs.js:471
+msgid "Hide title and time row"
 msgstr ""
 
-#: dist/prefs.js:475
+#: dist/prefs.js:478
+msgid "Enable Custom Styles"
+msgstr ""
+
+#: dist/prefs.js:479
+msgid "Apply custom styles to notifications"
+msgstr ""
+
+#: dist/prefs.js:484
 msgid "Margin Top"
 msgstr ""
 
-#: dist/prefs.js:489
+#: dist/prefs.js:498
 msgid "Margin Bottom"
 msgstr ""
 
-#: dist/prefs.js:503
+#: dist/prefs.js:512
 msgid "Margin Left"
 msgstr ""
 
-#: dist/prefs.js:517
+#: dist/prefs.js:526
 msgid "Margin Right"
 msgstr ""
 
-#: dist/prefs.js:531
+#: dist/prefs.js:540
 msgid "Enable Custom Margins"
 msgstr ""
 
-#: dist/prefs.js:532
+#: dist/prefs.js:541
 msgid "Apply custom margins to notifications"
 msgstr ""
 
-#: dist/prefs.js:564
+#: dist/prefs.js:604
 msgid "Override"
 msgstr ""
 
-#: dist/prefs.js:565
+#: dist/prefs.js:605
 msgid "Override global setting for this pattern"
 msgstr ""
 
-#: dist/prefs.js:617
+#: dist/prefs.js:659
 msgid "px"
 msgstr ""
 
-#: dist/prefs.js:652
+#: dist/prefs.js:694
 msgid "Test Notifications"
 msgstr ""
 
-#: dist/prefs.js:658
+#: dist/prefs.js:700
 msgid "Test Application Name"
 msgstr ""
 
-#: dist/prefs.js:663
+#: dist/prefs.js:705
 msgid "Test Notification Title"
 msgstr ""
 
-#: dist/prefs.js:668
+#: dist/prefs.js:710
 msgid "Test Notification Body"
 msgstr ""
 
-#: dist/prefs.js:673
+#: dist/prefs.js:715
 msgid "Send Test Notification"
 msgstr ""
 
-#: dist/prefs.js:678
+#: dist/prefs.js:720
 msgid "Test App"
 msgstr ""
 
-#: dist/prefs.js:679
+#: dist/prefs.js:721
 msgid "Test Notification"
 msgstr ""
 
-#: dist/prefs.js:680
+#: dist/prefs.js:722
 msgid "This is a test notification"
 msgstr ""

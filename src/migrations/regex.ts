@@ -102,6 +102,7 @@ function createGlobalConfiguration(
         oldSettings.get_string("notification-position"),
       ),
       verticalPosition: "top",
+      hideAppTitleRow: false,
     },
     colors: {
       enabled: oldSettings.get_boolean("enable-custom-colors"),

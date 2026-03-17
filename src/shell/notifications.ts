@@ -1,7 +1,7 @@
 import Clutter from "gi://Clutter";
+import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
-import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
 
 import { FullscreenAdapter } from "../managers/message-tray/fullscreen.js";
 import { IdleAdapter } from "../managers/message-tray/idle.js";
@@ -21,6 +21,7 @@ import type {
 import {
   getBannerBin,
   getMessageTrayContainer,
+  hideBannerAppTitleRow,
   resolveNotificationWidgets,
 } from "./notification-widgets.js";
 
@@ -217,6 +218,16 @@ export class NotificationsManager {
       bannerBin?.set_y_align(
         NotificationsManager.VERTICAL_ALIGNMENT_MAP[verticalPosition],
       );
+
+      if (
+        settingsManager.shouldHideAppTitleRowFor(
+          sourceName,
+          titleText,
+          bodyText,
+        )
+      ) {
+        hideBannerAppTitleRow();
+      }
 
       const margins = settingsManager.getMarginsFor(
         sourceName,

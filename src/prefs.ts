@@ -37,6 +37,12 @@ type ThemeField = {
   label: string;
   colorKey: ColorKey;
   fontKey: FontSizeKey | null;
+  hideWhenAppTitleRowHidden: boolean;
+};
+
+type ThemeEditorRow = {
+  field: ThemeField;
+  row: Adw.ActionRow;
 };
 
 const POSITION_VALUES: Position[] = ["fill", "left", "center", "right"];
@@ -48,15 +54,36 @@ const VERTICAL_POSITION_VALUES: VerticalPosition[] = [
 ];
 
 const THEME_FIELDS: ThemeField[] = [
-  { label: "Background", colorKey: "backgroundColor", fontKey: null },
-  { label: "Title", colorKey: "titleColor", fontKey: "titleFontSize" },
-  { label: "Body Text", colorKey: "bodyColor", fontKey: "bodyFontSize" },
+  {
+    label: "Background",
+    colorKey: "backgroundColor",
+    fontKey: null,
+    hideWhenAppTitleRowHidden: false,
+  },
+  {
+    label: "Title",
+    colorKey: "titleColor",
+    fontKey: "titleFontSize",
+    hideWhenAppTitleRowHidden: false,
+  },
+  {
+    label: "Body Text",
+    colorKey: "bodyColor",
+    fontKey: "bodyFontSize",
+    hideWhenAppTitleRowHidden: false,
+  },
   {
     label: "App Name",
     colorKey: "appNameColor",
     fontKey: "appNameFontSize",
+    hideWhenAppTitleRowHidden: true,
   },
-  { label: "Time", colorKey: "timeColor", fontKey: "timeFontSize" },
+  {
+    label: "Time",
+    colorKey: "timeColor",
+    fontKey: "timeFontSize",
+    hideWhenAppTitleRowHidden: true,
+  },
 ];
 
 export default class NotificationConfiguratorPreferences extends ExtensionPreferences {
@@ -614,51 +641,32 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
     const appearanceGroup = new Adw.PreferencesGroup({
       title: _("Appearance"),
-      description: _("Customize notification colors, font sizes, and margins"),
+      description: _("Customize notification styles and margins"),
     });
     page.add(appearanceGroup);
 
-    const colorsEnabledRow = new Adw.SwitchRow({
-      title: _("Enable Custom Colors"),
-      subtitle: _("Apply custom colors to notifications"),
+    const hideAppTitleRow = new Adw.SwitchRow({
+      title: _("Hide App Title Row"),
+      subtitle: _("Hide title and time row"),
     });
-    colorsEnabledRow.set_active(config.colors.enabled);
+    hideAppTitleRow.set_active(config.display.hideAppTitleRow);
+
+    const shouldHideHeaderThemeRows = () =>
+      !overrides || overrides.colors || overrides.margins
+        ? config.display.hideAppTitleRow
+        : this.globalConfig.display.hideAppTitleRow;
+
+    const stylesEnabledRow = new Adw.SwitchRow({
+      title: _("Enable Custom Styles"),
+      subtitle: _("Apply custom styles to notifications"),
+    });
+    stylesEnabledRow.set_active(config.colors.enabled);
 
     const themeRows = this.addThemeEditor(
       appearanceGroup,
       config.colors.theme,
       onSave,
     );
-
-    const updateColorsVisibility = () => {
-      const active = !overrides || overrides.colors;
-      colorsEnabledRow.set_visible(active);
-      for (const row of themeRows) {
-        row.set_visible(active && config.colors.enabled);
-      }
-    };
-
-    colorsEnabledRow.connect("notify::active", () => {
-      config.colors.enabled = colorsEnabledRow.get_active();
-      onSave();
-      updateColorsVisibility();
-    });
-
-    if (overrides) {
-      this.addOverrideRow(
-        appearanceGroup,
-        overrides,
-        "colors",
-        onSave,
-        updateColorsVisibility,
-      );
-    }
-
-    appearanceGroup.add(colorsEnabledRow);
-    for (const row of themeRows) {
-      appearanceGroup.add(row);
-    }
-    updateColorsVisibility();
 
     const marginTopRow = new Adw.SpinRow({
       title: _("Margin Top"),
@@ -733,13 +741,46 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       marginRightRow,
     ];
 
+    const updateThemeRowsVisibility = () => {
+      const active = !overrides || overrides.colors || overrides.margins;
+      stylesEnabledRow.set_visible(active);
+      hideAppTitleRow.set_visible(active);
+      for (const themeRow of themeRows) {
+        themeRow.row.set_visible(
+          active &&
+            config.colors.enabled &&
+            !(
+              shouldHideHeaderThemeRows() &&
+              themeRow.field.hideWhenAppTitleRowHidden
+            ),
+        );
+      }
+    };
+
     const updateMarginsVisibility = () => {
-      const active = !overrides || overrides.margins;
+      const active = !overrides || overrides.colors || overrides.margins;
       marginsEnabledRow.set_visible(active);
       for (const row of marginRows) {
         row.set_visible(active && config.margins.enabled);
       }
     };
+
+    const updateAppearanceVisibility = () => {
+      updateThemeRowsVisibility();
+      updateMarginsVisibility();
+    };
+
+    hideAppTitleRow.connect("notify::active", () => {
+      config.display.hideAppTitleRow = hideAppTitleRow.get_active();
+      onSave();
+      updateThemeRowsVisibility();
+    });
+
+    stylesEnabledRow.connect("notify::active", () => {
+      config.colors.enabled = stylesEnabledRow.get_active();
+      onSave();
+      updateThemeRowsVisibility();
+    });
 
     marginsEnabledRow.connect("notify::active", () => {
       config.margins.enabled = marginsEnabledRow.get_active();
@@ -751,33 +792,41 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       this.addOverrideRow(
         appearanceGroup,
         overrides,
-        "margins",
+        ["colors", "margins"],
         onSave,
-        updateMarginsVisibility,
+        updateAppearanceVisibility,
       );
     }
 
+    appearanceGroup.add(hideAppTitleRow);
+    appearanceGroup.add(stylesEnabledRow);
+    for (const themeRow of themeRows) {
+      appearanceGroup.add(themeRow.row);
+    }
     appearanceGroup.add(marginsEnabledRow);
     for (const row of marginRows) {
       appearanceGroup.add(row);
     }
-    updateMarginsVisibility();
+    updateAppearanceVisibility();
   }
 
   private addOverrideRow(
     group: Adw.PreferencesGroup,
     overrides: PatternOverrides,
-    key: keyof PatternOverrides,
+    key: keyof PatternOverrides | (keyof PatternOverrides)[],
     onSave: () => void,
     updateVisibility: () => void,
   ) {
+    const keys = Array.isArray(key) ? key : [key];
     const row = new Adw.SwitchRow({
       title: _("Override"),
       subtitle: _("Override global setting for this pattern"),
     });
-    row.set_active(overrides[key]);
+    row.set_active(keys.some((currentKey) => overrides[currentKey]));
     row.connect("notify::active", () => {
-      overrides[key] = row.get_active();
+      for (const currentKey of keys) {
+        overrides[currentKey] = row.get_active();
+      }
       onSave();
       updateVisibility();
     });
@@ -788,8 +837,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     _group: Adw.PreferencesGroup,
     theme: NotificationTheme,
     onSave: () => void,
-  ): Adw.ActionRow[] {
-    const rows: Adw.ActionRow[] = [];
+  ): ThemeEditorRow[] {
+    const rows: ThemeEditorRow[] = [];
 
     for (const field of THEME_FIELDS) {
       const row = new Adw.ActionRow({
@@ -845,7 +894,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
         );
       }
 
-      rows.push(row);
+      rows.push({ field, row });
     }
 
     return rows;

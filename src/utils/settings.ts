@@ -49,6 +49,7 @@ export type Configuration = {
     enableFullscreen: boolean;
     notificationPosition: Position;
     verticalPosition: VerticalPosition;
+    hideAppTitleRow: boolean;
   };
   colors: {
     enabled: boolean;
@@ -142,6 +143,7 @@ export class SettingsManager {
         enableFullscreen: false,
         notificationPosition: "center",
         verticalPosition: "top",
+        hideAppTitleRow: false,
       },
       colors: {
         enabled: true,
@@ -190,6 +192,7 @@ export class SettingsManager {
         enableFullscreen: false,
         notificationPosition: "center",
         verticalPosition: "top",
+        hideAppTitleRow: false,
       },
       colors: { enabled: false, theme: { ...DEFAULT_THEME } },
       margins: { enabled: false, top: 0, bottom: 0, left: 0, right: 0 },
@@ -269,6 +272,23 @@ export class SettingsManager {
     return (
       pattern?.display.verticalPosition ??
       this._globalConfiguration.display.verticalPosition
+    );
+  }
+
+  shouldHideAppTitleRowFor(
+    source: string,
+    title: string,
+    body: string,
+  ): boolean {
+    const pattern = this.findPatternBy(
+      source,
+      title,
+      body,
+      (pattern) => pattern.overrides.colors || pattern.overrides.margins,
+    );
+    return (
+      pattern?.display.hideAppTitleRow ??
+      this._globalConfiguration.display.hideAppTitleRow
     );
   }
 
@@ -477,6 +497,10 @@ export class SettingsManager {
           verticalPosition: normalizeVerticalPosition(
             parsed.display?.verticalPosition,
           ),
+          hideAppTitleRow:
+            typeof parsed.display?.hideAppTitleRow === "boolean"
+              ? parsed.display.hideAppTitleRow
+              : false,
         },
         colors: {
           enabled:
@@ -597,6 +621,10 @@ export class SettingsManager {
         verticalPosition: normalizeVerticalPosition(
           object.display?.verticalPosition,
         ),
+        hideAppTitleRow:
+          typeof object.display?.hideAppTitleRow === "boolean"
+            ? object.display.hideAppTitleRow
+            : false,
       },
       filtering: {
         enabled:
