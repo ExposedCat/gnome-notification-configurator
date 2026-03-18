@@ -28,7 +28,11 @@ inject() {
   glib-compile-schemas "$EXTENSIONS/$SLUG/schemas"
 }
 
-predev() {
+deps() {
+  npm install
+}
+
+install() {
 	build
 	pack
   inject
@@ -57,12 +61,16 @@ translate)
 uninstall)
   rm -rf "${EXTENSIONS:?}/$SLUG"
   ;;
+install)
+  deps
+  install
+  ;;
 dev)
-	predev
+	install
   dbus-run-session gnome-shell --devkit --wayland --no-x11
   ;;
 dev:container)
-	predev
+	install
   distrobox enter gnome-dev -- env PIPEWIRE_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR#/}" PIPEWIRE_REMOTE=pipewire-0 dbus-run-session gnome-shell --devkit --wayland --no-x11
   ;;
 *)

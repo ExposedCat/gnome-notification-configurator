@@ -10,6 +10,7 @@
     "build": "./scripts/cli build",
     "cleanup": "./scripts/cli cleanup",
     "inject": "./scripts/cli inject",
+    "install:local": "./scripts/cli install",
     "pack": "./scripts/cli pack",
     "translate": "./scripts/cli translate",
     "format": "biome check --write src"
