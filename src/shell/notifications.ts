@@ -1,4 +1,5 @@
 import Clutter from "gi://Clutter";
+import GLib from "gi://GLib";
 import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
@@ -219,15 +220,11 @@ export class NotificationsManager {
         NotificationsManager.VERTICAL_ALIGNMENT_MAP[verticalPosition],
       );
 
-      if (
-        settingsManager.shouldHideAppTitleRowFor(
-          sourceName,
-          titleText,
-          bodyText,
-        )
-      ) {
-        hideBannerAppTitleRow();
-      }
+      const shouldHideAppTitleRow = settingsManager.shouldHideAppTitleRowFor(
+        sourceName,
+        titleText,
+        bodyText,
+      );
 
       const margins = settingsManager.getMarginsFor(
         sourceName,
@@ -238,6 +235,13 @@ export class NotificationsManager {
         widgets.container.set_style(
           `margin-top: ${margins.top}px; margin-bottom: ${margins.bottom}px; margin-left: ${margins.left}px; margin-right: ${margins.right}px;`,
         );
+      }
+
+      if (shouldHideAppTitleRow) {
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+          hideBannerAppTitleRow();
+          return GLib.SOURCE_REMOVE;
+        });
       }
     });
   }
