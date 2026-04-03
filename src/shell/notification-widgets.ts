@@ -92,7 +92,7 @@ export function resolveNotificationWidgets(
   const source = headerContent?.get_child_at_index(0) as St.Bin | null;
   const sourceText = source?.get_first_child() as Clutter.Text | null;
   const time = headerContent?.get_child_at_index(1) as St.Bin | null;
-  const content = notification?.get_last_child();
+  const content = notification?.get_child_at_index(1);
   const contentBody = content?.get_child_at_index(1) as St.BoxLayout | null;
   const title = contentBody?.get_child_at_index(0) as St.Bin | null;
   const body = contentBody?.get_child_at_index(1) as St.Bin | null;
