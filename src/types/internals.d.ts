@@ -24,9 +24,12 @@ declare module "resource:///org/gnome/shell/ui/main.js" {
   export * from "@girs/gnome-shell/ui/main";
 
   type WindowAttentionHandler = {
-    _onWindowDemandsAttention: (display: Meta.Display, window: Meta.Window) => void;
-    _windowDemandsAttentionId: number;
-    _windowMarkedUrgentId: number;
+    _onWindowDemandsAttention: (
+      display: Meta.Display,
+      window: Meta.Window,
+    ) => void;
+    _windowDemandsAttentionId?: number;
+    _windowMarkedUrgentId?: number;
   };
 
   export const windowAttentionHandler: WindowAttentionHandler;
@@ -63,7 +66,9 @@ declare module "resource:///org/gnome/shell/ui/messageTray.js" {
     _resetNotificationLeftTimeout: () => void;
     _notificationFocusGrabber: { ungrabFocus: () => void };
     _userActiveWhileNotificationShown?: boolean;
-    _banner: import("@girs/gnome-shell/ui/messageList").NotificationMessage | null;
+    _banner:
+      | import("@girs/gnome-shell/ui/messageList").NotificationMessage
+      | null;
     _bannerBin: import("gi://St").default.Widget & {
       ease: (params: Record<string, unknown>) => void;
     };

@@ -9,49 +9,34 @@ export class ActivateAdapter {
     const settingsManager = this.settingsManager;
 
     return (original, window) => {
-      console.log("[ActivateAdapter] hook invoked");
-      console.log(
-        `[ActivateAdapter] checking setting: activateWindowOnAttention=${settingsManager.activateWindowOnAttention}`,
-      );
-
       if (!settingsManager.activateWindowOnAttention) {
-        console.log("[ActivateAdapter] setting is off — calling original");
         original();
-        return;
+        return true;
       }
-
-      console.log("[ActivateAdapter] setting is on — inspecting window");
-
-      const title = window?.get_title();
-      const windowId = window?.get_id();
-      const windowClass = window?.get_wm_class();
-      const hasFocus = window?.has_focus();
-      const skipTaskbar = window?.is_skip_taskbar();
-
-      console.log(
-        `[ActivateAdapter] window: id=${windowId} title="${title}" wm_class="${windowClass}" has_focus=${hasFocus} skip_taskbar=${skipTaskbar}`,
-      );
 
       if (!window) {
-        console.log("[ActivateAdapter] window is null — doing nothing");
-        return;
+        return true;
       }
 
-      if (hasFocus) {
-        console.log("[ActivateAdapter] window already has focus — doing nothing");
-        return;
+      if (window.has_focus()) {
+        return true;
       }
 
-      if (skipTaskbar) {
-        console.log("[ActivateAdapter] window is skip-taskbar — doing nothing");
-        return;
+      if (window.is_skip_taskbar()) {
+        return true;
       }
 
-      console.log(
-        `[ActivateAdapter] calling Main.activateWindow for id=${windowId} title="${title}"`,
+      const currentTime = global.get_current_time();
+      const workspace = window.get_workspace();
+      Main.activateWindow(
+        window,
+        currentTime,
+        workspace ? workspace.index() : undefined,
       );
-      Main.activateWindow(window);
-      console.log("[ActivateAdapter] Main.activateWindow returned");
+      if (!window.has_focus()) {
+        window.activate(currentTime);
+      }
+      return true;
     };
   }
 

@@ -5,13 +5,20 @@ import * as Main from "resource:///org/gnome/shell/ui/main.js";
 export type WindowAttentionHook = (
   original: () => void,
   window: Meta.Window,
-) => void;
+) => boolean;
 
 type WindowAttentionHandlerProto = {
   _onWindowDemandsAttention: (
     display: Meta.Display,
     window: Meta.Window,
   ) => void;
+  _windowDemandsAttentionId?: number;
+  _windowMarkedUrgentId?: number;
+};
+
+type DisplaySignalApi = Meta.Display & {
+  connectObject?: (...args: unknown[]) => void;
+  disconnectObject?: (object: unknown) => void;
 };
 
 export class WindowAttentionManager {
@@ -28,7 +35,6 @@ export class WindowAttentionManager {
   }
 
   disable() {
-    console.log("[WindowAttentionManager] disable: restoring original handler");
     this.injectionManager.clear();
   }
 
@@ -39,8 +45,6 @@ export class WindowAttentionManager {
 
     const hooks = this.hooks;
 
-    console.log("[WindowAttentionManager] patching _onWindowDemandsAttention");
-
     this.injectionManager.overrideMethod(
       proto,
       "_onWindowDemandsAttention",
@@ -50,81 +54,69 @@ export class WindowAttentionManager {
           display: Meta.Display,
           window: Meta.Window,
         ) {
-          const title = window?.get_title();
-          const windowId = window?.get_id();
-          const hasFocus = window?.has_focus();
-          const skipTaskbar = window?.is_skip_taskbar();
-
-          console.log(
-            `[WindowAttentionManager] injected _onWindowDemandsAttention called: id=${windowId} title="${title}" has_focus=${hasFocus} skip_taskbar=${skipTaskbar} hooks=${hooks.length}`,
-          );
-
-          let handled = false;
-
-          for (const [index, hook] of hooks.entries()) {
-            console.log(`[WindowAttentionManager] running hook ${index}`);
-            hook(() => {
-              console.log(
-                `[WindowAttentionManager] hook ${index} called original`,
-              );
-              handled = true;
-              original.call(this, display, window);
-            }, window);
-
-            console.log(
-              `[WindowAttentionManager] hook ${index} done, handled=${handled}`,
-            );
-
-            if (handled) break;
-          }
-
-          if (!handled) {
-            console.log(
-              "[WindowAttentionManager] no hook handled — falling back to original",
-            );
+          let originalCalled = false;
+          const runOriginal = () => {
+            if (originalCalled) {
+              return;
+            }
+            originalCalled = true;
             original.call(this, display, window);
+          };
+
+          for (const hook of hooks) {
+            let handled = false;
+            try {
+              handled = hook(runOriginal, window);
+            } catch (error) {
+              console.error("[WindowAttentionManager] hook failed", error);
+            }
+
+            if (handled || originalCalled) {
+              return;
+            }
           }
+
+          runOriginal();
         },
     );
   }
 
   private reconnectSignals() {
-    const attentionHandler = Main.windowAttentionHandler;
-
-    console.log(
-      `[WindowAttentionManager] reconnectSignals: demandsId=${attentionHandler._windowDemandsAttentionId} urgentId=${attentionHandler._windowMarkedUrgentId}`,
-    );
+    const attentionHandler =
+      Main.windowAttentionHandler as unknown as WindowAttentionHandlerProto;
+    const display = global.display as DisplaySignalApi;
+    const callback = (currentDisplay: Meta.Display, window: Meta.Window) =>
+      attentionHandler._onWindowDemandsAttention(currentDisplay, window);
 
     if (
-      !attentionHandler._windowDemandsAttentionId ||
-      !attentionHandler._windowMarkedUrgentId
+      typeof display.connectObject === "function" &&
+      typeof display.disconnectObject === "function"
     ) {
-      console.error(
-        "[WindowAttentionManager] signal IDs missing or zero — reconnect skipped, patching will have no effect",
+      display.disconnectObject(attentionHandler);
+      display.connectObject(
+        "window-demands-attention",
+        callback,
+        "window-marked-urgent",
+        callback,
+        attentionHandler,
       );
       return;
     }
 
-    console.log(
-      `[WindowAttentionManager] reconnecting signals (old ids: demands=${attentionHandler._windowDemandsAttentionId} urgent=${attentionHandler._windowMarkedUrgentId})`,
-    );
+    if (typeof attentionHandler._windowDemandsAttentionId === "number") {
+      display.disconnect(attentionHandler._windowDemandsAttentionId);
+    }
+    if (typeof attentionHandler._windowMarkedUrgentId === "number") {
+      display.disconnect(attentionHandler._windowMarkedUrgentId);
+    }
 
-    global.display.disconnect(attentionHandler._windowDemandsAttentionId);
-    global.display.disconnect(attentionHandler._windowMarkedUrgentId);
-
-    attentionHandler._windowDemandsAttentionId = global.display.connect(
+    attentionHandler._windowDemandsAttentionId = display.connect(
       "window-demands-attention",
-      (display, window) =>
-        attentionHandler._onWindowDemandsAttention(display, window),
+      callback,
     );
-    attentionHandler._windowMarkedUrgentId = global.display.connect(
+    attentionHandler._windowMarkedUrgentId = display.connect(
       "window-marked-urgent",
-      (display, window) =>
-        attentionHandler._onWindowDemandsAttention(display, window),
-    );
-
-    console.log(
-      `[WindowAttentionManager] signals reconnected (new ids: demands=${attentionHandler._windowDemandsAttentionId} urgent=${attentionHandler._windowMarkedUrgentId})`,
+      callback,
     );
   }
 
