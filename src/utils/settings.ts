@@ -11,8 +11,11 @@ import type {
 } from "./normalize.js";
 import {
   normalizeAction,
+  normalizeBoolean,
   normalizeMargins,
+  normalizeNumber,
   normalizePosition,
+  normalizeString,
   normalizeTheme,
   normalizeVerticalPosition,
 } from "./normalize.js";
@@ -62,6 +65,9 @@ export type Configuration = {
     left: number;
     right: number;
   };
+  windowAttention: {
+    activateInstead: boolean;
+  };
 };
 
 export type PatternOverrides = {
@@ -97,6 +103,7 @@ type SettingsEvents = {
   notificationTimeoutChanged: [number];
   ignoreIdleChanged: [boolean];
   alwaysNormalUrgencyChanged: [boolean];
+  activateWindowOnAttentionChanged: [boolean];
 };
 
 export class SettingsManager {
@@ -111,6 +118,7 @@ export class SettingsManager {
   private _notificationTimeout = 4000;
   private _ignoreIdle = true;
   private _alwaysNormalUrgency = false;
+  private _activateWindowOnAttention = false;
   private _globalConfiguration: GlobalConfiguration =
     SettingsManager.defaultGlobalConfiguration();
   private _patterns: PatternConfiguration[] = [];
@@ -158,6 +166,9 @@ export class SettingsManager {
         left: 0,
         right: 0,
       },
+      windowAttention: {
+        activateInstead: false,
+      },
     };
   }
 
@@ -196,6 +207,7 @@ export class SettingsManager {
       },
       colors: { enabled: false, theme: { ...DEFAULT_THEME } },
       margins: { enabled: false, top: 0, bottom: 0, left: 0, right: 0 },
+      windowAttention: { activateInstead: false },
     };
   }
 
@@ -235,6 +247,10 @@ export class SettingsManager {
 
   get alwaysNormalUrgency() {
     return this._alwaysNormalUrgency;
+  }
+
+  get activateWindowOnAttention() {
+    return this._activateWindowOnAttention;
   }
 
   get notificationPosition() {
@@ -414,6 +430,8 @@ export class SettingsManager {
     this._ignoreIdle = this._globalConfiguration.timeout.ignoreIdle;
     this._alwaysNormalUrgency =
       this._globalConfiguration.urgency.alwaysNormalUrgency;
+    this._activateWindowOnAttention =
+      this._globalConfiguration.windowAttention.activateInstead;
   }
 
   private listen() {
@@ -434,6 +452,10 @@ export class SettingsManager {
       this.events.emit("notificationTimeoutChanged", this._notificationTimeout);
       this.events.emit("ignoreIdleChanged", this._ignoreIdle);
       this.events.emit("alwaysNormalUrgencyChanged", this._alwaysNormalUrgency);
+      this.events.emit(
+        "activateWindowOnAttentionChanged",
+        this._activateWindowOnAttention,
+      );
     };
 
     this.settingSignals.push(
@@ -453,70 +475,10 @@ export class SettingsManager {
   static parseGlobalConfiguration(value: string): GlobalConfiguration {
     try {
       const parsed = JSON.parse(value) as Partial<GlobalConfiguration>;
-      return {
-        enabled: typeof parsed.enabled === "boolean" ? parsed.enabled : true,
-        rateLimiting: {
-          enabled:
-            typeof parsed.rateLimiting?.enabled === "boolean"
-              ? parsed.rateLimiting.enabled
-              : true,
-          notificationThreshold:
-            typeof parsed.rateLimiting?.notificationThreshold === "number"
-              ? parsed.rateLimiting.notificationThreshold
-              : 5000,
-          action: normalizeAction(parsed.rateLimiting?.action, "close"),
-        },
-        timeout: {
-          enabled:
-            typeof parsed.timeout?.enabled === "boolean"
-              ? parsed.timeout.enabled
-              : true,
-          notificationTimeout:
-            typeof parsed.timeout?.notificationTimeout === "number"
-              ? parsed.timeout.notificationTimeout
-              : 4000,
-          ignoreIdle:
-            typeof parsed.timeout?.ignoreIdle === "boolean"
-              ? parsed.timeout.ignoreIdle
-              : true,
-        },
-        urgency: {
-          alwaysNormalUrgency:
-            typeof parsed.urgency?.alwaysNormalUrgency === "boolean"
-              ? parsed.urgency.alwaysNormalUrgency
-              : false,
-        },
-        display: {
-          enableFullscreen:
-            typeof parsed.display?.enableFullscreen === "boolean"
-              ? parsed.display.enableFullscreen
-              : false,
-          notificationPosition: normalizePosition(
-            parsed.display?.notificationPosition,
-          ),
-          verticalPosition: normalizeVerticalPosition(
-            parsed.display?.verticalPosition,
-          ),
-          hideAppTitleRow:
-            typeof parsed.display?.hideAppTitleRow === "boolean"
-              ? parsed.display.hideAppTitleRow
-              : false,
-        },
-        colors: {
-          enabled:
-            typeof parsed.colors?.enabled === "boolean"
-              ? parsed.colors.enabled
-              : true,
-          theme: normalizeTheme(parsed.colors?.theme),
-        },
-        margins: {
-          enabled:
-            typeof parsed.margins?.enabled === "boolean"
-              ? parsed.margins.enabled
-              : false,
-          ...normalizeMargins(parsed.margins),
-        },
-      };
+      return SettingsManager.normalizeConfiguration(
+        parsed,
+        SettingsManager.defaultGlobalConfiguration(),
+      );
     } catch {
       return SettingsManager.defaultGlobalConfiguration();
     }
@@ -541,111 +503,106 @@ export class SettingsManager {
   static normalizePattern(candidate: unknown): PatternConfiguration {
     const object = (candidate ?? {}) as Partial<PatternConfiguration>;
     return {
-      enabled: typeof object.enabled === "boolean" ? object.enabled : true,
-      shortName: typeof object.shortName === "string" ? object.shortName : "",
+      ...SettingsManager.normalizeConfiguration(
+        object,
+        SettingsManager.defaultPatternConfiguration(),
+      ),
+      shortName: normalizeString(object.shortName, ""),
       matcher: {
-        title:
-          typeof object.matcher?.title === "string" ? object.matcher.title : "",
-        body:
-          typeof object.matcher?.body === "string" ? object.matcher.body : "",
-        appName:
-          typeof object.matcher?.appName === "string"
-            ? object.matcher.appName
-            : "",
+        title: normalizeString(object.matcher?.title, ""),
+        body: normalizeString(object.matcher?.body, ""),
+        appName: normalizeString(object.matcher?.appName, ""),
       },
       overrides: {
-        rateLimiting:
-          typeof object.overrides?.rateLimiting === "boolean"
-            ? object.overrides.rateLimiting
-            : false,
-        timeout:
-          typeof object.overrides?.timeout === "boolean"
-            ? object.overrides.timeout
-            : false,
-        urgency:
-          typeof object.overrides?.urgency === "boolean"
-            ? object.overrides.urgency
-            : false,
-        display:
-          typeof object.overrides?.display === "boolean"
-            ? object.overrides.display
-            : false,
-        colors:
-          typeof object.overrides?.colors === "boolean"
-            ? object.overrides.colors
-            : false,
-        margins:
-          typeof object.overrides?.margins === "boolean"
-            ? object.overrides.margins
-            : false,
-      },
-      rateLimiting: {
-        enabled:
-          typeof object.rateLimiting?.enabled === "boolean"
-            ? object.rateLimiting.enabled
-            : false,
-        notificationThreshold:
-          typeof object.rateLimiting?.notificationThreshold === "number"
-            ? object.rateLimiting.notificationThreshold
-            : 5000,
-        action: normalizeAction(object.rateLimiting?.action, "close"),
-      },
-      timeout: {
-        enabled:
-          typeof object.timeout?.enabled === "boolean"
-            ? object.timeout.enabled
-            : false,
-        notificationTimeout:
-          typeof object.timeout?.notificationTimeout === "number"
-            ? object.timeout.notificationTimeout
-            : 4000,
-        ignoreIdle:
-          typeof object.timeout?.ignoreIdle === "boolean"
-            ? object.timeout.ignoreIdle
-            : true,
-      },
-      urgency: {
-        alwaysNormalUrgency:
-          typeof object.urgency?.alwaysNormalUrgency === "boolean"
-            ? object.urgency.alwaysNormalUrgency
-            : false,
-      },
-      display: {
-        enableFullscreen:
-          typeof object.display?.enableFullscreen === "boolean"
-            ? object.display.enableFullscreen
-            : false,
-        notificationPosition: normalizePosition(
-          object.display?.notificationPosition,
-        ),
-        verticalPosition: normalizeVerticalPosition(
-          object.display?.verticalPosition,
-        ),
-        hideAppTitleRow:
-          typeof object.display?.hideAppTitleRow === "boolean"
-            ? object.display.hideAppTitleRow
-            : false,
+        rateLimiting: normalizeBoolean(object.overrides?.rateLimiting, false),
+        timeout: normalizeBoolean(object.overrides?.timeout, false),
+        urgency: normalizeBoolean(object.overrides?.urgency, false),
+        display: normalizeBoolean(object.overrides?.display, false),
+        colors: normalizeBoolean(object.overrides?.colors, false),
+        margins: normalizeBoolean(object.overrides?.margins, false),
       },
       filtering: {
-        enabled:
-          typeof object.filtering?.enabled === "boolean"
-            ? object.filtering.enabled
-            : false,
+        enabled: normalizeBoolean(object.filtering?.enabled, false),
         action: normalizeAction(object.filtering?.action),
       },
+    };
+  }
+
+  private static normalizeConfiguration(
+    candidate: Partial<Configuration>,
+    defaults: Configuration,
+  ): Configuration {
+    return {
+      enabled: normalizeBoolean(candidate.enabled, defaults.enabled),
+      rateLimiting: {
+        enabled: normalizeBoolean(
+          candidate.rateLimiting?.enabled,
+          defaults.rateLimiting.enabled,
+        ),
+        notificationThreshold: normalizeNumber(
+          candidate.rateLimiting?.notificationThreshold,
+          defaults.rateLimiting.notificationThreshold,
+        ),
+        action: normalizeAction(
+          candidate.rateLimiting?.action,
+          defaults.rateLimiting.action,
+        ),
+      },
+      timeout: {
+        enabled: normalizeBoolean(
+          candidate.timeout?.enabled,
+          defaults.timeout.enabled,
+        ),
+        notificationTimeout: normalizeNumber(
+          candidate.timeout?.notificationTimeout,
+          defaults.timeout.notificationTimeout,
+        ),
+        ignoreIdle: normalizeBoolean(
+          candidate.timeout?.ignoreIdle,
+          defaults.timeout.ignoreIdle,
+        ),
+      },
+      urgency: {
+        alwaysNormalUrgency: normalizeBoolean(
+          candidate.urgency?.alwaysNormalUrgency,
+          defaults.urgency.alwaysNormalUrgency,
+        ),
+      },
+      display: {
+        enableFullscreen: normalizeBoolean(
+          candidate.display?.enableFullscreen,
+          defaults.display.enableFullscreen,
+        ),
+        notificationPosition: normalizePosition(
+          candidate.display?.notificationPosition,
+        ),
+        verticalPosition: normalizeVerticalPosition(
+          candidate.display?.verticalPosition,
+        ),
+        hideAppTitleRow: normalizeBoolean(
+          candidate.display?.hideAppTitleRow,
+          defaults.display.hideAppTitleRow,
+        ),
+      },
       colors: {
-        enabled:
-          typeof object.colors?.enabled === "boolean"
-            ? object.colors.enabled
-            : false,
-        theme: normalizeTheme(object.colors?.theme),
+        enabled: normalizeBoolean(
+          candidate.colors?.enabled,
+          defaults.colors.enabled,
+        ),
+        theme: normalizeTheme(candidate.colors?.theme),
       },
       margins: {
-        enabled:
-          typeof object.margins?.enabled === "boolean"
-            ? object.margins.enabled
-            : false,
-        ...normalizeMargins(object.margins),
+        enabled: normalizeBoolean(
+          candidate.margins?.enabled,
+          defaults.margins.enabled,
+        ),
+        ...normalizeMargins(candidate.margins),
+      },
+      windowAttention: {
+        activateInstead: normalizeBoolean(
+          candidate.windowAttention?.activateInstead,
+          defaults.windowAttention.activateInstead,
+        ),
       },
     };
   }

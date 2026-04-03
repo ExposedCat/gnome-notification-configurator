@@ -117,6 +117,9 @@ function createGlobalConfiguration(
       left: 0,
       right: 0,
     },
+    windowAttention: {
+      activateInstead: false,
+    },
   };
 }
 

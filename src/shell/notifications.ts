@@ -14,6 +14,9 @@ import { UrgencyAdapter } from "../managers/source/urgency.js";
 import { SourceManager } from "../managers/source/manager.js";
 import { ProcessingAdapter } from "../managers/source/processing.js";
 
+import { ActivateAdapter } from "../managers/window-attention/activate.js";
+import { WindowAttentionManager } from "../managers/window-attention/manager.js";
+
 import type {
   Position,
   SettingsManager,
@@ -31,28 +34,33 @@ const ANIMATION_TIME = 200;
 export class NotificationsManager {
   private messageTrayManager: MessageTrayManager;
   private sourceManager: SourceManager;
+  private windowAttentionManager: WindowAttentionManager;
 
   private fullscreenAdapter: FullscreenAdapter;
   private idleAdapter: IdleAdapter;
   private timeoutAdapter: TimeoutAdapter;
   private urgencyAdapter: UrgencyAdapter;
   private processingAdapter: ProcessingAdapter;
+  private activateAdapter: ActivateAdapter;
 
   constructor(settingsManager: SettingsManager) {
     this.messageTrayManager = new MessageTrayManager(settingsManager);
     this.sourceManager = new SourceManager(settingsManager);
+    this.windowAttentionManager = new WindowAttentionManager();
 
     this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
     this.idleAdapter = new IdleAdapter(settingsManager);
     this.timeoutAdapter = new TimeoutAdapter(settingsManager);
     this.urgencyAdapter = new UrgencyAdapter(settingsManager);
     this.processingAdapter = new ProcessingAdapter(settingsManager);
+    this.activateAdapter = new ActivateAdapter(settingsManager);
 
     this.fullscreenAdapter.register(this.messageTrayManager);
     this.idleAdapter.register(this.messageTrayManager);
     this.timeoutAdapter.register(this.messageTrayManager);
     this.urgencyAdapter.register(this.sourceManager);
     this.processingAdapter.register(this.sourceManager);
+    this.activateAdapter.register(this.windowAttentionManager);
 
     this.setupPositioning(settingsManager);
 
@@ -249,9 +257,11 @@ export class NotificationsManager {
   private enable() {
     this.messageTrayManager.enable();
     this.sourceManager.enable();
+    this.windowAttentionManager.enable();
   }
 
   private disable() {
+    this.windowAttentionManager.disable();
     this.sourceManager.disable();
     this.messageTrayManager.disable();
   }
@@ -270,9 +280,11 @@ export class NotificationsManager {
     this.timeoutAdapter.dispose();
     this.urgencyAdapter.dispose();
     this.processingAdapter.dispose();
+    this.activateAdapter.dispose();
 
     this.messageTrayManager.dispose();
     this.sourceManager.dispose();
+    this.windowAttentionManager.dispose();
 
     Main.messageTray.bannerAlignment = Clutter.ActorAlign.CENTER;
     getBannerBin()?.set_y_align(Clutter.ActorAlign.START);

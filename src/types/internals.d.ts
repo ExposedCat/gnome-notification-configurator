@@ -1,3 +1,4 @@
+import type Meta from "gi://Meta";
 import type { Notification } from "resource:///org/gnome/shell/ui/messageTray.js";
 
 declare module "resource:///org/gnome/shell/extensions/extension.js" {
@@ -17,6 +18,18 @@ declare module "resource:///org/gnome/shell/extensions/extension.js" {
     ): void;
     clear(): void;
   }
+}
+
+declare module "resource:///org/gnome/shell/ui/main.js" {
+  export * from "@girs/gnome-shell/ui/main";
+
+  type WindowAttentionHandler = {
+    _onWindowDemandsAttention: (display: Meta.Display, window: Meta.Window) => void;
+    _windowDemandsAttentionId: number;
+    _windowMarkedUrgentId: number;
+  };
+
+  export const windowAttentionHandler: WindowAttentionHandler;
 }
 
 declare module "resource:///org/gnome/shell/ui/notificationDaemon.js" {

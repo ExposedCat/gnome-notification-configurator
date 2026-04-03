@@ -33,6 +33,17 @@ export function normalizeVerticalPosition(value: unknown): VerticalPosition {
     : "top";
 }
 
+export function normalizeBoolean(
+  candidate: unknown,
+  fallback: boolean,
+): boolean {
+  return typeof candidate === "boolean" ? candidate : fallback;
+}
+
+export function normalizeString(candidate: unknown, fallback: string): string {
+  return typeof candidate === "string" ? candidate : fallback;
+}
+
 export function normalizeNumber(candidate: unknown, fallback: number): number {
   return typeof candidate === "number" && Number.isFinite(candidate)
     ? candidate
