@@ -559,28 +559,40 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     urgencyGroup.add(forceNormalRow);
     updateUrgencyVisibility();
 
-    if (!overrides) {
-      const windowAttentionGroup = new Adw.PreferencesGroup({
-        title: _("Window Attention"),
-        description: _(
-          "Control what happens when a window demands attention",
-        ),
-      });
-      page.add(windowAttentionGroup);
+    const windowAttentionGroup = new Adw.PreferencesGroup({
+      title: _("Window Attention"),
+      description: _("Control what happens when a window demands attention"),
+    });
+    page.add(windowAttentionGroup);
 
-      const activateInsteadRow = new Adw.SwitchRow({
-        title: _("Activate Window Instead of Notifying"),
-        subtitle: _(
-          "Switch directly to the window instead of showing a notification",
-        ),
-      });
-      activateInsteadRow.set_active(config.windowAttention.activateInstead);
-      activateInsteadRow.connect("notify::active", () => {
-        config.windowAttention.activateInstead = activateInsteadRow.get_active();
-        onSave();
-      });
-      windowAttentionGroup.add(activateInsteadRow);
+    const activateInsteadRow = new Adw.SwitchRow({
+      title: _("Activate Window Instead of Notifying"),
+      subtitle: _(
+        "Switch directly to the window instead of showing a notification",
+      ),
+    });
+    activateInsteadRow.set_active(config.windowAttention.activateInstead);
+    activateInsteadRow.connect("notify::active", () => {
+      config.windowAttention.activateInstead = activateInsteadRow.get_active();
+      onSave();
+    });
+
+    const updateWindowAttentionVisibility = () => {
+      activateInsteadRow.set_visible(!overrides || overrides.windowAttention);
+    };
+
+    if (overrides) {
+      this.addOverrideRow(
+        windowAttentionGroup,
+        overrides,
+        "windowAttention",
+        onSave,
+        updateWindowAttentionVisibility,
+      );
     }
+
+    windowAttentionGroup.add(activateInsteadRow);
+    updateWindowAttentionVisibility();
 
     const displayGroup = new Adw.PreferencesGroup({
       title: _("Display"),

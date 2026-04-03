@@ -77,6 +77,7 @@ export type PatternOverrides = {
   display: boolean;
   colors: boolean;
   margins: boolean;
+  windowAttention: boolean;
 };
 
 export type PatternConfigurationPrefs = {
@@ -91,6 +92,7 @@ export type PatternConfigurationPrefs = {
 
 export type GlobalConfiguration = Configuration;
 export type PatternConfiguration = Configuration & PatternConfigurationPrefs;
+type MatchableText = string | null;
 
 type SettingsEvents = {
   colorsEnabledChanged: [boolean];
@@ -186,6 +188,7 @@ export class SettingsManager {
         display: false,
         colors: false,
         margins: false,
+        windowAttention: false,
       },
       filtering: { enabled: false, action: "hide" },
       rateLimiting: {
@@ -364,9 +367,9 @@ export class SettingsManager {
   }
 
   getConfigurationFor(
-    source: string,
-    title: string,
-    body: string,
+    source: MatchableText,
+    title: MatchableText,
+    body: MatchableText,
   ): Configuration {
     const matchedPattern = this.findPatternBy(source, title, body);
     if (!matchedPattern) {
@@ -394,7 +397,22 @@ export class SettingsManager {
       margins: overrides.margins
         ? matchedPattern.margins
         : this._globalConfiguration.margins,
+      windowAttention: overrides.windowAttention
+        ? matchedPattern.windowAttention
+        : this._globalConfiguration.windowAttention,
     };
+  }
+
+  shouldActivateWindowOnAttentionFor(
+    source: MatchableText,
+    title: MatchableText,
+    body: MatchableText,
+  ): boolean {
+    const configuration = this.getConfigurationFor(source, title, body);
+    if (!configuration.enabled) {
+      return false;
+    }
+    return configuration.windowAttention.activateInstead;
   }
 
   private load() {
@@ -520,6 +538,10 @@ export class SettingsManager {
         display: normalizeBoolean(object.overrides?.display, false),
         colors: normalizeBoolean(object.overrides?.colors, false),
         margins: normalizeBoolean(object.overrides?.margins, false),
+        windowAttention: normalizeBoolean(
+          object.overrides?.windowAttention,
+          false,
+        ),
       },
       filtering: {
         enabled: normalizeBoolean(object.filtering?.enabled, false),
@@ -608,9 +630,9 @@ export class SettingsManager {
   }
 
   private findPatternBy(
-    source: string,
-    title: string,
-    body: string,
+    source: MatchableText,
+    title: MatchableText,
+    body: MatchableText,
     predicate: (pattern: PatternConfiguration) => boolean = () => true,
   ): PatternConfiguration | null {
     for (const pattern of this._patterns) {
@@ -626,20 +648,28 @@ export class SettingsManager {
 
   private matchesMatcher(
     matcher: Matcher,
-    source: string,
-    title: string,
-    body: string,
+    source: MatchableText,
+    title: MatchableText,
+    body: MatchableText,
   ): boolean {
-    const titleMatches =
-      !matcher.title.trim() ||
-      (Boolean(title.trim()) && this.matchesRegex(title, matcher.title));
-    const bodyMatches =
-      !matcher.body.trim() ||
-      (Boolean(body.trim()) && this.matchesRegex(body, matcher.body));
-    const appNameMatches =
-      !matcher.appName.trim() ||
-      (Boolean(source.trim()) && this.matchesRegex(source, matcher.appName));
+    const titleMatches = this.matchesMatcherField(matcher.title, title);
+    const bodyMatches = this.matchesMatcherField(matcher.body, body);
+    const appNameMatches = this.matchesMatcherField(matcher.appName, source);
     return titleMatches && bodyMatches && appNameMatches;
+  }
+
+  private matchesMatcherField(pattern: string, value: MatchableText): boolean {
+    const matcher = pattern.trim();
+    if (!matcher) {
+      return true;
+    }
+    if (value === null) {
+      return true;
+    }
+    if (!value.trim()) {
+      return false;
+    }
+    return this.matchesRegex(value, matcher);
   }
 
   private matchesRegex(text: string, pattern: string): boolean {

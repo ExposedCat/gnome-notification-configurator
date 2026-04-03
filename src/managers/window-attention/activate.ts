@@ -1,3 +1,4 @@
+import Shell from "gi://Shell";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import type { SettingsManager } from "../../utils/settings.js";
 import type { WindowAttentionHook, WindowAttentionManager } from "./manager.js";
@@ -7,14 +8,25 @@ export class ActivateAdapter {
 
   createHook(): WindowAttentionHook {
     const settingsManager = this.settingsManager;
+    const windowTracker = Shell.WindowTracker.get_default();
 
     return (original, window) => {
-      if (!settingsManager.activateWindowOnAttention) {
+      if (!window) {
         original();
         return true;
       }
 
-      if (!window) {
+      const app = windowTracker.get_window_app(window);
+      const sourceName = app?.get_name() ?? window.get_wm_class() ?? null;
+      const title = window.get_title() ?? null;
+      const shouldActivate = settingsManager.shouldActivateWindowOnAttentionFor(
+        sourceName,
+        title,
+        null,
+      );
+
+      if (!shouldActivate) {
+        original();
         return true;
       }
 
