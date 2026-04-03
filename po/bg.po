@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Notification Configurator 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 20:12+0100\n"
+"POT-Creation-Date: 2026-04-04 01:01+0200\n"
 "PO-Revision-Date: 2025-08-30 13:14+0300\n"
 "Last-Translator: Lyubomir Vasilev <lyubomirv@gmx.com>\n"
 "Language-Team: \n"
@@ -72,15 +72,15 @@ msgstr "Съвпадения"
 msgid "RegExp patterns to match notifications"
 msgstr "Регулярни изрази за съвпадение с известия"
 
-#: dist/prefs.js:197 dist/prefs.js:698
+#: dist/prefs.js:197 dist/prefs.js:720
 msgid "App Name"
 msgstr "Име на приложението"
 
-#: dist/prefs.js:202 dist/prefs.js:703
+#: dist/prefs.js:202 dist/prefs.js:725
 msgid "Title"
 msgstr "Заглавие"
 
-#: dist/prefs.js:207 dist/prefs.js:708
+#: dist/prefs.js:207 dist/prefs.js:730
 msgid "Body"
 msgstr "Съдържание"
 
@@ -204,147 +204,163 @@ msgid "Make all notifications use normal urgency level"
 msgstr "Всички известия ще се третират като обикновени"
 
 #: dist/prefs.js:404
+msgid "Window Attention"
+msgstr "Внимание от прозорец"
+
+#: dist/prefs.js:405
+msgid "Control what happens when a window demands attention"
+msgstr "Управлява какво се случва, когато прозорец изисква внимание"
+
+#: dist/prefs.js:409
+msgid "Activate Window Instead of Notifying"
+msgstr "Активиране на прозореца вместо известяване"
+
+#: dist/prefs.js:410
+msgid "Switch directly to the window instead of showing a notification"
+msgstr "Превключване директно към прозореца вместо показване на известие"
+
+#: dist/prefs.js:426
 msgid "Display"
 msgstr "Дисплей"
 
-#: dist/prefs.js:409
+#: dist/prefs.js:431
 msgid "Enable Notifications in Fullscreen"
 msgstr "Включване на известия в пълноекранен режим"
 
-#: dist/prefs.js:410
+#: dist/prefs.js:432
 msgid "Show notifications even when applications are in fullscreen"
 msgstr ""
 "Показване на известия, дори когато има приложение работещо на цял екран"
 
-#: dist/prefs.js:420
+#: dist/prefs.js:442
 msgid "Horizontal Alignment"
 msgstr "Хоризонтално подравняване"
 
-#: dist/prefs.js:421
+#: dist/prefs.js:443
 msgid "Horizontal position of notifications on screen"
 msgstr "Хоризонтална позиция на известията на екрана"
 
-#: dist/prefs.js:424 dist/prefs.js:441
+#: dist/prefs.js:446 dist/prefs.js:463
 msgid "Fill"
 msgstr "Запълване"
 
-#: dist/prefs.js:425
+#: dist/prefs.js:447
 msgid "Left"
 msgstr "Вляво"
 
-#: dist/prefs.js:426 dist/prefs.js:443
+#: dist/prefs.js:448 dist/prefs.js:465
 msgid "Center"
 msgstr "В средата"
 
-#: dist/prefs.js:427
+#: dist/prefs.js:449
 msgid "Right"
 msgstr "Вдясно"
 
-#: dist/prefs.js:437
+#: dist/prefs.js:459
 msgid "Vertical Alignment"
 msgstr "Вертикално подравняване"
 
-#: dist/prefs.js:438
+#: dist/prefs.js:460
 msgid "Vertical position of notifications on screen"
 msgstr "Вертикална позиция на известията на екрана"
 
-#: dist/prefs.js:442
+#: dist/prefs.js:464
 msgid "Top"
 msgstr "Горе"
 
-#: dist/prefs.js:444
+#: dist/prefs.js:466
 msgid "Bottom"
 msgstr "Долу"
 
-#: dist/prefs.js:465
+#: dist/prefs.js:487
 msgid "Appearance"
 msgstr "Външен вид"
 
-#: dist/prefs.js:466
+#: dist/prefs.js:488
 msgid "Customize notification styles and margins"
 msgstr "Персонализиране на стиловете и полетата на известията"
 
-#: dist/prefs.js:470
+#: dist/prefs.js:492
 msgid "Hide App Title Row"
 msgstr "Скриване на реда със заглавието на приложението"
 
-#: dist/prefs.js:471
+#: dist/prefs.js:493
 msgid "Hide title and time row"
 msgstr "Скриване на реда със заглавието и часа"
 
-#: dist/prefs.js:478
+#: dist/prefs.js:500
 msgid "Enable Custom Styles"
 msgstr "Включване на персонализирани стилове"
 
-#: dist/prefs.js:479
+#: dist/prefs.js:501
 msgid "Apply custom styles to notifications"
 msgstr "Прилагане на персонализирани стилове на известията"
 
-#: dist/prefs.js:484
+#: dist/prefs.js:506
 msgid "Margin Top"
 msgstr "Поле отгоре"
 
-#: dist/prefs.js:498
+#: dist/prefs.js:520
 msgid "Margin Bottom"
 msgstr "Поле отдолу"
 
-#: dist/prefs.js:512
+#: dist/prefs.js:534
 msgid "Margin Left"
 msgstr "Поле отляво"
 
-#: dist/prefs.js:526
+#: dist/prefs.js:548
 msgid "Margin Right"
 msgstr "Поле отдясно"
 
-#: dist/prefs.js:540
+#: dist/prefs.js:562
 msgid "Enable Custom Margins"
 msgstr "Включване на персонализирани полета"
 
-#: dist/prefs.js:541
+#: dist/prefs.js:563
 msgid "Apply custom margins to notifications"
 msgstr "Прилагане на персонализирани полета на известията"
 
-#: dist/prefs.js:604
+#: dist/prefs.js:626
 msgid "Override"
 msgstr "Промяна"
 
-#: dist/prefs.js:605
+#: dist/prefs.js:627
 msgid "Override global setting for this pattern"
 msgstr "Промяна на глобалната настройка за този патърн"
 
-#: dist/prefs.js:659
+#: dist/prefs.js:681
 msgid "px"
 msgstr "px"
 
-#: dist/prefs.js:694
+#: dist/prefs.js:716
 msgid "Test Notifications"
 msgstr "Пробно известие"
 
-#: dist/prefs.js:700
+#: dist/prefs.js:722
 msgid "Test Application Name"
 msgstr "Пробно име на приложение"
 
-#: dist/prefs.js:705
+#: dist/prefs.js:727
 msgid "Test Notification Title"
 msgstr "Пробно заглавие на известие"
 
-#: dist/prefs.js:710
+#: dist/prefs.js:732
 msgid "Test Notification Body"
 msgstr "Пробен текст на известие"
 
-#: dist/prefs.js:715
+#: dist/prefs.js:737
 msgid "Send Test Notification"
 msgstr "Показване на пробно известие"
 
-#: dist/prefs.js:720
+#: dist/prefs.js:742
 msgid "Test App"
 msgstr "Пробно приложение"
 
-#: dist/prefs.js:721
+#: dist/prefs.js:743
 msgid "Test Notification"
 msgstr "Пробно известие"
 
-#: dist/prefs.js:722
+#: dist/prefs.js:744
 msgid "This is a test notification"
 msgstr "Това е пробно известие"
 

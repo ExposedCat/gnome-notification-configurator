@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Notification Configurator 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 20:12+0100\n"
+"POT-Creation-Date: 2026-04-04 01:01+0200\n"
 "PO-Revision-Date: 2025-07-14 10:33+0200\n"
 "Last-Translator: Artem Prokop <artem.prokop.dev@gmail.com>\n"
 "Language-Team: Ukrainian <artem.prokop.dev@gmail.com>\n"
@@ -76,15 +76,15 @@ msgstr "Збіги"
 msgid "RegExp patterns to match notifications"
 msgstr "Регулярні вирази для збігу з повідомленнями"
 
-#: dist/prefs.js:197 dist/prefs.js:698
+#: dist/prefs.js:197 dist/prefs.js:720
 msgid "App Name"
 msgstr "Назва Застосунку"
 
-#: dist/prefs.js:202 dist/prefs.js:703
+#: dist/prefs.js:202 dist/prefs.js:725
 msgid "Title"
 msgstr "Заголовок"
 
-#: dist/prefs.js:207 dist/prefs.js:708
+#: dist/prefs.js:207 dist/prefs.js:730
 msgid "Body"
 msgstr "Вміст"
 
@@ -207,147 +207,163 @@ msgid "Make all notifications use normal urgency level"
 msgstr "Примусово встановити звичайну терміновість для всіх повідомлень"
 
 #: dist/prefs.js:404
+msgid "Window Attention"
+msgstr "Увага до вікна"
+
+#: dist/prefs.js:405
+msgid "Control what happens when a window demands attention"
+msgstr "Налаштуйте, що відбувається, коли вікно потребує уваги"
+
+#: dist/prefs.js:409
+msgid "Activate Window Instead of Notifying"
+msgstr "Активувати вікно замість сповіщення"
+
+#: dist/prefs.js:410
+msgid "Switch directly to the window instead of showing a notification"
+msgstr "Перемкнутися безпосередньо на вікно замість показу сповіщення"
+
+#: dist/prefs.js:426
 msgid "Display"
 msgstr "Відображення"
 
-#: dist/prefs.js:409
+#: dist/prefs.js:431
 msgid "Enable Notifications in Fullscreen"
 msgstr "Увімкнути повідомлення в повноекранному режимі"
 
-#: dist/prefs.js:410
+#: dist/prefs.js:432
 msgid "Show notifications even when applications are in fullscreen"
 msgstr ""
 "Зображати повідомлення навіть якщо додаток відкрито в повноекранному режимі"
 
-#: dist/prefs.js:420
+#: dist/prefs.js:442
 msgid "Horizontal Alignment"
 msgstr "Горизонтальне вирівнювання"
 
-#: dist/prefs.js:421
+#: dist/prefs.js:443
 msgid "Horizontal position of notifications on screen"
 msgstr "Горизонтальна позиція повідомлень на екрані"
 
-#: dist/prefs.js:424 dist/prefs.js:441
+#: dist/prefs.js:446 dist/prefs.js:463
 msgid "Fill"
 msgstr "Заповнити"
 
-#: dist/prefs.js:425
+#: dist/prefs.js:447
 msgid "Left"
 msgstr "Зліва"
 
-#: dist/prefs.js:426 dist/prefs.js:443
+#: dist/prefs.js:448 dist/prefs.js:465
 msgid "Center"
 msgstr "Центр"
 
-#: dist/prefs.js:427
+#: dist/prefs.js:449
 msgid "Right"
 msgstr "Справа"
 
-#: dist/prefs.js:437
+#: dist/prefs.js:459
 msgid "Vertical Alignment"
 msgstr "Вертикальне вирівнювання"
 
-#: dist/prefs.js:438
+#: dist/prefs.js:460
 msgid "Vertical position of notifications on screen"
 msgstr "Вертикальна позиція повідомлень на екрані"
 
-#: dist/prefs.js:442
+#: dist/prefs.js:464
 msgid "Top"
 msgstr "Вгорі"
 
-#: dist/prefs.js:444
+#: dist/prefs.js:466
 msgid "Bottom"
 msgstr "Внизу"
 
-#: dist/prefs.js:465
+#: dist/prefs.js:487
 msgid "Appearance"
 msgstr "Зовнішній вигляд"
 
-#: dist/prefs.js:466
+#: dist/prefs.js:488
 msgid "Customize notification styles and margins"
 msgstr "Налаштування стилів та відступів повідомлень"
 
-#: dist/prefs.js:470
+#: dist/prefs.js:492
 msgid "Hide App Title Row"
 msgstr "Приховати рядок назви застосунку"
 
-#: dist/prefs.js:471
+#: dist/prefs.js:493
 msgid "Hide title and time row"
 msgstr "Приховати рядок із назвою та часом"
 
-#: dist/prefs.js:478
+#: dist/prefs.js:500
 msgid "Enable Custom Styles"
 msgstr "Увімкнути власні стилі"
 
-#: dist/prefs.js:479
+#: dist/prefs.js:501
 msgid "Apply custom styles to notifications"
 msgstr "Застосувати власні стилі до повідомлень"
 
-#: dist/prefs.js:484
+#: dist/prefs.js:506
 msgid "Margin Top"
 msgstr "Відступ зверху"
 
-#: dist/prefs.js:498
+#: dist/prefs.js:520
 msgid "Margin Bottom"
 msgstr "Відступ знизу"
 
-#: dist/prefs.js:512
+#: dist/prefs.js:534
 msgid "Margin Left"
 msgstr "Відступ зліва"
 
-#: dist/prefs.js:526
+#: dist/prefs.js:548
 msgid "Margin Right"
 msgstr "Відступ справа"
 
-#: dist/prefs.js:540
+#: dist/prefs.js:562
 msgid "Enable Custom Margins"
 msgstr "Увімкнути власні відступи"
 
-#: dist/prefs.js:541
+#: dist/prefs.js:563
 msgid "Apply custom margins to notifications"
 msgstr "Застосувати власні відступи до повідомлень"
 
-#: dist/prefs.js:604
+#: dist/prefs.js:626
 msgid "Override"
 msgstr "Перевизначення"
 
-#: dist/prefs.js:605
+#: dist/prefs.js:627
 msgid "Override global setting for this pattern"
 msgstr "Перевизначити глобальне налаштування для цього патерну"
 
-#: dist/prefs.js:659
+#: dist/prefs.js:681
 msgid "px"
 msgstr "px"
 
-#: dist/prefs.js:694
+#: dist/prefs.js:716
 msgid "Test Notifications"
 msgstr "Тестові Повідомлення"
 
-#: dist/prefs.js:700
+#: dist/prefs.js:722
 msgid "Test Application Name"
 msgstr "Тестова Назва Застосунку"
 
-#: dist/prefs.js:705
+#: dist/prefs.js:727
 msgid "Test Notification Title"
 msgstr "Тестовий Заголовок Повідомлення"
 
-#: dist/prefs.js:710
+#: dist/prefs.js:732
 msgid "Test Notification Body"
 msgstr "Тестовий Вміст Повідомлення"
 
-#: dist/prefs.js:715
+#: dist/prefs.js:737
 msgid "Send Test Notification"
 msgstr "Відправити Тестове Повідомлення"
 
-#: dist/prefs.js:720
+#: dist/prefs.js:742
 msgid "Test App"
 msgstr "Тестовий Застосунок"
 
-#: dist/prefs.js:721
+#: dist/prefs.js:743
 msgid "Test Notification"
 msgstr "Тестове Повідомлення"
 
-#: dist/prefs.js:722
+#: dist/prefs.js:744
 msgid "This is a test notification"
 msgstr "Це тестове повідомлення"
 

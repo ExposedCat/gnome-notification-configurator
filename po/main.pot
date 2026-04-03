@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Notification Configurator 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-17 18:36+0100\n"
+"POT-Creation-Date: 2026-04-04 01:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -73,15 +73,15 @@ msgstr ""
 msgid "RegExp patterns to match notifications"
 msgstr ""
 
-#: dist/prefs.js:197 dist/prefs.js:698
+#: dist/prefs.js:197 dist/prefs.js:720
 msgid "App Name"
 msgstr ""
 
-#: dist/prefs.js:202 dist/prefs.js:703
+#: dist/prefs.js:202 dist/prefs.js:725
 msgid "Title"
 msgstr ""
 
-#: dist/prefs.js:207 dist/prefs.js:708
+#: dist/prefs.js:207 dist/prefs.js:730
 msgid "Body"
 msgstr ""
 
@@ -202,145 +202,161 @@ msgid "Make all notifications use normal urgency level"
 msgstr ""
 
 #: dist/prefs.js:404
-msgid "Display"
+msgid "Window Attention"
+msgstr ""
+
+#: dist/prefs.js:405
+msgid "Control what happens when a window demands attention"
 msgstr ""
 
 #: dist/prefs.js:409
-msgid "Enable Notifications in Fullscreen"
+msgid "Activate Window Instead of Notifying"
 msgstr ""
 
 #: dist/prefs.js:410
+msgid "Switch directly to the window instead of showing a notification"
+msgstr ""
+
+#: dist/prefs.js:426
+msgid "Display"
+msgstr ""
+
+#: dist/prefs.js:431
+msgid "Enable Notifications in Fullscreen"
+msgstr ""
+
+#: dist/prefs.js:432
 msgid "Show notifications even when applications are in fullscreen"
 msgstr ""
 
-#: dist/prefs.js:420
+#: dist/prefs.js:442
 msgid "Horizontal Alignment"
 msgstr ""
 
-#: dist/prefs.js:421
+#: dist/prefs.js:443
 msgid "Horizontal position of notifications on screen"
 msgstr ""
 
-#: dist/prefs.js:424 dist/prefs.js:441
+#: dist/prefs.js:446 dist/prefs.js:463
 msgid "Fill"
 msgstr ""
 
-#: dist/prefs.js:425
+#: dist/prefs.js:447
 msgid "Left"
 msgstr ""
 
-#: dist/prefs.js:426 dist/prefs.js:443
+#: dist/prefs.js:448 dist/prefs.js:465
 msgid "Center"
 msgstr ""
 
-#: dist/prefs.js:427
+#: dist/prefs.js:449
 msgid "Right"
 msgstr ""
 
-#: dist/prefs.js:437
+#: dist/prefs.js:459
 msgid "Vertical Alignment"
 msgstr ""
 
-#: dist/prefs.js:438
+#: dist/prefs.js:460
 msgid "Vertical position of notifications on screen"
 msgstr ""
 
-#: dist/prefs.js:442
+#: dist/prefs.js:464
 msgid "Top"
 msgstr ""
 
-#: dist/prefs.js:444
+#: dist/prefs.js:466
 msgid "Bottom"
 msgstr ""
 
-#: dist/prefs.js:465
+#: dist/prefs.js:487
 msgid "Appearance"
 msgstr ""
 
-#: dist/prefs.js:466
+#: dist/prefs.js:488
 msgid "Customize notification styles and margins"
 msgstr ""
 
-#: dist/prefs.js:470
+#: dist/prefs.js:492
 msgid "Hide App Title Row"
 msgstr ""
 
-#: dist/prefs.js:471
+#: dist/prefs.js:493
 msgid "Hide title and time row"
 msgstr ""
 
-#: dist/prefs.js:478
+#: dist/prefs.js:500
 msgid "Enable Custom Styles"
 msgstr ""
 
-#: dist/prefs.js:479
+#: dist/prefs.js:501
 msgid "Apply custom styles to notifications"
 msgstr ""
 
-#: dist/prefs.js:484
+#: dist/prefs.js:506
 msgid "Margin Top"
 msgstr ""
 
-#: dist/prefs.js:498
+#: dist/prefs.js:520
 msgid "Margin Bottom"
 msgstr ""
 
-#: dist/prefs.js:512
+#: dist/prefs.js:534
 msgid "Margin Left"
 msgstr ""
 
-#: dist/prefs.js:526
+#: dist/prefs.js:548
 msgid "Margin Right"
 msgstr ""
 
-#: dist/prefs.js:540
+#: dist/prefs.js:562
 msgid "Enable Custom Margins"
 msgstr ""
 
-#: dist/prefs.js:541
+#: dist/prefs.js:563
 msgid "Apply custom margins to notifications"
 msgstr ""
 
-#: dist/prefs.js:604
+#: dist/prefs.js:626
 msgid "Override"
 msgstr ""
 
-#: dist/prefs.js:605
+#: dist/prefs.js:627
 msgid "Override global setting for this pattern"
 msgstr ""
 
-#: dist/prefs.js:659
+#: dist/prefs.js:681
 msgid "px"
 msgstr ""
 
-#: dist/prefs.js:694
+#: dist/prefs.js:716
 msgid "Test Notifications"
 msgstr ""
 
-#: dist/prefs.js:700
+#: dist/prefs.js:722
 msgid "Test Application Name"
 msgstr ""
 
-#: dist/prefs.js:705
+#: dist/prefs.js:727
 msgid "Test Notification Title"
 msgstr ""
 
-#: dist/prefs.js:710
+#: dist/prefs.js:732
 msgid "Test Notification Body"
 msgstr ""
 
-#: dist/prefs.js:715
+#: dist/prefs.js:737
 msgid "Send Test Notification"
 msgstr ""
 
-#: dist/prefs.js:720
+#: dist/prefs.js:742
 msgid "Test App"
 msgstr ""
 
-#: dist/prefs.js:721
+#: dist/prefs.js:743
 msgid "Test Notification"
 msgstr ""
 
-#: dist/prefs.js:722
+#: dist/prefs.js:744
 msgid "This is a test notification"
 msgstr ""

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Notification Configurator 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 20:12+0100\n"
+"POT-Creation-Date: 2026-04-04 01:01+0200\n"
 "PO-Revision-Date: 2025-07-14 18:59+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: \n"
@@ -73,15 +73,15 @@ msgstr "Overeenkomsten"
 msgid "RegExp patterns to match notifications"
 msgstr "Reguliere uitdrukkingen om meldingen te filteren"
 
-#: dist/prefs.js:197 dist/prefs.js:698
+#: dist/prefs.js:197 dist/prefs.js:720
 msgid "App Name"
 msgstr "Toepassingsnaam"
 
-#: dist/prefs.js:202 dist/prefs.js:703
+#: dist/prefs.js:202 dist/prefs.js:725
 msgid "Title"
 msgstr "Titel"
 
-#: dist/prefs.js:207 dist/prefs.js:708
+#: dist/prefs.js:207 dist/prefs.js:730
 msgid "Body"
 msgstr "Inhoud"
 
@@ -204,147 +204,163 @@ msgid "Make all notifications use normal urgency level"
 msgstr "Toon alle meldingen zonder verhoogde of verlaagde urgentie"
 
 #: dist/prefs.js:404
+msgid "Window Attention"
+msgstr "Vensteraandacht"
+
+#: dist/prefs.js:405
+msgid "Control what happens when a window demands attention"
+msgstr "Bepaal wat er gebeurt als een venster aandacht vraagt"
+
+#: dist/prefs.js:409
+msgid "Activate Window Instead of Notifying"
+msgstr "Venster activeren in plaats van melden"
+
+#: dist/prefs.js:410
+msgid "Switch directly to the window instead of showing a notification"
+msgstr "Schakel direct over naar het venster in plaats van een melding te tonen"
+
+#: dist/prefs.js:426
 msgid "Display"
 msgstr "Weergave"
 
-#: dist/prefs.js:409
+#: dist/prefs.js:431
 msgid "Enable Notifications in Fullscreen"
 msgstr "Meldingen in schermvullende weergave inschakelen"
 
-#: dist/prefs.js:410
+#: dist/prefs.js:432
 msgid "Show notifications even when applications are in fullscreen"
 msgstr ""
 "Toon meldingen, zelfs als toepassingen de schermvullende weergave gebruiken"
 
-#: dist/prefs.js:420
+#: dist/prefs.js:442
 msgid "Horizontal Alignment"
 msgstr "Horizontale uitlijning"
 
-#: dist/prefs.js:421
+#: dist/prefs.js:443
 msgid "Horizontal position of notifications on screen"
 msgstr "Horizontale positie van meldingen op het scherm"
 
-#: dist/prefs.js:424 dist/prefs.js:441
+#: dist/prefs.js:446 dist/prefs.js:463
 msgid "Fill"
 msgstr "Vullen"
 
-#: dist/prefs.js:425
+#: dist/prefs.js:447
 msgid "Left"
 msgstr "Links"
 
-#: dist/prefs.js:426 dist/prefs.js:443
+#: dist/prefs.js:448 dist/prefs.js:465
 msgid "Center"
 msgstr "Midden"
 
-#: dist/prefs.js:427
+#: dist/prefs.js:449
 msgid "Right"
 msgstr "Rechts"
 
-#: dist/prefs.js:437
+#: dist/prefs.js:459
 msgid "Vertical Alignment"
 msgstr "Verticale uitlijning"
 
-#: dist/prefs.js:438
+#: dist/prefs.js:460
 msgid "Vertical position of notifications on screen"
 msgstr "Verticale positie van meldingen op het scherm"
 
-#: dist/prefs.js:442
+#: dist/prefs.js:464
 msgid "Top"
 msgstr "Bovenaan"
 
-#: dist/prefs.js:444
+#: dist/prefs.js:466
 msgid "Bottom"
 msgstr "Onderaan"
 
-#: dist/prefs.js:465
+#: dist/prefs.js:487
 msgid "Appearance"
 msgstr "Vormgeving"
 
-#: dist/prefs.js:466
+#: dist/prefs.js:488
 msgid "Customize notification styles and margins"
 msgstr "Pas meldingsstijlen en marges aan"
 
-#: dist/prefs.js:470
+#: dist/prefs.js:492
 msgid "Hide App Title Row"
 msgstr "App-titelrij verbergen"
 
-#: dist/prefs.js:471
+#: dist/prefs.js:493
 msgid "Hide title and time row"
 msgstr "Titel- en tijdsrij verbergen"
 
-#: dist/prefs.js:478
+#: dist/prefs.js:500
 msgid "Enable Custom Styles"
 msgstr "Aangepaste stijlen inschakelen"
 
-#: dist/prefs.js:479
+#: dist/prefs.js:501
 msgid "Apply custom styles to notifications"
 msgstr "Aangepaste stijlen toepassen op meldingen"
 
-#: dist/prefs.js:484
+#: dist/prefs.js:506
 msgid "Margin Top"
 msgstr "Marge boven"
 
-#: dist/prefs.js:498
+#: dist/prefs.js:520
 msgid "Margin Bottom"
 msgstr "Marge onder"
 
-#: dist/prefs.js:512
+#: dist/prefs.js:534
 msgid "Margin Left"
 msgstr "Marge links"
 
-#: dist/prefs.js:526
+#: dist/prefs.js:548
 msgid "Margin Right"
 msgstr "Marge rechts"
 
-#: dist/prefs.js:540
+#: dist/prefs.js:562
 msgid "Enable Custom Margins"
 msgstr "Eigen marges inschakelen"
 
-#: dist/prefs.js:541
+#: dist/prefs.js:563
 msgid "Apply custom margins to notifications"
 msgstr "Eigen marges toepassen op meldingen"
 
-#: dist/prefs.js:604
+#: dist/prefs.js:626
 msgid "Override"
 msgstr "Aanpassing"
 
-#: dist/prefs.js:605
+#: dist/prefs.js:627
 msgid "Override global setting for this pattern"
 msgstr "Globale instelling aanpassen voor dit patroon"
 
-#: dist/prefs.js:659
+#: dist/prefs.js:681
 msgid "px"
 msgstr "px"
 
-#: dist/prefs.js:694
+#: dist/prefs.js:716
 msgid "Test Notifications"
 msgstr "Meldingen uitproberen"
 
-#: dist/prefs.js:700
+#: dist/prefs.js:722
 msgid "Test Application Name"
 msgstr "Toepassingsnaam uitproberen"
 
-#: dist/prefs.js:705
+#: dist/prefs.js:727
 msgid "Test Notification Title"
 msgstr "Meldingstitel voorvertonen"
 
-#: dist/prefs.js:710
+#: dist/prefs.js:732
 msgid "Test Notification Body"
 msgstr "Meldingsinhoud voorvertonen"
 
-#: dist/prefs.js:715
+#: dist/prefs.js:737
 msgid "Send Test Notification"
 msgstr "Testmelding versturen"
 
-#: dist/prefs.js:720
+#: dist/prefs.js:742
 msgid "Test App"
 msgstr "Toepassingstest"
 
-#: dist/prefs.js:721
+#: dist/prefs.js:743
 msgid "Test Notification"
 msgstr "Testmelding"
 
-#: dist/prefs.js:722
+#: dist/prefs.js:744
 msgid "This is a test notification"
 msgstr "Dit is een testmelding"
 
