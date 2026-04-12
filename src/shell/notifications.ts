@@ -8,6 +8,8 @@ import { FullscreenAdapter } from "../managers/message-tray/fullscreen.js";
 import { IdleAdapter } from "../managers/message-tray/idle.js";
 import { MessageTrayManager } from "../managers/message-tray/manager.js";
 import { TimeoutAdapter } from "../managers/message-tray/timeout.js";
+import { GroupingAdapter } from "../managers/notification-daemon/grouping.js";
+import { NotificationDaemonManager } from "../managers/notification-daemon/manager.js";
 
 import { UrgencyAdapter } from "../managers/source/urgency.js";
 
@@ -33,10 +35,12 @@ const ANIMATION_TIME = 200;
 
 export class NotificationsManager {
   private messageTrayManager: MessageTrayManager;
+  private notificationDaemonManager: NotificationDaemonManager;
   private sourceManager: SourceManager;
   private windowAttentionManager: WindowAttentionManager;
 
   private fullscreenAdapter: FullscreenAdapter;
+  private groupingAdapter: GroupingAdapter;
   private idleAdapter: IdleAdapter;
   private timeoutAdapter: TimeoutAdapter;
   private urgencyAdapter: UrgencyAdapter;
@@ -45,10 +49,12 @@ export class NotificationsManager {
 
   constructor(settingsManager: SettingsManager) {
     this.messageTrayManager = new MessageTrayManager(settingsManager);
+    this.notificationDaemonManager = new NotificationDaemonManager();
     this.sourceManager = new SourceManager(settingsManager);
     this.windowAttentionManager = new WindowAttentionManager();
 
     this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
+    this.groupingAdapter = new GroupingAdapter(settingsManager);
     this.idleAdapter = new IdleAdapter(settingsManager);
     this.timeoutAdapter = new TimeoutAdapter(settingsManager);
     this.urgencyAdapter = new UrgencyAdapter(settingsManager);
@@ -56,6 +62,7 @@ export class NotificationsManager {
     this.activateAdapter = new ActivateAdapter(settingsManager);
 
     this.fullscreenAdapter.register(this.messageTrayManager);
+    this.groupingAdapter.register(this.notificationDaemonManager);
     this.idleAdapter.register(this.messageTrayManager);
     this.timeoutAdapter.register(this.messageTrayManager);
     this.urgencyAdapter.register(this.sourceManager);
@@ -256,6 +263,7 @@ export class NotificationsManager {
 
   private enable() {
     this.messageTrayManager.enable();
+    this.notificationDaemonManager.enable();
     this.sourceManager.enable();
     this.windowAttentionManager.enable();
   }
@@ -263,6 +271,7 @@ export class NotificationsManager {
   private disable() {
     this.windowAttentionManager.disable();
     this.sourceManager.disable();
+    this.notificationDaemonManager.disable();
     this.messageTrayManager.disable();
   }
 
@@ -276,6 +285,7 @@ export class NotificationsManager {
     }
 
     this.fullscreenAdapter.dispose();
+    this.groupingAdapter.dispose();
     this.idleAdapter.dispose();
     this.timeoutAdapter.dispose();
     this.urgencyAdapter.dispose();
@@ -283,6 +293,7 @@ export class NotificationsManager {
     this.activateAdapter.dispose();
 
     this.messageTrayManager.dispose();
+    this.notificationDaemonManager.dispose();
     this.sourceManager.dispose();
     this.windowAttentionManager.dispose();
 

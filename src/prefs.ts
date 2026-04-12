@@ -384,6 +384,42 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     onSave: () => void,
     overrides: PatternOverrides | null,
   ) {
+    const notificationCenterGroup = new Adw.PreferencesGroup({
+      title: _("Notification Center"),
+      description: _("Control how matching notifications stack together"),
+    });
+    page.add(notificationCenterGroup);
+
+    const disableGroupingRow = new Adw.SwitchRow({
+      title: _("Disable Stacking"),
+      subtitle: _("Create a separate entry for each matching notification"),
+    });
+    disableGroupingRow.set_active(config.notificationCenter.disableGrouping);
+    disableGroupingRow.connect("notify::active", () => {
+      config.notificationCenter.disableGrouping =
+        disableGroupingRow.get_active();
+      onSave();
+    });
+
+    const updateNotificationCenterVisibility = () => {
+      disableGroupingRow.set_visible(
+        !overrides || overrides.notificationCenter,
+      );
+    };
+
+    if (overrides) {
+      this.addOverrideRow(
+        notificationCenterGroup,
+        overrides,
+        "notificationCenter",
+        onSave,
+        updateNotificationCenterVisibility,
+      );
+    }
+
+    notificationCenterGroup.add(disableGroupingRow);
+    updateNotificationCenterVisibility();
+
     const rateLimitGroup = new Adw.PreferencesGroup({
       title: _("Rate Limiting"),
       description: _("Control notification frequency per application"),

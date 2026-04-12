@@ -1,5 +1,11 @@
 import type Meta from "gi://Meta";
-import type { Notification } from "resource:///org/gnome/shell/ui/messageTray.js";
+import type Shell from "gi://Shell";
+import {
+  type Notification,
+  Source,
+} from "resource:///org/gnome/shell/ui/messageTray.js";
+import type { FdoNotificationDaemonProto as RuntimeFdoNotificationDaemonProto } from "resource:///org/gnome/shell/ui/notificationDaemon.js";
+import type { NotificationDaemon as ShellNotificationDaemon } from "@girs/gnome-shell/ui/notificationDaemon";
 
 declare module "resource:///org/gnome/shell/extensions/extension.js" {
   export * from "@girs/gnome-shell/extensions/extension";
@@ -23,6 +29,10 @@ declare module "resource:///org/gnome/shell/extensions/extension.js" {
 declare module "resource:///org/gnome/shell/ui/main.js" {
   export * from "@girs/gnome-shell/ui/main";
 
+  type NotificationDaemon = ShellNotificationDaemon & {
+    _fdoNotificationDaemon: RuntimeFdoNotificationDaemonProto;
+  };
+
   type WindowAttentionHandler = {
     _onWindowDemandsAttention: (
       display: Meta.Display,
@@ -32,13 +42,42 @@ declare module "resource:///org/gnome/shell/ui/main.js" {
     _windowMarkedUrgentId?: number;
   };
 
+  export const notificationDaemon: NotificationDaemon;
   export const windowAttentionHandler: WindowAttentionHandler;
 }
 
 declare module "resource:///org/gnome/shell/ui/notificationDaemon.js" {
   export * from "@girs/gnome-shell/ui/notificationDaemon";
 
-  export class FdoNotificationDaemonSource {
+  export type FdoNotificationDaemonNotifyParams = [
+    appName: string,
+    replacesId: number,
+    appIcon: string,
+    summary: string,
+    body: string,
+    actions: string[],
+    hints: Record<string, unknown>,
+    timeout: number,
+  ];
+
+  export type FdoNotificationDaemonProto = {
+    NotifyAsync: (
+      params: FdoNotificationDaemonNotifyParams,
+      invocation: unknown,
+    ) => unknown;
+    _getSourceForApp: (
+      sender: string | null | undefined,
+      app: Shell.App,
+    ) => FdoNotificationDaemonSource;
+    _getSourceForPidAndName: (
+      sender: string | null | undefined,
+      pid: number | null | undefined,
+      appName: string | null | undefined,
+    ) => FdoNotificationDaemonSource;
+  };
+
+  export class FdoNotificationDaemonSource extends Source {
+    constructor(sender: string | null | undefined, app: Shell.App | null);
     processNotification(
       notification: Notification,
       appName: string,

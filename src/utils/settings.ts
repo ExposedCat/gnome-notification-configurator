@@ -35,6 +35,9 @@ export type Matcher = {
 
 export type Configuration = {
   enabled: boolean;
+  notificationCenter: {
+    disableGrouping: boolean;
+  };
   rateLimiting: {
     enabled: boolean;
     notificationThreshold: number;
@@ -71,6 +74,7 @@ export type Configuration = {
 };
 
 export type PatternOverrides = {
+  notificationCenter: boolean;
   rateLimiting: boolean;
   timeout: boolean;
   urgency: boolean;
@@ -136,6 +140,9 @@ export class SettingsManager {
   static defaultGlobalConfiguration(): GlobalConfiguration {
     return {
       enabled: true,
+      notificationCenter: {
+        disableGrouping: false,
+      },
       rateLimiting: {
         enabled: true,
         notificationThreshold: 5000,
@@ -182,6 +189,7 @@ export class SettingsManager {
       shortName: "",
       matcher,
       overrides: {
+        notificationCenter: false,
         rateLimiting: false,
         timeout: false,
         urgency: false,
@@ -191,6 +199,9 @@ export class SettingsManager {
         windowAttention: false,
       },
       filtering: { enabled: false, action: "hide" },
+      notificationCenter: {
+        disableGrouping: false,
+      },
       rateLimiting: {
         enabled: false,
         notificationThreshold: 5000,
@@ -379,6 +390,9 @@ export class SettingsManager {
     return {
       ...this._globalConfiguration,
       enabled: matchedPattern.enabled,
+      notificationCenter: overrides.notificationCenter
+        ? matchedPattern.notificationCenter
+        : this._globalConfiguration.notificationCenter,
       rateLimiting: overrides.rateLimiting
         ? matchedPattern.rateLimiting
         : this._globalConfiguration.rateLimiting,
@@ -413,6 +427,18 @@ export class SettingsManager {
       return false;
     }
     return configuration.windowAttention.activateInstead;
+  }
+
+  shouldDisableNotificationGroupingFor(
+    source: MatchableText,
+    title: MatchableText,
+    body: MatchableText,
+  ): boolean {
+    const configuration = this.getConfigurationFor(source, title, body);
+    if (!configuration.enabled) {
+      return false;
+    }
+    return configuration.notificationCenter.disableGrouping;
   }
 
   private load() {
@@ -532,6 +558,10 @@ export class SettingsManager {
         appName: normalizeString(object.matcher?.appName, ""),
       },
       overrides: {
+        notificationCenter: normalizeBoolean(
+          object.overrides?.notificationCenter,
+          false,
+        ),
         rateLimiting: normalizeBoolean(object.overrides?.rateLimiting, false),
         timeout: normalizeBoolean(object.overrides?.timeout, false),
         urgency: normalizeBoolean(object.overrides?.urgency, false),
@@ -556,6 +586,12 @@ export class SettingsManager {
   ): Configuration {
     return {
       enabled: normalizeBoolean(candidate.enabled, defaults.enabled),
+      notificationCenter: {
+        disableGrouping: normalizeBoolean(
+          candidate.notificationCenter?.disableGrouping,
+          defaults.notificationCenter.disableGrouping,
+        ),
+      },
       rateLimiting: {
         enabled: normalizeBoolean(
           candidate.rateLimiting?.enabled,

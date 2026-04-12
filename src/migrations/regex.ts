@@ -83,6 +83,9 @@ function createGlobalConfiguration(
 ): GlobalConfiguration {
   return {
     enabled: true,
+    notificationCenter: {
+      disableGrouping: false,
+    },
     rateLimiting: {
       enabled: oldSettings.get_boolean("enable-rate-limiting"),
       notificationThreshold: oldSettings.get_int("notification-threshold"),
