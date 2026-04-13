@@ -18,19 +18,29 @@
 
 ## Features
 
-- **Notification Rate Limiting** - Prevent frequent notifications from the same
-  app within a configurable time threshold
-- **Notification Filtering** - Block or hide unwanted notifications using
-  regular expressions to match title, body text, or application name
-- **Custom Themes** - Set custom colors and font sizes for notifications per
-  application using app names or RegExp patterns (background, title, body, app
-  name, time)
-- **Notification Positioning** - Control where notifications appear on screen
-  (fill, left, center, right)
-- **Notification Timeout** - Configure auto-dismiss timeout for notifications
-  with idle state handling and urgency control
-- **Fullscreen Notifications** - Enable or disable notifications when
+- **Global and Pattern-Based Rules** - Configure default behavior globally or
+  create enabled/disabled per-pattern overrides matched by case-insensitive
+  regular expressions for app name, title, and body text
+- **Notification Filtering** - Hide or close matching notifications before they
+  appear
+- **Notification Rate Limiting** - Hide or close frequent notifications from the
+  same application within a configurable time threshold
+- **Notification Center Controls** - Disable stacking for matching
+  notifications and set how many notifications are kept per source
+- **Notification Timeout** - Configure auto-dismiss timing, keep notifications
+  visible while idle, or set timeout to `0` to keep notifications until dismissed
+- **Urgency Control** - Force notifications to normal urgency when needed
+- **Window Attention Handling** - Activate attention-requesting windows instead
+  of showing a notification
+- **Fullscreen Notifications** - Enable or disable notifications while
   applications are running in fullscreen mode
+- **Notification Positioning** - Set horizontal alignment (fill, left, center,
+  right) and vertical alignment (fill, top, center, bottom)
+- **Custom Appearance** - Hide the app title/time row, customize background,
+  title, body, app name, and time colors, and adjust text sizes
+- **Custom Margins** - Add top, bottom, left, and right notification margins
+- **Test Notifications** - Send sample notifications from the preferences window
+  to preview matching and styling changes
 
 ## Installation
 
