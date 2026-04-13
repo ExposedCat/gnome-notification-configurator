@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "isolatedModules": true,
     "esModuleInterop": true,
     "module": "NodeNext",
@@ -14,11 +16,13 @@
     "incremental": false,
     "allowJs": true,
     "skipLibCheck": true,
-    "downlevelIteration": true,
     "importHelpers": true,
     "maxNodeModuleJsDepth": 2,
     "declaration": false,
+    "rootDir": "./src",
     "outDir": "./dist"
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ]
 }
