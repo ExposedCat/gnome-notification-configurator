@@ -401,10 +401,27 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       onSave();
     });
 
+    const maximumPerSourceRow = new Adw.SpinRow({
+      title: _("Maximum Per Source"),
+      subtitle: _("Number of notifications kept for one application"),
+      adjustment: new Gtk.Adjustment({
+        lower: 1,
+        upper: Number.MAX_SAFE_INTEGER,
+        step_increment: 1,
+        page_increment: 10,
+        value: config.notificationCenter.maximumPerSource,
+      }),
+    });
+    maximumPerSourceRow.connect("notify::value", () => {
+      config.notificationCenter.maximumPerSource =
+        maximumPerSourceRow.get_value();
+      onSave();
+    });
+
     const updateNotificationCenterVisibility = () => {
-      disableGroupingRow.set_visible(
-        !overrides || overrides.notificationCenter,
-      );
+      const active = !overrides || overrides.notificationCenter;
+      disableGroupingRow.set_visible(active);
+      maximumPerSourceRow.set_visible(active);
     };
 
     if (overrides) {
@@ -418,6 +435,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     }
 
     notificationCenterGroup.add(disableGroupingRow);
+    notificationCenterGroup.add(maximumPerSourceRow);
     updateNotificationCenterVisibility();
 
     const rateLimitGroup = new Adw.PreferencesGroup({

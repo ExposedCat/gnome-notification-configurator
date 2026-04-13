@@ -11,7 +11,10 @@ import type {
   Matcher,
   PatternConfiguration,
 } from "../utils/settings.js";
-import { SettingsManager } from "../utils/settings.js";
+import {
+  NOTIFICATIONS_PER_SOURCE_DEFAULT,
+  SettingsManager,
+} from "../utils/settings.js";
 
 const OLD_KEYS = [
   "notification-threshold",
@@ -85,6 +88,7 @@ function createGlobalConfiguration(
     enabled: true,
     notificationCenter: {
       disableGrouping: false,
+      maximumPerSource: NOTIFICATIONS_PER_SOURCE_DEFAULT,
     },
     rateLimiting: {
       enabled: oldSettings.get_boolean("enable-rate-limiting"),

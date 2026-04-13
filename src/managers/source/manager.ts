@@ -1,12 +1,17 @@
+import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
 import {
   type Notification,
+  NotificationDestroyedReason,
   Source,
+  type SourceProto,
 } from "resource:///org/gnome/shell/ui/messageTray.js";
-import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
-import type { SettingsManager } from "../../utils/settings.js";
+import {
+  NOTIFICATIONS_PER_SOURCE_DEFAULT,
+  type SettingsManager,
+} from "../../utils/settings.js";
 
 export type AddNotificationHook = (
-  original: (notification: Notification) => void,
+  addNotification: (notification: Notification) => void,
   notification: Notification,
   context: {
     source: Source;
@@ -19,7 +24,7 @@ export class SourceManager {
 
   private addNotificationHooks: AddNotificationHook[] = [];
 
-  constructor(private settingsManager: SettingsManager) {}
+  constructor(private settingsManager: SettingsManager) { }
 
   registerAddNotificationHook(hook: AddNotificationHook) {
     this.addNotificationHooks.push(hook);
@@ -35,29 +40,32 @@ export class SourceManager {
 
   private patchAddNotification() {
     const hooks = this.addNotificationHooks;
+    const manager = this;
 
     this.injectionManager.overrideMethod(
       Source.prototype,
       "addNotification",
-      (original) =>
+      () =>
         function (this: Source, notification) {
           let handled = false;
           let blocked = false;
 
-          for (const hook of hooks) {
-            hook(
-              (notificationToProcess) => {
-                handled = true;
-                original.call(this, notificationToProcess);
-              },
-              notification,
-              {
-                source: this,
-                block: () => {
-                  blocked = true;
-                },
-              },
+          const addNotification = (notificationToAdd: Notification) => {
+            handled = true;
+            manager.addNotification(
+              this,
+              notificationToAdd,
+              manager.getMaximumPerSource(this, notificationToAdd),
             );
+          };
+
+          for (const hook of hooks) {
+            hook(addNotification, notification, {
+              source: this,
+              block: () => {
+                blocked = true;
+              },
+            });
 
             if (blocked) {
               return;
@@ -65,10 +73,54 @@ export class SourceManager {
           }
 
           if (!handled && !blocked) {
-            original.call(this, notification);
+            addNotification(notification);
           }
         },
     );
+  }
+
+  private getMaximumPerSource(source: Source, notification: Notification) {
+    const configuration = this.settingsManager.getConfigurationFor(
+      notification.source?.title ?? source.title,
+      notification.title,
+      notification.body,
+    );
+    const maximumPerSource = configuration.enabled
+      ? configuration.notificationCenter.maximumPerSource
+      : NOTIFICATIONS_PER_SOURCE_DEFAULT;
+    return maximumPerSource > 0
+      ? Math.trunc(maximumPerSource)
+      : NOTIFICATIONS_PER_SOURCE_DEFAULT;
+  }
+
+  private addNotification(
+    source: SourceProto,
+    notification: Notification,
+    maximumPerSource: number,
+  ) {
+    // Adapted from GNOME Shell js/ui/messageTray.js Source.addNotification().
+    if (source.notifications.includes(notification)) {
+      return;
+    }
+
+    while (source.notifications.length >= maximumPerSource) {
+      const [oldestNotification] = source.notifications;
+      oldestNotification.destroy(NotificationDestroyedReason.EXPIRED);
+    }
+
+    notification.connect("destroy", source._onNotificationDestroy.bind(source));
+    notification.connect("notify::acknowledged", () => {
+      source.countUpdated();
+
+      if (!notification.acknowledged) {
+        source.emit("notification-request-banner", notification);
+      }
+    });
+    source.notifications.push(notification);
+
+    source.emit("notification-added", notification);
+    source.emit("notification-request-banner", notification);
+    source.countUpdated();
   }
 
   dispose() {

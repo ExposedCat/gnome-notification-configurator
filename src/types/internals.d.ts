@@ -92,7 +92,11 @@ declare module "resource:///org/gnome/shell/ui/notificationDaemon.js" {
 
 declare module "resource:///org/gnome/shell/ui/messageTray.js" {
   export * from "@girs/gnome-shell/ui/messageTray";
-  import type { Urgency } from "@girs/gnome-shell/ui/messageTray";
+  import type {
+    Notification,
+    Source,
+    Urgency,
+  } from "@girs/gnome-shell/ui/messageTray";
 
   export type MessageTrayProto = {
     _updateNotificationTimeout: (timeout: number) => void;
@@ -116,5 +120,10 @@ declare module "resource:///org/gnome/shell/ui/messageTray.js" {
 
   export type NotificationProto = {
     setUrgency: (urgency: Urgency) => void;
+  };
+
+  export type SourceProto = Source & {
+    notifications: Notification[];
+    _onNotificationDestroy: (notification: Notification) => void;
   };
 }

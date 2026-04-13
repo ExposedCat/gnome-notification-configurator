@@ -50,6 +50,10 @@ export function normalizeNumber(candidate: unknown, fallback: number): number {
     : fallback;
 }
 
+export function normalizeInteger(candidate: unknown, fallback: number): number {
+  return Math.trunc(normalizeNumber(candidate, fallback));
+}
+
 export function normalizeColor(
   candidate: unknown,
   fallback: number[],

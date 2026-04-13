@@ -12,6 +12,7 @@ import type {
 import {
   normalizeAction,
   normalizeBoolean,
+  normalizeInteger,
   normalizeMargins,
   normalizeNumber,
   normalizePosition,
@@ -19,6 +20,8 @@ import {
   normalizeTheme,
   normalizeVerticalPosition,
 } from "./normalize.js";
+
+export const NOTIFICATIONS_PER_SOURCE_DEFAULT = 10;
 
 export type {
   Margins,
@@ -37,6 +40,7 @@ export type Configuration = {
   enabled: boolean;
   notificationCenter: {
     disableGrouping: boolean;
+    maximumPerSource: number;
   };
   rateLimiting: {
     enabled: boolean;
@@ -142,6 +146,7 @@ export class SettingsManager {
       enabled: true,
       notificationCenter: {
         disableGrouping: false,
+        maximumPerSource: NOTIFICATIONS_PER_SOURCE_DEFAULT,
       },
       rateLimiting: {
         enabled: true,
@@ -201,6 +206,7 @@ export class SettingsManager {
       filtering: { enabled: false, action: "hide" },
       notificationCenter: {
         disableGrouping: false,
+        maximumPerSource: NOTIFICATIONS_PER_SOURCE_DEFAULT,
       },
       rateLimiting: {
         enabled: false,
@@ -590,6 +596,10 @@ export class SettingsManager {
         disableGrouping: normalizeBoolean(
           candidate.notificationCenter?.disableGrouping,
           defaults.notificationCenter.disableGrouping,
+        ),
+        maximumPerSource: normalizeInteger(
+          candidate.notificationCenter?.maximumPerSource,
+          defaults.notificationCenter.maximumPerSource,
         ),
       },
       rateLimiting: {

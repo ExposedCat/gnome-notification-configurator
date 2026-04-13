@@ -10,7 +10,7 @@ export class ProcessingAdapter {
     const settingsManager = this.settingsManager;
     const timings = this.timings;
 
-    return (_original, notification, { block }) => {
+    return (_addNotification, notification, { block }) => {
       const sourceTitle = notification.source?.title ?? "UNK_SRC";
       const notificationTitle = notification.title ?? "";
       const notificationBody = notification.body ?? "";
