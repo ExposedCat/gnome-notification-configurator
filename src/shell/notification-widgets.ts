@@ -17,8 +17,8 @@ export type NotificationWidgets = {
   sourceText: Clutter.Text | null;
   source: St.Bin | null;
   time: St.Bin | null;
-  title: St.Bin | null;
-  body: St.Bin | null;
+  title: St.Label | null;
+  body: St.Label | null;
   sourceName: string;
   titleText: string;
   bodyText: string;
@@ -77,6 +77,23 @@ function readText(actor: Clutter.Actor | null | undefined) {
   return (actor as Clutter.Text | null)?.text ?? "";
 }
 
+function findByClass(
+  root: Clutter.Actor | null | undefined,
+  className: string,
+): St.Label | null {
+  if (!root) return null;
+  const n = root.get_n_children();
+  for (let i = 0; i < n; i++) {
+    const child = root.get_child_at_index(i) as St.Widget | null;
+    if (!child) continue;
+    if (child.get_style_class_name?.()?.split(" ").includes(className))
+      return child as St.Label;
+    const found = findByClass(child, className);
+    if (found) return found;
+  }
+  return null;
+}
+
 export function resolveNotificationWidgets(
   messageTrayContainer: Clutter.Actor | null | undefined,
 ): NotificationWidgets | null {
@@ -92,17 +109,19 @@ export function resolveNotificationWidgets(
   const source = headerContent?.get_child_at_index(0) as St.Bin | null;
   const sourceText = source?.get_first_child() as Clutter.Text | null;
   const time = headerContent?.get_child_at_index(1) as St.Bin | null;
-  const content = notification?.get_child_at_index(1);
-  const contentBody = content?.get_child_at_index(1) as St.BoxLayout | null;
-  const title = contentBody?.get_child_at_index(0) as St.Bin | null;
-  const body = contentBody?.get_child_at_index(1) as St.Bin | null;
+
+  // Use CSS class lookup for title/body — resilient to layout changes across
+  // GNOME versions. Index-based traversal broke in GNOME 49 because _actionBin
+  // is now always added as the last child of the notification vbox (even when
+  // hidden), so get_last_child() returned _actionBin instead of the content hbox.
+  const title = findByClass(notification, "message-title");
+  const body = findByClass(notification, "message-body");
+
   const metadata = getNotificationMetadata(container);
 
   const sourceName = sourceText?.text ?? metadata?.sourceName ?? "";
-  const titleText =
-    readText(title?.get_first_child()) || metadata?.titleText || "";
-  const bodyText =
-    readText(body?.get_first_child()) || metadata?.bodyText || "";
+  const titleText = readText(title) || metadata?.titleText || "";
+  const bodyText = readText(body) || metadata?.bodyText || "";
 
   setNotificationMetadata(container, {
     sourceName,
