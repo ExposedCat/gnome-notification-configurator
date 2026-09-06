@@ -39,6 +39,9 @@
 - **Custom Appearance** - Hide the app title/time row, customize background,
   title, body, app name, and time colors, and adjust text sizes
 - **Custom Margins** - Add top, bottom, left, and right notification margins
+- **Configuration Sync** - Export globals and patterns to a JSON file, or import
+  selected entries. Expand conflicts to preserve individual non-default settings;
+  patterns with identical app name, title, and body matchers are merged in place
 - **Test Notifications** - Send sample notifications from the preferences window
   to preview matching and styling changes
 

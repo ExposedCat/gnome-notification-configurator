@@ -8,6 +8,7 @@ import {
 } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
 import { migrateRegexSchema } from "./migrations/regex.js";
+import { buildSyncPage } from "./preferences/sync.js";
 import type { NotificationTheme } from "./utils/constants.js";
 import { DEFAULT_THEME } from "./utils/constants.js";
 import type {
@@ -97,7 +98,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     migrateRegexSchema(this.settings);
     this.loadData();
 
-    const globalPage = new Adw.PreferencesPage({
+    let globalPage = new Adw.PreferencesPage({
       title: _("Global"),
       icon_name: "preferences-system-symbolic",
     });
@@ -110,6 +111,24 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     });
     window.add(patternsPage);
     this.buildPatternsPage(window, patternsPage);
+
+    const syncPage = buildSyncPage(window, this.settings, () => {
+      this.loadData();
+      window.remove(globalPage);
+      globalPage = new Adw.PreferencesPage({
+        title: _("Global"),
+        icon_name: "preferences-system-symbolic",
+      });
+      window.remove(patternsPage);
+      window.remove(syncPage);
+      window.add(globalPage);
+      window.add(patternsPage);
+      window.add(syncPage);
+      this.buildGlobalPage(globalPage);
+      this.rebuildPatternsList(window);
+      window.set_visible_page(syncPage);
+    });
+    window.add(syncPage);
 
     window.connect("close-request", () => {
       // biome-ignore lint/style/noNonNullAssertion: cleanup
