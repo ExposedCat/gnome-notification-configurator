@@ -1,4 +1,5 @@
 import Adw from "gi://Adw";
+import GLib from "gi://GLib";
 import Gdk from "gi://Gdk";
 import Gio from "gi://Gio";
 import Gtk from "gi://Gtk";
@@ -1069,13 +1070,26 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       css_classes: ["suggested-action"],
       margin_top: 6,
     });
+    const errorLabel = new Gtk.Label({
+      label: _("notify-send was not found. Install it and try again."),
+      css_classes: ["error"],
+      wrap: true,
+      visible: false,
+      margin_top: 6,
+    });
     testButton.connect("clicked", () => {
+      const missingNotifySend =
+        GLib.find_program_in_path("notify-send") === null;
+      errorLabel.set_visible(missingNotifySend);
+      if (missingNotifySend) return;
+
       const appName = appEntry.get_text() || _("Test App");
       const title = titleEntry.get_text() || _("Test Notification");
       const body = bodyEntry.get_text() || _("This is a test notification");
       this.sendNotification(appName, title, body);
     });
     testButtonGroup.add(testButton);
+    testButtonGroup.add(errorLabel);
   }
 
   private sendNotification(appName: string, title: string, body: string) {
