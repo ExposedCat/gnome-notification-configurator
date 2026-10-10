@@ -60,6 +60,15 @@ export function configurationLabels(): Map<string, string> {
       "windowAttention.activateInstead": _(
         "Activate Window Instead of Notifying",
       ),
+      "recentIcons.enabled": _("Show App Icons"),
+      "recentIcons.maximumCount": _("Maximum Icons"),
+      "recentIcons.monochrome": _("Monochrome Icons"),
+      "recentIcons.counts": _("Notification Counts"),
+      "recentIcons.countsBackground": _("Counts Background"),
+      "recentIcons.countsColor": _("Counts Color"),
+      "indicator.enabled": _("Show Indicator"),
+      "indicator.format": _("Indicator Format"),
+      "indicator.color": _("Indicator Color"),
     } satisfies Record<FieldPath<PatternConfiguration>, string>),
   );
 }

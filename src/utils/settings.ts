@@ -1,9 +1,14 @@
 import type Gio from "gi://Gio?version=2.0";
 
 import type { NotificationTheme } from "./constants.js";
-import { DEFAULT_THEME } from "./constants.js";
+import {
+  DEFAULT_COUNTS_COLOR,
+  DEFAULT_INDICATOR_COLOR,
+  DEFAULT_THEME,
+} from "./constants.js";
 import { TypedEventEmitter } from "./event-emitter.js";
 import type {
+  IndicatorFormat,
   Margins,
   NotificationAction,
   Position,
@@ -12,6 +17,8 @@ import type {
 import {
   normalizeAction,
   normalizeBoolean,
+  normalizeColor,
+  normalizeIndicatorFormat,
   normalizeInteger,
   normalizeMargins,
   normalizeNumber,
@@ -22,8 +29,10 @@ import {
 } from "./normalize.js";
 
 export const NOTIFICATIONS_PER_SOURCE_DEFAULT = 10;
+export const RECENT_ICONS_DEFAULT = 3;
 
 export type {
+  IndicatorFormat,
   Margins,
   NotificationAction,
   Position,
@@ -75,6 +84,19 @@ export type Configuration = {
   windowAttention: {
     activateInstead: boolean;
   };
+  recentIcons: {
+    enabled: boolean;
+    maximumCount: number;
+    monochrome: boolean;
+    counts: boolean;
+    countsBackground: boolean;
+    countsColor: number[];
+  };
+  indicator: {
+    enabled: boolean;
+    format: IndicatorFormat;
+    color: number[];
+  };
 };
 
 export type PatternOverrides = {
@@ -114,6 +136,7 @@ type SettingsEvents = {
   ignoreIdleChanged: [boolean];
   alwaysNormalUrgencyChanged: [boolean];
   activateWindowOnAttentionChanged: [boolean];
+  topBarChanged: [];
 };
 
 export class SettingsManager {
@@ -183,6 +206,19 @@ export class SettingsManager {
       windowAttention: {
         activateInstead: false,
       },
+      recentIcons: {
+        enabled: false,
+        maximumCount: RECENT_ICONS_DEFAULT,
+        monochrome: false,
+        counts: false,
+        countsBackground: true,
+        countsColor: [...DEFAULT_COUNTS_COLOR],
+      },
+      indicator: {
+        enabled: false,
+        format: "dot",
+        color: [...DEFAULT_INDICATOR_COLOR],
+      },
     };
   }
 
@@ -228,6 +264,19 @@ export class SettingsManager {
       colors: { enabled: false, theme: { ...DEFAULT_THEME } },
       margins: { enabled: false, top: 0, bottom: 0, left: 0, right: 0 },
       windowAttention: { activateInstead: false },
+      recentIcons: {
+        enabled: false,
+        maximumCount: RECENT_ICONS_DEFAULT,
+        monochrome: false,
+        counts: false,
+        countsBackground: true,
+        countsColor: [...DEFAULT_COUNTS_COLOR],
+      },
+      indicator: {
+        enabled: false,
+        format: "dot",
+        color: [...DEFAULT_INDICATOR_COLOR],
+      },
     };
   }
 
@@ -279,6 +328,14 @@ export class SettingsManager {
 
   get verticalPosition() {
     return this._globalConfiguration.display.verticalPosition;
+  }
+
+  get recentIcons() {
+    return this._globalConfiguration.recentIcons;
+  }
+
+  get indicator() {
+    return this._globalConfiguration.indicator;
   }
 
   getPositionFor(source: string, title: string, body: string): Position {
@@ -506,6 +563,7 @@ export class SettingsManager {
         "activateWindowOnAttentionChanged",
         this._activateWindowOnAttention,
       );
+      this.events.emit("topBarChanged");
     };
 
     this.settingSignals.push(
@@ -670,6 +728,43 @@ export class SettingsManager {
         activateInstead: normalizeBoolean(
           candidate.windowAttention?.activateInstead,
           defaults.windowAttention.activateInstead,
+        ),
+      },
+      recentIcons: {
+        enabled: normalizeBoolean(
+          candidate.recentIcons?.enabled,
+          defaults.recentIcons.enabled,
+        ),
+        maximumCount: normalizeInteger(
+          candidate.recentIcons?.maximumCount,
+          defaults.recentIcons.maximumCount,
+        ),
+        monochrome: normalizeBoolean(
+          candidate.recentIcons?.monochrome,
+          defaults.recentIcons.monochrome,
+        ),
+        counts: normalizeBoolean(
+          candidate.recentIcons?.counts,
+          defaults.recentIcons.counts,
+        ),
+        countsBackground: normalizeBoolean(
+          candidate.recentIcons?.countsBackground,
+          defaults.recentIcons.countsBackground,
+        ),
+        countsColor: normalizeColor(
+          candidate.recentIcons?.countsColor,
+          defaults.recentIcons.countsColor,
+        ),
+      },
+      indicator: {
+        enabled: normalizeBoolean(
+          candidate.indicator?.enabled,
+          defaults.indicator.enabled,
+        ),
+        format: normalizeIndicatorFormat(candidate.indicator?.format),
+        color: normalizeColor(
+          candidate.indicator?.color,
+          defaults.indicator.color,
         ),
       },
     };
