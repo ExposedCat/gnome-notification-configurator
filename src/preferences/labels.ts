@@ -69,6 +69,7 @@ export function configurationLabels(): Map<string, string> {
       "indicator.enabled": _("Show Indicator"),
       "indicator.format": _("Indicator Format"),
       "indicator.color": _("Indicator Color"),
+      "doNotDisturb.topBar": _("Top Bar in Do Not Disturb"),
     } satisfies Record<FieldPath<PatternConfiguration>, string>),
   );
 }

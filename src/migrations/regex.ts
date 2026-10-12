@@ -141,9 +141,12 @@ function createGlobalConfiguration(
       countsColor: [...DEFAULT_COUNTS_COLOR],
     },
     indicator: {
-      enabled: false,
+      enabled: true,
       format: "dot",
       color: [...DEFAULT_INDICATOR_COLOR],
+    },
+    doNotDisturb: {
+      topBar: "show",
     },
   };
 }

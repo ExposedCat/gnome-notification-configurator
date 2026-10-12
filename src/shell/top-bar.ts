@@ -40,7 +40,10 @@ export class TopBarManager {
     );
     this.showBannersSignalId = messagesIndicator._settings.connect(
       "changed::show-banners",
-      () => messagesIndicator._sync(),
+      () => {
+        messagesIndicator._sync();
+        this.update();
+      },
     );
 
     this.pending.bind_property(
@@ -131,7 +134,12 @@ export class TopBarManager {
   }
 
   private update() {
-    const { recentIcons, indicator } = this.settingsManager;
+    const { recentIcons, indicator, doNotDisturb } = this.settingsManager;
+    const topBarMode = this.dateMenu._indicator._settings.get_boolean(
+      "show-banners",
+    )
+      ? "show"
+      : doNotDisturb.topBar;
     const sources = [...this.sourceSignalIds.keys()]
       .filter((source) => source.count > 0)
       .sort(
@@ -139,9 +147,10 @@ export class TopBarManager {
           this.latestNotificationTime(second) -
           this.latestNotificationTime(first),
       );
-    const iconSources = recentIcons.enabled
-      ? sources.slice(0, recentIcons.maximumCount)
-      : [];
+    const iconSources =
+      recentIcons.enabled && topBarMode === "show"
+        ? sources.slice(0, recentIcons.maximumCount)
+        : [];
     const remainingCount = sources
       .slice(iconSources.length)
       .reduce((total, source) => total + source.count, 0);
@@ -150,7 +159,7 @@ export class TopBarManager {
     for (const source of iconSources) {
       this.pending.add_child(this.createIcon(source));
     }
-    if (indicator.enabled && remainingCount > 0) {
+    if (indicator.enabled && topBarMode !== "hideAll" && remainingCount > 0) {
       this.pending.add_child(
         indicator.format === "dot"
           ? new St.Icon({

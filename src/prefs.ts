@@ -19,6 +19,7 @@ import type {
   PatternConfiguration,
   PatternOverrides,
   Position,
+  TopBarDoNotDisturb,
   VerticalPosition,
 } from "./utils/settings.js";
 import { SettingsManager } from "./utils/settings.js";
@@ -57,6 +58,11 @@ const VERTICAL_POSITION_VALUES: VerticalPosition[] = [
 ];
 
 const INDICATOR_FORMAT_VALUES: IndicatorFormat[] = ["dot", "count"];
+const TOP_BAR_DO_NOT_DISTURB_VALUES: TopBarDoNotDisturb[] = [
+  "show",
+  "hideIcons",
+  "hideAll",
+];
 
 const THEME_FIELDS: ThemeField[] = [
   {
@@ -190,7 +196,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
   }
 
   private addTopBarGroups(page: Adw.PreferencesPage) {
-    const { recentIcons, indicator } = this.globalConfig;
+    const { recentIcons, indicator, doNotDisturb } = this.globalConfig;
 
     const iconsGroup = new Adw.PreferencesGroup({
       title: _("Top Bar Icons"),
@@ -339,6 +345,30 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     indicatorGroup.add(formatRow);
     indicatorGroup.add(colorRow);
     updateIndicatorVisibility();
+
+    const doNotDisturbGroup = new Adw.PreferencesGroup({
+      title: _("Do Not Disturb"),
+    });
+    page.add(doNotDisturbGroup);
+
+    const doNotDisturbRow = new Adw.ComboRow({
+      title: _("Top Bar"),
+      subtitle: _("What to hide next to the clock while Do Not Disturb is on"),
+    });
+    const doNotDisturbModel = new Gtk.StringList();
+    doNotDisturbModel.append(_("Nothing"));
+    doNotDisturbModel.append(_("Hide icons"));
+    doNotDisturbModel.append(_("Hide everything"));
+    doNotDisturbRow.set_model(doNotDisturbModel);
+    doNotDisturbRow.set_selected(
+      TOP_BAR_DO_NOT_DISTURB_VALUES.indexOf(doNotDisturb.topBar),
+    );
+    doNotDisturbRow.connect("notify::selected", () => {
+      doNotDisturb.topBar =
+        TOP_BAR_DO_NOT_DISTURB_VALUES[doNotDisturbRow.get_selected()];
+      this.saveGlobal();
+    });
+    doNotDisturbGroup.add(doNotDisturbRow);
   }
 
   private buildPatternsPage(

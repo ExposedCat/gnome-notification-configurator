@@ -5,6 +5,7 @@ export type NotificationAction = "hide" | "close";
 export type Position = "fill" | "left" | "right" | "center";
 export type VerticalPosition = "fill" | "top" | "center" | "bottom";
 export type IndicatorFormat = "dot" | "count";
+export type TopBarDoNotDisturb = "show" | "hideIcons" | "hideAll";
 export type Margins = {
   top: number;
   bottom: number;
@@ -36,6 +37,12 @@ export function normalizeVerticalPosition(value: unknown): VerticalPosition {
 
 export function normalizeIndicatorFormat(value: unknown): IndicatorFormat {
   return value === "count" ? value : "dot";
+}
+
+export function normalizeTopBarDoNotDisturb(
+  value: unknown,
+): TopBarDoNotDisturb {
+  return value === "hideIcons" || value === "hideAll" ? value : "show";
 }
 
 export function normalizeBoolean(

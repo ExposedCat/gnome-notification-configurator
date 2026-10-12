@@ -12,6 +12,7 @@ import type {
   Margins,
   NotificationAction,
   Position,
+  TopBarDoNotDisturb,
   VerticalPosition,
 } from "./normalize.js";
 import {
@@ -25,6 +26,7 @@ import {
   normalizePosition,
   normalizeString,
   normalizeTheme,
+  normalizeTopBarDoNotDisturb,
   normalizeVerticalPosition,
 } from "./normalize.js";
 
@@ -36,6 +38,7 @@ export type {
   Margins,
   NotificationAction,
   Position,
+  TopBarDoNotDisturb,
   VerticalPosition,
 } from "./normalize.js";
 
@@ -96,6 +99,9 @@ export type Configuration = {
     enabled: boolean;
     format: IndicatorFormat;
     color: number[];
+  };
+  doNotDisturb: {
+    topBar: TopBarDoNotDisturb;
   };
 };
 
@@ -215,9 +221,12 @@ export class SettingsManager {
         countsColor: [...DEFAULT_COUNTS_COLOR],
       },
       indicator: {
-        enabled: false,
+        enabled: true,
         format: "dot",
         color: [...DEFAULT_INDICATOR_COLOR],
+      },
+      doNotDisturb: {
+        topBar: "show",
       },
     };
   }
@@ -273,9 +282,12 @@ export class SettingsManager {
         countsColor: [...DEFAULT_COUNTS_COLOR],
       },
       indicator: {
-        enabled: false,
+        enabled: true,
         format: "dot",
         color: [...DEFAULT_INDICATOR_COLOR],
+      },
+      doNotDisturb: {
+        topBar: "show",
       },
     };
   }
@@ -336,6 +348,10 @@ export class SettingsManager {
 
   get indicator() {
     return this._globalConfiguration.indicator;
+  }
+
+  get doNotDisturb() {
+    return this._globalConfiguration.doNotDisturb;
   }
 
   getPositionFor(source: string, title: string, body: string): Position {
@@ -766,6 +782,9 @@ export class SettingsManager {
           candidate.indicator?.color,
           defaults.indicator.color,
         ),
+      },
+      doNotDisturb: {
+        topBar: normalizeTopBarDoNotDisturb(candidate.doNotDisturb?.topBar),
       },
     };
   }
