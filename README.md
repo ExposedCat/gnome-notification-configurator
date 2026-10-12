@@ -115,6 +115,33 @@ website, you can install it manually:
    - Access Looking Glass debugger with `Alt+F2` → `lg` for interactive
      debugging
 
+### Static Analysis Before Uploading
+
+Install [Shexli](https://pypi.org/project/shexli/) in a virtual environment using
+Python 3.12 or newer:
+
+```bash
+python3 -m venv venv
+venv/bin/python -m pip install -r requirements-shexli.txt
+```
+
+Build, remove compiled schemas from the package, and analyze the upload ZIP:
+
+```bash
+npm run build
+npm run cleanup
+npm run pack
+npm run check:shexli
+```
+
+CI runs the same scan after packaging and before uploading artifacts or creating
+a release. The check fails on errors and displays warnings and manual review
+findings. It allows Shexli 0.2.1's `EGO-M-004` false positive only when
+`shell-version` includes GNOME 51 and contains exclusively stable versions from
+40 through 51. The exception remains visible in the output; invalid versions,
+versions above 51, and other errors still fail the check. Tree-sitter is pinned to
+0.25.2 because 0.26.0 crashes during analysis.
+
 ## Translations
 
 To add translations for the extension:

@@ -12,6 +12,7 @@
     "inject": "./scripts/cli inject",
     "install:local": "./scripts/cli install",
     "pack": "./scripts/cli pack",
+    "check:shexli": "venv/bin/python scripts/check-shexli.py notification-configurator@exposedcat.shell-extension.zip",
     "translate": "./scripts/cli translate",
     "format": "biome check --write src"
   },

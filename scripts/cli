@@ -9,7 +9,7 @@ EXTENSIONS="/home/$USER/.local/share/gnome-shell/extensions"
 
 pack() {
 	cd dist || exit
-	zip -9r "../$ARCHIVE" .
+	zip -FS -9r "../$ARCHIVE" .
 	cd ..
 }
 
