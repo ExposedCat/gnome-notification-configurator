@@ -15,9 +15,11 @@ import { DEFAULT_THEME } from "./utils/constants.js";
 import type {
   Configuration,
   GlobalConfiguration,
+  IndicatorFormat,
   PatternConfiguration,
   PatternOverrides,
   Position,
+  TopBarDoNotDisturb,
   VerticalPosition,
 } from "./utils/settings.js";
 import { SettingsManager } from "./utils/settings.js";
@@ -53,6 +55,13 @@ const VERTICAL_POSITION_VALUES: VerticalPosition[] = [
   "top",
   "center",
   "bottom",
+];
+
+const INDICATOR_FORMAT_VALUES: IndicatorFormat[] = ["dot", "count"];
+const TOP_BAR_DO_NOT_DISTURB_VALUES: TopBarDoNotDisturb[] = [
+  "show",
+  "hideIcons",
+  "hideAll",
 ];
 
 const THEME_FIELDS: ThemeField[] = [
@@ -181,7 +190,185 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       null,
     );
 
+    this.addTopBarGroups(page);
+
     this.addTestSection(page);
+  }
+
+  private addTopBarGroups(page: Adw.PreferencesPage) {
+    const { recentIcons, indicator, doNotDisturb } = this.globalConfig;
+
+    const iconsGroup = new Adw.PreferencesGroup({
+      title: _("Top Bar Icons"),
+      description: _("Show apps with pending notifications next to the clock"),
+    });
+    page.add(iconsGroup);
+
+    const maximumIconsRow = new Adw.SpinRow({
+      title: _("Maximum Icons"),
+      subtitle: _("Number of most recent apps shown"),
+      adjustment: new Gtk.Adjustment({
+        lower: 1,
+        upper: 10,
+        step_increment: 1,
+        page_increment: 1,
+        value: recentIcons.maximumCount,
+      }),
+    });
+    maximumIconsRow.connect("notify::value", () => {
+      recentIcons.maximumCount = maximumIconsRow.get_value();
+      this.saveGlobal();
+    });
+
+    const monochromeRow = new Adw.SwitchRow({
+      title: _("Monochrome Icons"),
+      subtitle: _("Show app icons in black and white"),
+    });
+    monochromeRow.set_active(recentIcons.monochrome);
+    monochromeRow.connect("notify::active", () => {
+      recentIcons.monochrome = monochromeRow.get_active();
+      this.saveGlobal();
+    });
+
+    const countsRow = new Adw.SwitchRow({
+      title: _("Notification Counts"),
+      subtitle: _("Number of notifications on each icon"),
+    });
+    countsRow.set_active(recentIcons.counts);
+
+    const countsBackgroundRow = new Adw.SwitchRow({
+      title: _("Counts Background"),
+      subtitle: _("Show counts in a filled circle"),
+    });
+    countsBackgroundRow.set_active(recentIcons.countsBackground);
+    countsBackgroundRow.connect("notify::active", () => {
+      recentIcons.countsBackground = countsBackgroundRow.get_active();
+      this.saveGlobal();
+    });
+
+    const countsColorRow = new Adw.ActionRow({
+      title: _("Counts Color"),
+    });
+    countsColorRow.add_suffix(
+      this.createColorButton(recentIcons.countsColor, (color) => {
+        recentIcons.countsColor = color;
+        this.saveGlobal();
+      }),
+    );
+
+    const iconsEnabledRow = new Adw.SwitchRow({
+      title: _("Show App Icons"),
+      subtitle: _("Newest first, one icon per app"),
+    });
+    iconsEnabledRow.set_active(recentIcons.enabled);
+
+    const updateIconsVisibility = () => {
+      maximumIconsRow.set_visible(recentIcons.enabled);
+      monochromeRow.set_visible(recentIcons.enabled);
+      countsRow.set_visible(recentIcons.enabled);
+      countsBackgroundRow.set_visible(
+        recentIcons.enabled && recentIcons.counts,
+      );
+      countsColorRow.set_visible(recentIcons.enabled && recentIcons.counts);
+    };
+
+    countsRow.connect("notify::active", () => {
+      recentIcons.counts = countsRow.get_active();
+      this.saveGlobal();
+      updateIconsVisibility();
+    });
+
+    iconsEnabledRow.connect("notify::active", () => {
+      recentIcons.enabled = iconsEnabledRow.get_active();
+      this.saveGlobal();
+      updateIconsVisibility();
+    });
+
+    iconsGroup.add(iconsEnabledRow);
+    iconsGroup.add(maximumIconsRow);
+    iconsGroup.add(monochromeRow);
+    iconsGroup.add(countsRow);
+    iconsGroup.add(countsBackgroundRow);
+    iconsGroup.add(countsColorRow);
+    updateIconsVisibility();
+
+    const indicatorGroup = new Adw.PreferencesGroup({
+      title: _("Top Bar Indicator"),
+      description: _("Mark pending notifications that are not shown as icons"),
+    });
+    page.add(indicatorGroup);
+
+    const formatRow = new Adw.ComboRow({
+      title: _("Indicator Format"),
+      subtitle: _("A dot or the number of notifications"),
+    });
+    const formatModel = new Gtk.StringList();
+    formatModel.append(_("Dot"));
+    formatModel.append(_("Number"));
+    formatRow.set_model(formatModel);
+    formatRow.set_selected(INDICATOR_FORMAT_VALUES.indexOf(indicator.format));
+    formatRow.connect("notify::selected", () => {
+      indicator.format = INDICATOR_FORMAT_VALUES[formatRow.get_selected()];
+      this.saveGlobal();
+    });
+
+    const colorRow = new Adw.ActionRow({
+      title: _("Indicator Color"),
+    });
+    colorRow.add_suffix(
+      this.createColorButton(indicator.color, (color) => {
+        indicator.color = color;
+        this.saveGlobal();
+      }),
+    );
+
+    const indicatorEnabledRow = new Adw.SwitchRow({
+      title: _("Show Indicator"),
+      subtitle: _(
+        "Keep it next to the clock until notifications are dismissed",
+      ),
+    });
+    indicatorEnabledRow.set_active(indicator.enabled);
+
+    const updateIndicatorVisibility = () => {
+      formatRow.set_visible(indicator.enabled);
+      colorRow.set_visible(indicator.enabled);
+    };
+
+    indicatorEnabledRow.connect("notify::active", () => {
+      indicator.enabled = indicatorEnabledRow.get_active();
+      this.saveGlobal();
+      updateIndicatorVisibility();
+    });
+
+    indicatorGroup.add(indicatorEnabledRow);
+    indicatorGroup.add(formatRow);
+    indicatorGroup.add(colorRow);
+    updateIndicatorVisibility();
+
+    const doNotDisturbGroup = new Adw.PreferencesGroup({
+      title: _("Do Not Disturb"),
+    });
+    page.add(doNotDisturbGroup);
+
+    const doNotDisturbRow = new Adw.ComboRow({
+      title: _("Top Bar"),
+      subtitle: _("What to hide next to the clock while Do Not Disturb is on"),
+    });
+    const doNotDisturbModel = new Gtk.StringList();
+    doNotDisturbModel.append(_("Nothing"));
+    doNotDisturbModel.append(_("Hide icons"));
+    doNotDisturbModel.append(_("Hide everything"));
+    doNotDisturbRow.set_model(doNotDisturbModel);
+    doNotDisturbRow.set_selected(
+      TOP_BAR_DO_NOT_DISTURB_VALUES.indexOf(doNotDisturb.topBar),
+    );
+    doNotDisturbRow.connect("notify::selected", () => {
+      doNotDisturb.topBar =
+        TOP_BAR_DO_NOT_DISTURB_VALUES[doNotDisturbRow.get_selected()];
+      this.saveGlobal();
+    });
+    doNotDisturbGroup.add(doNotDisturbRow);
   }
 
   private buildPatternsPage(
@@ -954,25 +1141,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
         title: _(field.label),
       });
 
-      const colorValue = theme[field.colorKey];
-      const colorButton = new Gtk.ColorButton({
-        use_alpha: false,
-        valign: Gtk.Align.CENTER,
-      });
-      colorButton.set_rgba(
-        new Gdk.RGBA({
-          red: colorValue[0] ?? 0,
-          green: colorValue[1] ?? 0,
-          blue: colorValue[2] ?? 0,
-          alpha: colorValue[3] ?? 1,
+      row.add_suffix(
+        this.createColorButton(theme[field.colorKey], (color) => {
+          theme[field.colorKey] = color;
+          onSave();
         }),
       );
-      colorButton.connect("color-set", () => {
-        const rgba = colorButton.get_rgba();
-        theme[field.colorKey] = [rgba.red, rgba.green, rgba.blue, rgba.alpha];
-        onSave();
-      });
-      row.add_suffix(colorButton);
 
       if (field.fontKey) {
         const fontKey = field.fontKey;
@@ -1007,6 +1181,29 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     }
 
     return rows;
+  }
+
+  private createColorButton(
+    color: number[],
+    onChanged: (color: number[]) => void,
+  ): Gtk.ColorButton {
+    const colorButton = new Gtk.ColorButton({
+      use_alpha: false,
+      valign: Gtk.Align.CENTER,
+    });
+    colorButton.set_rgba(
+      new Gdk.RGBA({
+        red: color[0] ?? 0,
+        green: color[1] ?? 0,
+        blue: color[2] ?? 0,
+        alpha: color[3] ?? 1,
+      }),
+    );
+    colorButton.connect("color-set", () => {
+      const rgba = colorButton.get_rgba();
+      onChanged([rgba.red, rgba.green, rgba.blue, rgba.alpha]);
+    });
+    return colorButton;
   }
 
   private createRegexEntryRow(

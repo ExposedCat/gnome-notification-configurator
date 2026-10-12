@@ -1,11 +1,14 @@
+import type Gio from "gi://Gio";
 import type Meta from "gi://Meta";
 import type Shell from "gi://Shell";
+import type St from "gi://St";
 import {
   type Notification,
   Source,
 } from "resource:///org/gnome/shell/ui/messageTray.js";
 import type { FdoNotificationDaemonProto as RuntimeFdoNotificationDaemonProto } from "resource:///org/gnome/shell/ui/notificationDaemon.js";
 import type { NotificationDaemon as ShellNotificationDaemon } from "@girs/gnome-shell/ui/notificationDaemon";
+import type { Panel } from "@girs/gnome-shell/ui/panel";
 
 declare module "resource:///org/gnome/shell/extensions/extension.js" {
   export * from "@girs/gnome-shell/extensions/extension";
@@ -42,8 +45,20 @@ declare module "resource:///org/gnome/shell/ui/main.js" {
     _windowMarkedUrgentId?: number;
   };
 
+  export type MessagesIndicator = St.Icon & {
+    _sources: Source[];
+    _settings: Gio.Settings;
+    _sync: () => void;
+  };
+
+  type DateMenuButton = Panel["statusArea"]["dateMenu"] & {
+    _indicator: MessagesIndicator;
+    _clockDisplay: St.Label;
+  };
+
   export const notificationDaemon: NotificationDaemon;
   export const windowAttentionHandler: WindowAttentionHandler;
+  export const panel: Panel & { statusArea: { dateMenu: DateMenuButton } };
 }
 
 declare module "resource:///org/gnome/shell/ui/notificationDaemon.js" {

@@ -7,6 +7,23 @@ import type { SettingsManager } from "./settings.js";
 
 type Color = number[];
 
+export function makeColorStyle(
+  [red, green, blue, alpha]: Color,
+  kind: "color" | "background" = "color",
+): string {
+  const redComponent = Math.round(red * 255);
+  const greenComponent = Math.round(green * 255);
+  const blueComponent = Math.round(blue * 255);
+  const hex = `#${redComponent.toString(16).padStart(2, "0")}${greenComponent.toString(16).padStart(2, "0")}${blueComponent.toString(16).padStart(2, "0")}`;
+  const value =
+    alpha < 1
+      ? `${hex}${Math.round(alpha * 255)
+          .toString(16)
+          .padStart(2, "0")}`
+      : hex;
+  return `${kind}: ${value};`;
+}
+
 export class ThemesManager {
   private themeSignalId?: number;
 
@@ -34,23 +51,6 @@ export class ThemesManager {
     }
   }
 
-  private makeColorStyle(
-    [red, green, blue, alpha]: Color,
-    kind: "color" | "background" = "color",
-  ): string {
-    const redComponent = Math.round(red * 255);
-    const greenComponent = Math.round(green * 255);
-    const blueComponent = Math.round(blue * 255);
-    const hex = `#${redComponent.toString(16).padStart(2, "0")}${greenComponent.toString(16).padStart(2, "0")}${blueComponent.toString(16).padStart(2, "0")}`;
-    const value =
-      alpha < 1
-        ? `${hex}${Math.round(alpha * 255)
-            .toString(16)
-            .padStart(2, "0")}`
-        : hex;
-    return `${kind}: ${value};`;
-  }
-
   private makeFontSizeStyle(fontSize: number): string {
     return `font-size: ${fontSize}px;`;
   }
@@ -61,10 +61,10 @@ export class ThemesManager {
     kind: "color" | "background" = "color",
   ): string {
     if (kind === "background") {
-      return this.makeColorStyle(color, kind);
+      return makeColorStyle(color, kind);
     }
 
-    const colorStyle = this.makeColorStyle(color, kind);
+    const colorStyle = makeColorStyle(color, kind);
     const fontSizeStyle = this.makeFontSizeStyle(fontSize);
     return `${colorStyle} ${fontSizeStyle}`;
   }
@@ -112,7 +112,7 @@ export class ThemesManager {
 
       const existingStyle = widgets.container?.get_style() ?? "";
       widgets.container?.set_style(
-        `${existingStyle} ${this.makeColorStyle(theme.backgroundColor, "background")}`,
+        `${existingStyle} ${makeColorStyle(theme.backgroundColor, "background")}`,
       );
     });
   }

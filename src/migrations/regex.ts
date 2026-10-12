@@ -1,6 +1,10 @@
 import type Gio from "gi://Gio";
 
-import { DEFAULT_THEME } from "../utils/constants.js";
+import {
+  DEFAULT_COUNTS_COLOR,
+  DEFAULT_INDICATOR_COLOR,
+  DEFAULT_THEME,
+} from "../utils/constants.js";
 import {
   normalizeAction,
   normalizePosition,
@@ -13,6 +17,7 @@ import type {
 } from "../utils/settings.js";
 import {
   NOTIFICATIONS_PER_SOURCE_DEFAULT,
+  RECENT_ICONS_DEFAULT,
   SettingsManager,
 } from "../utils/settings.js";
 
@@ -126,6 +131,22 @@ function createGlobalConfiguration(
     },
     windowAttention: {
       activateInstead: false,
+    },
+    recentIcons: {
+      enabled: false,
+      maximumCount: RECENT_ICONS_DEFAULT,
+      monochrome: false,
+      counts: false,
+      countsBackground: true,
+      countsColor: [...DEFAULT_COUNTS_COLOR],
+    },
+    indicator: {
+      enabled: true,
+      format: "dot",
+      color: [...DEFAULT_INDICATOR_COLOR],
+    },
+    doNotDisturb: {
+      topBar: "show",
     },
   };
 }
