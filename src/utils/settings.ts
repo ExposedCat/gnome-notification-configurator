@@ -144,6 +144,7 @@ type SettingsEvents = {
   alwaysNormalUrgencyChanged: [boolean];
   activateWindowOnAttentionChanged: [boolean];
   topBarChanged: [];
+  clearOnFocusChanged: [];
 };
 
 export class SettingsManager {
@@ -335,6 +336,20 @@ export class SettingsManager {
 
   get activateWindowOnAttention() {
     return this._activateWindowOnAttention;
+  }
+
+  get clearOnFocusEnabled() {
+    return (
+      (this._globalConfiguration.enabled &&
+        this._globalConfiguration.notificationCenter.clearOnFocus) ||
+      this._patterns.some(
+        (pattern) =>
+          pattern.enabled &&
+          (pattern.overrides.notificationCenter
+            ? pattern.notificationCenter.clearOnFocus
+            : this._globalConfiguration.notificationCenter.clearOnFocus),
+      )
+    );
   }
 
   get notificationPosition() {
@@ -583,6 +598,7 @@ export class SettingsManager {
         this._activateWindowOnAttention,
       );
       this.events.emit("topBarChanged");
+      this.events.emit("clearOnFocusChanged");
     };
 
     this.settingSignals.push(

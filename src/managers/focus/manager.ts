@@ -16,29 +16,75 @@ type ApplicationSource = Source & {
   _app?: Shell.App | null;
 };
 
+type TrackedSource = {
+  applicationId: string;
+  signals: number[];
+};
+
 export class FocusManager {
   private injectionManager = new InjectionManager();
   private windowTracker = Shell.WindowTracker.get_default();
+  private focusedApplicationId?: string;
+  private settingsListener?: number;
   private focusSignal?: number;
-  private sourceAddedSignal?: number;
-  private sourceSignals = new Map<Source, number[]>();
+  private traySignals: number[] = [];
+  private sources = new Map<Source, TrackedSource>();
+  private applicationSources = new Map<string, Set<Source>>();
   private pending = new Set<Notification>();
   private pendingIdle?: number;
 
   constructor(private settingsManager: SettingsManager) {}
 
   enable() {
-    this.focusSignal = global.display.connect("notify::focus-window", () => {
-      for (const source of Main.messageTray.getSources()) {
+    this.settingsListener = this.settingsManager.events.on(
+      "clearOnFocusChanged",
+      () => this.sync(),
+    );
+    this.sync();
+  }
+
+  private sync() {
+    if (!this.settingsManager.clearOnFocusEnabled) {
+      this.stopTracking();
+      return;
+    }
+    if (this.focusSignal === undefined) {
+      this.startTracking();
+      return;
+    }
+    for (const source of this.getFocusedSources()) {
+      for (const notification of source.notifications) {
+        this.deferNotification(notification);
+      }
+    }
+  }
+
+  private startTracking() {
+    this.focusedApplicationId = this.windowTracker.focus_app?.get_id();
+    this.focusSignal = this.windowTracker.connect("notify::focus-app", () => {
+      const applicationId = this.windowTracker.focus_app?.get_id();
+      if (applicationId === this.focusedApplicationId) {
+        return;
+      }
+      this.focusedApplicationId = applicationId;
+      this.pending.clear();
+      for (const source of this.getFocusedSources()) {
         for (const notification of [...source.notifications]) {
-          this.clearNotification(notification);
+          if (this.shouldClear(notification)) {
+            notification.destroy(NotificationDestroyedReason.DISMISSED);
+          }
         }
       }
     });
-    this.sourceAddedSignal = Main.messageTray.connect(
-      "source-added",
-      (_tray, source: Source) => this.watchSource(source),
-    );
+    this.traySignals = [
+      Main.messageTray.connect("source-added", (_tray, source: Source) => {
+        this.watchSource(source);
+      }),
+      Main.messageTray.connect("source-removed", (_tray, source: Source) => {
+        this.unwatchSource(source);
+      }),
+      Main.messageTray.connect("queue-changed", () => this.schedulePending()),
+    ];
     for (const source of Main.messageTray.getSources()) {
       this.watchSource(source);
     }
@@ -59,97 +105,140 @@ export class FocusManager {
     );
   }
 
-  private watchSource(source: Source) {
-    if (this.sourceSignals.has(source)) {
-      return;
-    }
-    const signals = [
-      source.connect("notification-added", (_source, notification) => {
-        this.deferNotification(notification);
-      }),
-      source.connect("destroy", () => {
-        for (const signal of signals) {
-          source.disconnect(signal);
-        }
-        this.sourceSignals.delete(source);
-      }),
-    ];
-    this.sourceSignals.set(source, signals);
+  private getFocusedSources(): Iterable<Source> {
+    return this.focusedApplicationId
+      ? (this.applicationSources.get(this.focusedApplicationId) ?? [])
+      : [];
   }
 
-  private deferNotification(notification: Notification) {
-    this.pending.add(notification);
-    if (this.pendingIdle !== undefined) {
+  private watchSource(source: ApplicationSource) {
+    if (this.sources.has(source)) {
       return;
     }
-    this.pendingIdle = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-      this.pendingIdle = undefined;
-      const notifications = [...this.pending];
-      this.pending.clear();
-      const tray = Main.messageTray as unknown as MessageTrayProto;
-      for (const notification of notifications) {
-        if (
-          tray._notification !== notification &&
-          !tray._notificationQueue.includes(notification)
-        ) {
-          this.clearNotification(notification);
-        }
-      }
-      return GLib.SOURCE_REMOVE;
+    const applicationId = (source.app ?? source._app)?.get_id();
+    if (!applicationId) {
+      return;
+    }
+    const sources =
+      this.applicationSources.get(applicationId) ?? new Set<Source>();
+    sources.add(source);
+    this.applicationSources.set(applicationId, sources);
+    this.sources.set(source, {
+      applicationId,
+      signals: [
+        source.connect("notification-added", (_source, notification) => {
+          this.deferNotification(notification);
+        }),
+        source.connect("notification-removed", (_source, notification) => {
+          this.pending.delete(notification);
+        }),
+      ],
     });
+    for (const notification of source.notifications) {
+      this.deferNotification(notification);
+    }
   }
 
-  private clearNotification(notification: Notification) {
-    const source = notification.source as ApplicationSource | null;
-    const focusedWindow = global.display.get_focus_window();
-    if (!source?.notifications.includes(notification) || !focusedWindow) {
+  private unwatchSource(source: Source) {
+    const tracked = this.sources.get(source);
+    if (!tracked) {
       return;
     }
-    const focusedApplication = this.windowTracker.get_window_app(focusedWindow);
-    if (!focusedApplication) {
-      return;
+    for (const signal of tracked.signals) {
+      source.disconnect(signal);
     }
-    const application = source.app ?? source._app;
-    const matchesApplication = application
-      ? application === focusedApplication ||
-        application.get_id() === focusedApplication.get_id()
-      : source.title === focusedApplication.get_name();
-    if (!matchesApplication) {
-      return;
+    this.sources.delete(source);
+    const sources = this.applicationSources.get(tracked.applicationId);
+    sources?.delete(source);
+    if (sources?.size === 0) {
+      this.applicationSources.delete(tracked.applicationId);
+    }
+    for (const notification of source.notifications) {
+      this.pending.delete(notification);
+    }
+  }
+
+  private shouldClear(notification: Notification) {
+    const source = notification.source;
+    if (
+      !this.focusedApplicationId ||
+      !source ||
+      this.sources.get(source)?.applicationId !== this.focusedApplicationId ||
+      !source.notifications.includes(notification)
+    ) {
+      return false;
     }
     const configuration = this.settingsManager.getConfigurationFor(
       source.title,
       notification.title,
       notification.body,
     );
-    if (
-      configuration.enabled &&
-      configuration.notificationCenter.clearOnFocus
-    ) {
-      notification.destroy(NotificationDestroyedReason.DISMISSED);
-    }
+    return (
+      configuration.enabled && configuration.notificationCenter.clearOnFocus
+    );
   }
 
-  disable() {
+  private deferNotification(notification: Notification) {
+    if (!this.shouldClear(notification)) {
+      return;
+    }
+    this.pending.add(notification);
+    this.schedulePending();
+  }
+
+  private schedulePending() {
+    if (this.pending.size === 0 || this.pendingIdle !== undefined) {
+      return;
+    }
+    this.pendingIdle = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+      this.pendingIdle = undefined;
+      const tray = Main.messageTray as unknown as MessageTrayProto;
+      const queued = new Set(tray._notificationQueue);
+      for (const notification of this.pending) {
+        if (!this.shouldClear(notification)) {
+          this.pending.delete(notification);
+        } else if (
+          tray._notification !== notification &&
+          !queued.has(notification)
+        ) {
+          this.pending.delete(notification);
+          notification.destroy(NotificationDestroyedReason.DISMISSED);
+        }
+      }
+      return GLib.SOURCE_REMOVE;
+    });
+    GLib.Source.set_name_by_id(
+      this.pendingIdle,
+      "[notification-configurator] clear focused notifications",
+    );
+  }
+
+  private stopTracking() {
     this.injectionManager.clear();
     if (this.focusSignal !== undefined) {
-      global.display.disconnect(this.focusSignal);
+      this.windowTracker.disconnect(this.focusSignal);
       this.focusSignal = undefined;
     }
-    if (this.sourceAddedSignal !== undefined) {
-      Main.messageTray.disconnect(this.sourceAddedSignal);
-      this.sourceAddedSignal = undefined;
+    for (const signal of this.traySignals) {
+      Main.messageTray.disconnect(signal);
     }
-    for (const [source, signals] of this.sourceSignals) {
-      for (const signal of signals) {
-        source.disconnect(signal);
-      }
+    this.traySignals = [];
+    for (const source of this.sources.keys()) {
+      this.unwatchSource(source);
     }
-    this.sourceSignals.clear();
     if (this.pendingIdle !== undefined) {
       GLib.source_remove(this.pendingIdle);
       this.pendingIdle = undefined;
     }
     this.pending.clear();
+    this.focusedApplicationId = undefined;
+  }
+
+  disable() {
+    if (this.settingsListener !== undefined) {
+      this.settingsManager.events.off(this.settingsListener);
+      this.settingsListener = undefined;
+    }
+    this.stopTracking();
   }
 }

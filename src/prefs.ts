@@ -593,14 +593,16 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
   ) {
     const notificationCenterGroup = new Adw.PreferencesGroup({
       title: _("Notification Center"),
-      description: _("Control how matching notifications stack together"),
+      description: _(
+        "Control how matching notifications are stored and cleared",
+      ),
     });
     page.add(notificationCenterGroup);
 
     const clearOnFocusRow = new Adw.SwitchRow({
       title: _("Clear Notifications on Focus"),
       subtitle: _(
-        "Clear matching notifications when their application gains focus",
+        "Clear matching notifications when their application gains focus, and new ones after their banners close while it remains focused",
       ),
     });
     clearOnFocusRow.set_active(config.notificationCenter.clearOnFocus);
