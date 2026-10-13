@@ -2,6 +2,7 @@ import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 
 import { migrateRegexSchema } from "./migrations/regex.js";
 import { NotificationsManager } from "./shell/notifications.js";
+import { TopBarManager } from "./shell/top-bar.js";
 
 import { SettingsManager } from "./utils/settings.js";
 import { ThemesManager } from "./utils/themes.js";
@@ -10,6 +11,7 @@ export default class NotificationConfiguratorExtension extends Extension {
   private settingsManager?: SettingsManager;
   private notificationsManager?: NotificationsManager;
   private themesManager?: ThemesManager;
+  private topBarManager?: TopBarManager;
 
   enable() {
     const settings = this.getSettings();
@@ -19,15 +21,18 @@ export default class NotificationConfiguratorExtension extends Extension {
     this.settingsManager = new SettingsManager(settings);
     this.notificationsManager = new NotificationsManager(this.settingsManager);
     this.themesManager = new ThemesManager(this.settingsManager);
+    this.topBarManager = new TopBarManager(this.settingsManager);
   }
 
   disable() {
     this.settingsManager?.dispose();
     this.notificationsManager?.dispose();
     this.themesManager?.dispose();
+    this.topBarManager?.dispose();
 
     this.settingsManager = undefined;
     this.notificationsManager = undefined;
     this.themesManager = undefined;
+    this.topBarManager = undefined;
   }
 }

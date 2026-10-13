@@ -12,6 +12,14 @@ export type NotificationTheme = {
   bodyFontSize: number;
 };
 
+export const DEFAULT_INDICATOR_COLOR: Color = [
+  0.207843137, 0.517647059, 0.894117647, 1,
+];
+
+export const DEFAULT_COUNTS_COLOR: Color = [
+  0.878431373, 0.105882353, 0.141176471, 1,
+];
+
 export const DEFAULT_THEME: NotificationTheme = {
   appNameColor: [0.6, 0.6, 0.607843137, 1],
   timeColor: [0.6, 0.6, 0.607843137, 1],
