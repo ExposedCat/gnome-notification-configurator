@@ -357,8 +357,9 @@ export class NotificationStack {
         const stack = this.getStack(configuration);
         if (banner.stack !== stack) this.place(banner, stack, configuration);
         this.applyAppearance(banner, configuration);
-        if (banner.timeoutSettings !== this.timeoutSettings(banner)) {
-          banner.timeoutSettings = this.timeoutSettings(banner);
+        const timeoutSettings = this.timeoutSettings(banner, configuration);
+        if (banner.timeoutSettings !== timeoutSettings) {
+          banner.timeoutSettings = timeoutSettings;
           banner.lifecycle?.refreshTimeout();
         }
         banner.lifecycle?.setPosition(configuration.display.verticalPosition);
@@ -407,12 +408,12 @@ export class NotificationStack {
           continue;
         }
         const maximum = Math.min(
-          ...[
-            configuration,
-            ...visible.map((candidate) =>
-              this.configuration(candidate.notification),
-            ),
-          ].map((candidate) => candidate.stacking.maximumVisible),
+          configuration.stacking.maximumVisible,
+          ...visible.map(
+            (candidate) =>
+              this.configuration(candidate.notification).stacking
+                .maximumVisible,
+          ),
         );
         if (visible.length >= maximum) {
           blocked.add(key);
@@ -529,7 +530,7 @@ export class NotificationStack {
     banner.message = message;
     banner.lifecycle = lifecycle;
     lifecycle.setPosition(configuration.display.verticalPosition);
-    banner.timeoutSettings = this.timeoutSettings(banner);
+    banner.timeoutSettings = this.timeoutSettings(banner, configuration);
     actor.connect("notify::allocation", () => {
       if (banner.stack) this.animateReflow(banner.stack);
     });
@@ -583,10 +584,10 @@ export class NotificationStack {
     if (banner.appearance === appearance) return;
     banner.appearance = appearance;
     if (banner.headerHidden && !hidden) {
-      const previous = banner.message;
+      const expanded = banner.message.expanded;
       banner.message = this.createMessage(banner);
       banner.lifecycle?.replaceMessage(banner.message);
-      if (previous?.expanded) banner.message.expand(false);
+      if (expanded) banner.message.expand(false);
       banner.headerHidden = false;
     }
     const margins = configuration.margins;
@@ -610,11 +611,8 @@ export class NotificationStack {
       banner.headerHidden = hideBannerAppTitleRow(banner.lifecycle?.actor);
   }
 
-  private timeoutSettings(banner: Banner) {
-    return JSON.stringify([
-      this.configuration(banner.notification).timeout,
-      banner.notification.urgency,
-    ]);
+  private timeoutSettings(banner: Banner, configuration: Configuration) {
+    return JSON.stringify([configuration.timeout, banner.notification.urgency]);
   }
 
   private remove(banner: Banner, animate: boolean, preserve = false) {

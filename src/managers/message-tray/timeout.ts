@@ -1,9 +1,10 @@
 import type { SettingsManager } from "../../utils/settings.js";
-import type { UpdateNotificationTimeoutHook } from "./manager.js";
+import type {
+  MessageTrayManager,
+  UpdateNotificationTimeoutHook,
+} from "./manager.js";
 
 export class TimeoutAdapter {
-  private listenerId?: number;
-
   constructor(private settingsManager: SettingsManager) {}
 
   createHook(): UpdateNotificationTimeoutHook {
@@ -30,19 +31,7 @@ export class TimeoutAdapter {
     };
   }
 
-  register(manager: import("./manager.js").MessageTrayManager): void {
-    this.listenerId = this.settingsManager.events.on(
-      "notificationTimeoutChanged",
-      () => {},
-    );
-
+  register(manager: MessageTrayManager): void {
     manager.registerUpdateNotificationTimeoutHook(this.createHook());
-  }
-
-  dispose(): void {
-    if (this.listenerId !== undefined) {
-      this.settingsManager.events.off(this.listenerId);
-      this.listenerId = undefined;
-    }
   }
 }

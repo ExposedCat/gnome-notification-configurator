@@ -54,7 +54,7 @@ export class NotificationsManager {
   private activateAdapter: ActivateAdapter;
 
   constructor(settingsManager: SettingsManager) {
-    this.messageTrayManager = new MessageTrayManager(settingsManager);
+    this.messageTrayManager = new MessageTrayManager();
     this.notificationDaemonManager = new NotificationDaemonManager();
     this.sourceManager = new SourceManager(settingsManager);
     this.windowAttentionManager = new WindowAttentionManager();
@@ -310,8 +310,6 @@ export class NotificationsManager {
 
     this.monitorAdapter.dispose();
     this.groupingAdapter.dispose();
-    this.idleAdapter.dispose();
-    this.timeoutAdapter.dispose();
     this.urgencyAdapter.dispose();
     this.processingAdapter.dispose();
     this.activateAdapter.dispose();

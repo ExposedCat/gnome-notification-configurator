@@ -1,9 +1,7 @@
 import type { SettingsManager } from "../../utils/settings.js";
-import type { UpdateStateHook } from "./manager.js";
+import type { MessageTrayManager, UpdateStateHook } from "./manager.js";
 
 export class IdleAdapter {
-  private listenerId?: number;
-
   constructor(private settingsManager: SettingsManager) {}
 
   createHook(): UpdateStateHook {
@@ -29,19 +27,7 @@ export class IdleAdapter {
     };
   }
 
-  register(manager: import("./manager.js").MessageTrayManager): void {
-    this.listenerId = this.settingsManager.events.on(
-      "ignoreIdleChanged",
-      () => {},
-    );
-
+  register(manager: MessageTrayManager): void {
     manager.registerUpdateStateHook(this.createHook());
-  }
-
-  dispose(): void {
-    if (this.listenerId !== undefined) {
-      this.settingsManager.events.off(this.listenerId);
-      this.listenerId = undefined;
-    }
   }
 }
