@@ -1,5 +1,5 @@
-import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
 import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
+import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
 import type { SettingsManager } from "../../utils/settings.js";
 
 export type UpdateStateHook = (

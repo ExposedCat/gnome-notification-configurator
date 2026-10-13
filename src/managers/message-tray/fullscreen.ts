@@ -1,56 +1,50 @@
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import type { SettingsManager } from "../../utils/settings.js";
-import type { UpdateStateHook } from "./manager.js";
+import type { MessageTrayManager, UpdateStateHook } from "./manager.js";
+import type { NotificationMonitor } from "./monitor.js";
 
 export class FullscreenAdapter {
-  private listenerId?: number;
-
-  constructor(private settingsManager: SettingsManager) {}
+  constructor(
+    private settingsManager: SettingsManager,
+    private getMonitor: () => NotificationMonitor,
+  ) {}
 
   createHook(): UpdateStateHook {
-    const settingsManager = this.settingsManager;
-
     return (original) => {
-      if (!settingsManager.fullscreenEnabled) {
+      const primaryMonitor = Main.layoutManager.primaryMonitor;
+      const monitor = this.getMonitor();
+      if (!primaryMonitor || !monitor) return;
+      if (!this.settingsManager.fullscreenEnabled && monitor === primaryMonitor)
         return;
-      }
 
-      const monitorProto = Object.getPrototypeOf(
-        Main.layoutManager.primaryMonitor,
-      );
-
-      // biome-ignore lint/style/noNonNullAssertion: it's present in supported shell versions
+      const inFullscreen =
+        !this.settingsManager.fullscreenEnabled && monitor.inFullscreen;
       const originalDescriptor = Object.getOwnPropertyDescriptor(
-        monitorProto,
+        primaryMonitor,
         "inFullscreen",
-      )!;
-
-      Object.defineProperty(monitorProto, "inFullscreen", {
-        get: () => false,
+      );
+      Object.defineProperty(primaryMonitor, "inFullscreen", {
+        get: () => inFullscreen,
         configurable: true,
       });
 
       try {
         original();
       } finally {
-        Object.defineProperty(monitorProto, "inFullscreen", originalDescriptor);
+        if (originalDescriptor) {
+          Object.defineProperty(
+            primaryMonitor,
+            "inFullscreen",
+            originalDescriptor,
+          );
+        } else {
+          Reflect.deleteProperty(primaryMonitor, "inFullscreen");
+        }
       }
     };
   }
 
-  register(manager: import("./manager.js").MessageTrayManager): void {
-    this.listenerId = this.settingsManager.events.on(
-      "fullscreenEnabledChanged",
-      () => {},
-    );
-
+  register(manager: MessageTrayManager): void {
     manager.registerUpdateStateHook(this.createHook());
-  }
-
-  dispose(): void {
-    if (this.listenerId !== undefined) {
-      this.settingsManager.events.off(this.listenerId);
-      this.listenerId = undefined;
-    }
   }
 }

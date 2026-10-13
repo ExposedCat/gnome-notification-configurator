@@ -6,6 +6,12 @@ export type Position = "fill" | "left" | "right" | "center";
 export type VerticalPosition = "fill" | "top" | "center" | "bottom";
 export type IndicatorFormat = "dot" | "count";
 export type TopBarDoNotDisturb = "show" | "hideIcons" | "hideAll";
+export type MonitorSelection = {
+  connector: string;
+  vendor: string;
+  product: string;
+  serial: string;
+};
 export type Margins = {
   top: number;
   bottom: number;
@@ -54,6 +60,21 @@ export function normalizeBoolean(
 
 export function normalizeString(candidate: unknown, fallback: string): string {
   return typeof candidate === "string" ? candidate : fallback;
+}
+
+export function normalizeMonitor(candidate: unknown): MonitorSelection {
+  const monitor =
+    typeof candidate === "object" &&
+    candidate !== null &&
+    !Array.isArray(candidate)
+      ? (candidate as Partial<MonitorSelection>)
+      : {};
+  return {
+    connector: normalizeString(monitor.connector, ""),
+    vendor: normalizeString(monitor.vendor, ""),
+    product: normalizeString(monitor.product, ""),
+    serial: normalizeString(monitor.serial, ""),
+  };
 }
 
 export function normalizeNumber(candidate: unknown, fallback: number): number {

@@ -24,7 +24,7 @@ export class SourceManager {
 
   private addNotificationHooks: AddNotificationHook[] = [];
 
-  constructor(private settingsManager: SettingsManager) { }
+  constructor(private settingsManager: SettingsManager) {}
 
   registerAddNotificationHook(hook: AddNotificationHook) {
     this.addNotificationHooks.push(hook);

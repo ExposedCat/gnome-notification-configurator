@@ -9,9 +9,11 @@ import {
 } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
 import { migrateRegexSchema } from "./migrations/regex.js";
+import { createMonitorRow } from "./preferences/monitors.js";
 import { buildSyncPage } from "./preferences/sync.js";
 import type { NotificationTheme } from "./utils/constants.js";
 import { DEFAULT_THEME } from "./utils/constants.js";
+import { MonitorManager } from "./utils/monitors.js";
 import type {
   Configuration,
   GlobalConfiguration,
@@ -102,8 +104,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
   private globalConfig!: GlobalConfiguration;
   private patterns!: PatternConfiguration[];
   private patternsList!: Gtk.ListBox;
+  private monitors!: MonitorManager;
 
   fillPreferencesWindow(window: Adw.PreferencesWindow) {
+    this.monitors = new MonitorManager();
     this.settings = this.getSettings();
     migrateRegexSchema(this.settings);
     this.loadData();
@@ -141,6 +145,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     window.add(syncPage);
 
     window.connect("close-request", () => {
+      this.monitors.dispose();
       // biome-ignore lint/style/noNonNullAssertion: cleanup
       this.settings = null!;
       // biome-ignore lint/style/noNonNullAssertion: cleanup
@@ -891,6 +896,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       displayGroup.add(fullscreenRow);
     }
 
+    const monitorRow = createMonitorRow(this.monitors, config, onSave);
+
     const horizontalRow = new Adw.ComboRow({
       title: _("Horizontal Alignment"),
       subtitle: _("Horizontal position of notifications on screen"),
@@ -933,6 +940,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
     const updateDisplayVisibility = () => {
       const active = !overrides || overrides.display;
+      monitorRow.set_visible(active);
       horizontalRow.set_visible(active);
       verticalRow.set_visible(active);
     };
@@ -947,6 +955,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       );
     }
 
+    displayGroup.add(monitorRow);
     displayGroup.add(horizontalRow);
     displayGroup.add(verticalRow);
     updateDisplayVisibility();

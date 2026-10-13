@@ -10,6 +10,7 @@ import { TypedEventEmitter } from "./event-emitter.js";
 import type {
   IndicatorFormat,
   Margins,
+  MonitorSelection,
   NotificationAction,
   Position,
   TopBarDoNotDisturb,
@@ -22,6 +23,7 @@ import {
   normalizeIndicatorFormat,
   normalizeInteger,
   normalizeMargins,
+  normalizeMonitor,
   normalizeNumber,
   normalizePosition,
   normalizeString,
@@ -36,6 +38,7 @@ export const RECENT_ICONS_DEFAULT = 3;
 export type {
   IndicatorFormat,
   Margins,
+  MonitorSelection,
   NotificationAction,
   Position,
   TopBarDoNotDisturb,
@@ -69,6 +72,7 @@ export type Configuration = {
     alwaysNormalUrgency: boolean;
   };
   display: {
+    monitor: MonitorSelection;
     enableFullscreen: boolean;
     notificationPosition: Position;
     verticalPosition: VerticalPosition;
@@ -138,6 +142,7 @@ type SettingsEvents = {
   notificationThresholdChanged: [number];
   notificationPositionChanged: [Position];
   verticalPositionChanged: [VerticalPosition];
+  monitorChanged: [];
   fullscreenEnabledChanged: [boolean];
   notificationTimeoutChanged: [number];
   ignoreIdleChanged: [boolean];
@@ -194,6 +199,7 @@ export class SettingsManager {
         alwaysNormalUrgency: false,
       },
       display: {
+        monitor: normalizeMonitor(undefined),
         enableFullscreen: false,
         notificationPosition: "center",
         verticalPosition: "top",
@@ -269,6 +275,7 @@ export class SettingsManager {
       },
       urgency: { alwaysNormalUrgency: false },
       display: {
+        monitor: normalizeMonitor(undefined),
         enableFullscreen: false,
         notificationPosition: "center",
         verticalPosition: "top",
@@ -358,6 +365,20 @@ export class SettingsManager {
 
   get verticalPosition() {
     return this._globalConfiguration.display.verticalPosition;
+  }
+
+  get monitor() {
+    return this._globalConfiguration.display.monitor;
+  }
+
+  getMonitorFor(source: string, title: string, body: string): MonitorSelection {
+    const pattern = this.findPatternBy(
+      source,
+      title,
+      body,
+      (pattern) => pattern.overrides.display,
+    );
+    return pattern?.display.monitor ?? this.monitor;
   }
 
   get recentIcons() {
@@ -589,6 +610,7 @@ export class SettingsManager {
         this.notificationPosition,
       );
       this.events.emit("verticalPositionChanged", this.verticalPosition);
+      this.events.emit("monitorChanged");
       this.events.emit("fullscreenEnabledChanged", this._fullscreenEnabled);
       this.events.emit("notificationTimeoutChanged", this._notificationTimeout);
       this.events.emit("ignoreIdleChanged", this._ignoreIdle);
@@ -734,6 +756,7 @@ export class SettingsManager {
         ),
       },
       display: {
+        monitor: normalizeMonitor(candidate.display?.monitor),
         enableFullscreen: normalizeBoolean(
           candidate.display?.enableFullscreen,
           defaults.display.enableFullscreen,

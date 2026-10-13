@@ -7,6 +7,7 @@ import {
 } from "../utils/constants.js";
 import {
   normalizeAction,
+  normalizeMonitor,
   normalizePosition,
   normalizeTheme,
 } from "../utils/normalize.js";
@@ -110,6 +111,7 @@ function createGlobalConfiguration(
       alwaysNormalUrgency: oldSettings.get_boolean("always-normal-urgency"),
     },
     display: {
+      monitor: normalizeMonitor(undefined),
       enableFullscreen: oldSettings.get_boolean("enable-fullscreen"),
       notificationPosition: normalizePosition(
         oldSettings.get_string("notification-position"),

@@ -36,6 +36,8 @@
   applications are running in fullscreen mode
 - **Notification Positioning** - Set horizontal alignment (fill, left, center,
   right) and vertical alignment (fill, top, center, bottom)
+- **Notification Monitor** - Choose a display, with automatic fallback to the main
+  monitor while the chosen display is unavailable and restoration when it returns
 - **Custom Appearance** - Hide the app title/time row, customize background,
   title, body, app name, and time colors, and adjust text sizes
 - **Custom Margins** - Add top, bottom, left, and right notification margins

@@ -8,6 +8,7 @@ import { FocusManager } from "../managers/focus/manager.js";
 import { FullscreenAdapter } from "../managers/message-tray/fullscreen.js";
 import { IdleAdapter } from "../managers/message-tray/idle.js";
 import { MessageTrayManager } from "../managers/message-tray/manager.js";
+import { MonitorAdapter } from "../managers/message-tray/monitor.js";
 import { TimeoutAdapter } from "../managers/message-tray/timeout.js";
 import { GroupingAdapter } from "../managers/notification-daemon/grouping.js";
 import { NotificationDaemonManager } from "../managers/notification-daemon/manager.js";
@@ -42,6 +43,7 @@ export class NotificationsManager {
   private focusManager: FocusManager;
 
   private fullscreenAdapter: FullscreenAdapter;
+  private monitorAdapter: MonitorAdapter;
   private groupingAdapter: GroupingAdapter;
   private idleAdapter: IdleAdapter;
   private timeoutAdapter: TimeoutAdapter;
@@ -56,7 +58,10 @@ export class NotificationsManager {
     this.windowAttentionManager = new WindowAttentionManager();
     this.focusManager = new FocusManager(settingsManager);
 
-    this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
+    this.monitorAdapter = new MonitorAdapter(settingsManager);
+    this.fullscreenAdapter = new FullscreenAdapter(settingsManager, () =>
+      this.monitorAdapter.getMonitor(),
+    );
     this.groupingAdapter = new GroupingAdapter(settingsManager);
     this.idleAdapter = new IdleAdapter(settingsManager);
     this.timeoutAdapter = new TimeoutAdapter(settingsManager);
@@ -64,6 +69,7 @@ export class NotificationsManager {
     this.processingAdapter = new ProcessingAdapter(settingsManager);
     this.activateAdapter = new ActivateAdapter(settingsManager);
 
+    this.monitorAdapter.register(this.messageTrayManager);
     this.fullscreenAdapter.register(this.messageTrayManager);
     this.groupingAdapter.register(this.notificationDaemonManager);
     this.idleAdapter.register(this.messageTrayManager);
@@ -118,6 +124,7 @@ export class NotificationsManager {
       "_showNotification",
       (original) =>
         function (this: MessageTray.MessageTrayProto) {
+          if (!self.monitorAdapter.prepareNotification()) return;
           original.call(this);
           if (!self.isVerticalAlignTop()) {
             this._bannerBin.y = 0;
@@ -289,7 +296,7 @@ export class NotificationsManager {
       this.positionSignalId = undefined;
     }
 
-    this.fullscreenAdapter.dispose();
+    this.monitorAdapter.dispose();
     this.groupingAdapter.dispose();
     this.idleAdapter.dispose();
     this.timeoutAdapter.dispose();
