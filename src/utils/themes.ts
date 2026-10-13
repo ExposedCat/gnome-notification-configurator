@@ -1,7 +1,9 @@
 import {
+  type NotificationWidgets,
   getMessageTrayContainer,
   resolveNotificationWidgets,
 } from "../shell/notification-widgets.js";
+import type { NotificationTheme } from "./constants.js";
 import { DEFAULT_THEME } from "./constants.js";
 import type { SettingsManager } from "./settings.js";
 
@@ -51,25 +53,8 @@ export class ThemesManager {
     }
   }
 
-  private makeFontSizeStyle(fontSize: number): string {
-    return `font-size: ${fontSize}px;`;
-  }
-
-  private makeStyle(
-    color: Color,
-    fontSize: number,
-    kind: "color" | "background" = "color",
-  ): string {
-    if (kind === "background") {
-      return makeColorStyle(color, kind);
-    }
-
-    const colorStyle = makeColorStyle(color, kind);
-    const fontSizeStyle = this.makeFontSizeStyle(fontSize);
-    return `${colorStyle} ${fontSizeStyle}`;
-  }
-
   private enableThemes() {
+    this.disableThemes();
     const messageTrayContainer = getMessageTrayContainer();
 
     this.themeSignalId = messageTrayContainer?.connect("child-added", () => {
@@ -85,35 +70,46 @@ export class ThemesManager {
       );
       if (!theme) return;
 
-      widgets.source?.set_style(
-        this.makeStyle(
-          theme.appNameColor,
-          theme.appNameFontSize ?? DEFAULT_THEME.appNameFontSize,
-        ),
-      );
-      widgets.time?.set_style(
-        this.makeStyle(
-          theme.timeColor,
-          theme.timeFontSize ?? DEFAULT_THEME.timeFontSize,
-        ),
-      );
-      widgets.title?.set_style(
-        this.makeStyle(
-          theme.titleColor,
-          theme.titleFontSize ?? DEFAULT_THEME.titleFontSize,
-        ),
-      );
-      widgets.body?.set_style(
-        this.makeStyle(
-          theme.bodyColor,
-          theme.bodyFontSize ?? DEFAULT_THEME.bodyFontSize,
-        ),
-      );
-
-      const existingStyle = widgets.container?.get_style() ?? "";
-      widgets.container?.set_style(
-        `${existingStyle} ${makeColorStyle(theme.backgroundColor, "background")}`,
-      );
+      applyNotificationTheme(widgets, theme);
     });
   }
+}
+
+function makeStyle(color: Color, fontSize: number): string {
+  return `${makeColorStyle(color)} font-size: ${fontSize}px;`;
+}
+
+export function applyNotificationTheme(
+  widgets: NotificationWidgets,
+  theme: NotificationTheme,
+) {
+  widgets.source?.set_style(
+    makeStyle(
+      theme.appNameColor,
+      theme.appNameFontSize ?? DEFAULT_THEME.appNameFontSize,
+    ),
+  );
+  widgets.time?.set_style(
+    makeStyle(
+      theme.timeColor,
+      theme.timeFontSize ?? DEFAULT_THEME.timeFontSize,
+    ),
+  );
+  widgets.title?.set_style(
+    makeStyle(
+      theme.titleColor,
+      theme.titleFontSize ?? DEFAULT_THEME.titleFontSize,
+    ),
+  );
+  widgets.body?.set_style(
+    makeStyle(
+      theme.bodyColor,
+      theme.bodyFontSize ?? DEFAULT_THEME.bodyFontSize,
+    ),
+  );
+
+  const existingStyle = widgets.container?.get_style() ?? "";
+  widgets.container?.set_style(
+    `${existingStyle} ${makeColorStyle(theme.backgroundColor, "background")}`,
+  );
 }

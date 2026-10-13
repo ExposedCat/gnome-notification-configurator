@@ -53,6 +53,10 @@ export type Matcher = {
 
 export type Configuration = {
   enabled: boolean;
+  stacking: {
+    maximumVisible: number;
+    direction: "up" | "down";
+  };
   notificationCenter: {
     clearOnFocus: boolean;
     disableGrouping: boolean;
@@ -111,6 +115,7 @@ export type Configuration = {
 };
 
 export type PatternOverrides = {
+  stacking: boolean;
   notificationCenter: boolean;
   rateLimiting: boolean;
   timeout: boolean;
@@ -150,6 +155,7 @@ type SettingsEvents = {
   activateWindowOnAttentionChanged: [boolean];
   topBarChanged: [];
   clearOnFocusChanged: [];
+  stackingChanged: [];
 };
 
 export class SettingsManager {
@@ -180,6 +186,7 @@ export class SettingsManager {
   static defaultGlobalConfiguration(): GlobalConfiguration {
     return {
       enabled: true,
+      stacking: { maximumVisible: 1, direction: "down" },
       notificationCenter: {
         clearOnFocus: false,
         disableGrouping: false,
@@ -248,6 +255,7 @@ export class SettingsManager {
       shortName: "",
       matcher,
       overrides: {
+        stacking: false,
         notificationCenter: false,
         rateLimiting: false,
         timeout: false,
@@ -258,6 +266,7 @@ export class SettingsManager {
         windowAttention: false,
       },
       filtering: { enabled: false, action: "hide" },
+      stacking: { maximumVisible: 1, direction: "down" },
       notificationCenter: {
         clearOnFocus: false,
         disableGrouping: false,
@@ -307,6 +316,20 @@ export class SettingsManager {
     for (const signal of this.settingSignals) {
       this.settings.disconnect(signal);
     }
+  }
+
+  get stackingEnabled() {
+    return (
+      (this._globalConfiguration.enabled &&
+        this._globalConfiguration.stacking.maximumVisible > 1) ||
+      this._patterns.some(
+        (pattern) =>
+          pattern.enabled &&
+          (pattern.overrides.stacking
+            ? pattern.stacking.maximumVisible
+            : this._globalConfiguration.stacking.maximumVisible) > 1,
+      )
+    );
   }
 
   get colorsEnabled() {
@@ -508,6 +531,9 @@ export class SettingsManager {
     return {
       ...this._globalConfiguration,
       enabled: matchedPattern.enabled,
+      stacking: overrides.stacking
+        ? matchedPattern.stacking
+        : this._globalConfiguration.stacking,
       notificationCenter: overrides.notificationCenter
         ? matchedPattern.notificationCenter
         : this._globalConfiguration.notificationCenter,
@@ -621,6 +647,7 @@ export class SettingsManager {
       );
       this.events.emit("topBarChanged");
       this.events.emit("clearOnFocusChanged");
+      this.events.emit("stackingChanged");
     };
 
     this.settingSignals.push(
@@ -679,6 +706,7 @@ export class SettingsManager {
         appName: normalizeString(object.matcher?.appName, ""),
       },
       overrides: {
+        stacking: normalizeBoolean(object.overrides?.stacking, false),
         notificationCenter: normalizeBoolean(
           object.overrides?.notificationCenter,
           false,
@@ -705,8 +733,26 @@ export class SettingsManager {
     candidate: Partial<Configuration>,
     defaults: Configuration,
   ): Configuration {
+    const stacking = candidate.stacking;
+    const stackingDisabled =
+      stacking && "enabled" in stacking && stacking.enabled === false;
     return {
       enabled: normalizeBoolean(candidate.enabled, defaults.enabled),
+      stacking: {
+        maximumVisible: stackingDisabled
+          ? 1
+          : Math.max(
+              1,
+              Math.min(
+                10,
+                normalizeInteger(
+                  candidate.stacking?.maximumVisible,
+                  defaults.stacking.maximumVisible,
+                ),
+              ),
+            ),
+        direction: candidate.stacking?.direction === "up" ? "up" : "down",
+      },
       notificationCenter: {
         clearOnFocus: normalizeBoolean(
           candidate.notificationCenter?.clearOnFocus,

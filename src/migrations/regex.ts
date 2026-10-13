@@ -92,6 +92,7 @@ function createGlobalConfiguration(
 ): GlobalConfiguration {
   return {
     enabled: true,
+    stacking: { maximumVisible: 1, direction: "down" },
     notificationCenter: {
       clearOnFocus: false,
       disableGrouping: false,

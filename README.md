@@ -27,6 +27,11 @@
   same application within a configurable time threshold
 - **Notification Center Controls** - Disable stacking for matching
   notifications and set how many notifications are kept per source
+- **Visible Notifications** - Set the maximum visible notifications to `1` for
+  standard single-notification behavior or `2` or more to show multiple banners with
+  upward or downward stacking, globally or for matching patterns. Each monitor
+  and position has its own stack; additional banners wait for a free space.
+  Rules sharing a stack use the smallest visible-notification limit
 - **Notification Timeout** - Configure auto-dismiss timing, keep notifications
   visible while idle, or set timeout to `0` to keep notifications until dismissed
 - **Urgency Control** - Force notifications to normal urgency when needed

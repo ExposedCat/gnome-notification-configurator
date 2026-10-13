@@ -26,6 +26,7 @@ import type {
   SettingsManager,
   VerticalPosition,
 } from "../utils/settings.js";
+import { NotificationStack } from "./notification-stack.js";
 import {
   getBannerBin,
   getMessageTrayContainer,
@@ -36,6 +37,7 @@ import {
 const ANIMATION_TIME = 200;
 
 export class NotificationsManager {
+  private notificationStack: NotificationStack;
   private messageTrayManager: MessageTrayManager;
   private notificationDaemonManager: NotificationDaemonManager;
   private sourceManager: SourceManager;
@@ -81,6 +83,7 @@ export class NotificationsManager {
     this.setupPositioning(settingsManager);
 
     this.enable();
+    this.notificationStack = new NotificationStack(settingsManager);
   }
 
   private positionSignalId?: number;
@@ -106,10 +109,10 @@ export class NotificationsManager {
     center: Clutter.ActorAlign.CENTER,
   };
 
-  private isVerticalAlignTop() {
+  private isVerticalAlignTop(banner = getBannerBin()) {
     return (
-      getBannerBin()?.get_y_align() === Clutter.ActorAlign.START ||
-      getBannerBin()?.get_y_align() === Clutter.ActorAlign.FILL
+      banner?.get_y_align() === Clutter.ActorAlign.START ||
+      banner?.get_y_align() === Clutter.ActorAlign.FILL
     );
   }
 
@@ -126,7 +129,7 @@ export class NotificationsManager {
         function (this: MessageTray.MessageTrayProto) {
           if (!self.monitorAdapter.prepareNotification()) return;
           original.call(this);
-          if (!self.isVerticalAlignTop()) {
+          if (!self.isVerticalAlignTop(this._bannerBin)) {
             this._bannerBin.y = 0;
           }
         },
@@ -137,11 +140,19 @@ export class NotificationsManager {
       "_updateShowingNotification",
       (original) =>
         function (this: MessageTray.MessageTrayProto) {
-          if (self.isVerticalAlignTop()) {
+          if (self.isVerticalAlignTop(this._bannerBin)) {
             original.call(this);
             return;
           }
 
+          this._notification?.set({ acknowledged: true });
+          this._notification?.playSound();
+          if (
+            this._notification?.urgency === MessageTray.Urgency.CRITICAL ||
+            this._notification?.source?.policy.forceExpanded
+          ) {
+            this._banner?.expand(false);
+          }
           this._notificationState = MessageTray.State.SHOWING;
           this._bannerBin.remove_all_transitions();
           this._bannerBin.set_pivot_point(0.5, 0.5);
@@ -167,7 +178,7 @@ export class NotificationsManager {
       "_hideNotification",
       (original) =>
         function (this: MessageTray.MessageTrayProto, animate) {
-          if (self.isVerticalAlignTop()) {
+          if (self.isVerticalAlignTop(this._bannerBin)) {
             original.call(this, animate);
             return;
           }
@@ -288,6 +299,7 @@ export class NotificationsManager {
   }
 
   dispose() {
+    this.notificationStack.dispose();
     this.disable();
     this.injectionManager.clear();
 

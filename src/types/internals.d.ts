@@ -114,6 +114,18 @@ declare module "resource:///org/gnome/shell/ui/messageTray.js" {
   } from "@girs/gnome-shell/ui/messageTray";
 
   export type MessageTrayProto = {
+    _onNotificationRequestBanner: (
+      source: Source,
+      notification: Notification,
+    ) => void;
+    _onNotificationRemoved: (
+      source: Source,
+      notification: Notification,
+    ) => void;
+    _removeSource: (source: Source) => void;
+    _bannerBlocked: boolean;
+    _busy: boolean;
+    _notificationRemoved: boolean;
     _notificationQueue: Notification[];
     _notification: Notification | null;
     _updatingState: boolean;

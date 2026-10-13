@@ -32,17 +32,17 @@ export function getBannerBin() {
   return (Main.messageTray as unknown as { _bannerBin: St.Widget })._bannerBin;
 }
 
-export function getFirstBannerRow() {
+export function getFirstBannerRow(banner = getBannerBin()) {
   return (
-    (getBannerBin()
+    (banner
       ?.get_first_child()
       ?.get_child_at_index(0)
       ?.get_child_at_index(0) as St.Widget | null) ?? null
   );
 }
 
-export function hideBannerAppTitleRow() {
-  const appTitleRow = getFirstBannerRow();
+export function hideBannerAppTitleRow(banner = getBannerBin()) {
+  const appTitleRow = getFirstBannerRow(banner);
   if (!appTitleRow) return false;
 
   for (const _ of [0, 1]) {
@@ -53,7 +53,7 @@ export function hideBannerAppTitleRow() {
   appTitleRow.set_x_expand(false);
   appTitleRow.get_parent()?.remove_child(appTitleRow);
 
-  const targetWrapper = getFirstBannerRow();
+  const targetWrapper = getFirstBannerRow(banner);
 
   targetWrapper?.set_style("margin-top: 2px !important");
   targetWrapper?.add_child(appTitleRow);
@@ -81,8 +81,12 @@ export function resolveNotificationWidgets(
   messageTrayContainer: Clutter.Actor | null | undefined,
 ): NotificationWidgets | null {
   const container = messageTrayContainer?.get_first_child() as St.Widget | null;
-  if (!container) return null;
+  return container ? resolveBannerWidgets(container) : null;
+}
 
+export function resolveBannerWidgets(
+  container: St.Widget,
+): NotificationWidgets {
   const notification = container.get_first_child();
   const header =
     notification?.get_first_child() !== notification?.get_last_child()

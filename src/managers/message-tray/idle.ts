@@ -10,7 +10,19 @@ export class IdleAdapter {
     const settingsManager = this.settingsManager;
 
     return (original, { tray }) => {
-      if (settingsManager.ignoreIdle) {
+      const notification = tray._notification;
+      const configuration = notification
+        ? settingsManager.getConfigurationFor(
+            notification.source?.title ?? "",
+            notification.title,
+            notification.body,
+          )
+        : null;
+      if (
+        configuration?.enabled &&
+        configuration.timeout.enabled &&
+        configuration.timeout.ignoreIdle
+      ) {
         tray._userActiveWhileNotificationShown = true;
       }
       original();

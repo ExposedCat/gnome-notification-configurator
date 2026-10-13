@@ -741,6 +741,62 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     rateLimitGroup.add(rateLimitActionRow);
     updateRateLimitVisibility();
 
+    const visibleNotificationsGroup = new Adw.PreferencesGroup({
+      title: _("Visible Notifications"),
+      description: _("Control how many notifications appear at the same time"),
+    });
+    page.add(visibleNotificationsGroup);
+
+    const maximumVisibleRow = new Adw.SpinRow({
+      title: _("Maximum Visible Notifications"),
+      subtitle: _(
+        "1 shows notifications one at a time; additional notifications wait for a free space",
+      ),
+      adjustment: new Gtk.Adjustment({
+        lower: 1,
+        upper: 10,
+        step_increment: 1,
+        page_increment: 1,
+        value: config.stacking.maximumVisible,
+      }),
+    });
+    const directionRow = new Adw.ComboRow({
+      title: _("Stack Direction"),
+      subtitle: _(
+        "Place new notifications above or below existing notifications",
+      ),
+      model: Gtk.StringList.new([_("Downward"), _("Upward")]),
+      selected: config.stacking.direction === "up" ? 1 : 0,
+    });
+    directionRow.connect("notify::selected", () => {
+      config.stacking.direction =
+        directionRow.get_selected() === 1 ? "up" : "down";
+      onSave();
+    });
+
+    const updateVisibleNotifications = () => {
+      const active = !overrides || overrides.stacking;
+      maximumVisibleRow.set_visible(active);
+      directionRow.set_visible(active && config.stacking.maximumVisible > 1);
+    };
+    maximumVisibleRow.connect("notify::value", () => {
+      config.stacking.maximumVisible = maximumVisibleRow.get_value();
+      onSave();
+      updateVisibleNotifications();
+    });
+    if (overrides) {
+      this.addOverrideRow(
+        visibleNotificationsGroup,
+        overrides,
+        "stacking",
+        onSave,
+        updateVisibleNotifications,
+      );
+    }
+    visibleNotificationsGroup.add(maximumVisibleRow);
+    visibleNotificationsGroup.add(directionRow);
+    updateVisibleNotifications();
+
     const timeoutGroup = new Adw.PreferencesGroup({
       title: _("Notification Timeout"),
       description: _("Control how long notifications stay visible"),

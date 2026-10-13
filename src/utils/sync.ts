@@ -75,6 +75,18 @@ function parseFields(
   defaults: GlobalConfiguration | PatternConfiguration,
 ): ConfigurationFields {
   if (!isObject(candidate)) throw new Error("Expected a configuration object.");
+  const configuration = { ...candidate };
+  if (
+    isObject(configuration.stacking) &&
+    Object.hasOwn(configuration.stacking, "enabled")
+  ) {
+    const { enabled, ...stacking } = configuration.stacking;
+    if (typeof enabled !== "boolean")
+      throw new Error("Invalid configuration setting: stacking.enabled");
+    configuration.stacking = enabled
+      ? stacking
+      : { ...stacking, maximumVisible: 1 };
+  }
   const validate = (
     settings: Record<string, unknown>,
     expected: Record<string, unknown>,
@@ -97,8 +109,8 @@ function parseFields(
       }
     }
   };
-  validate(candidate, defaults, "");
-  const fields = configurationFields(candidate);
+  validate(configuration, defaults, "");
+  const fields = configurationFields(configuration);
   const merged = mergeConfiguration(defaults, fields);
   const normalized = configurationFields(
     "matcher" in merged
