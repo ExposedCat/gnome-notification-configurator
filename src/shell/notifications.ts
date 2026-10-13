@@ -4,6 +4,7 @@ import { InjectionManager } from "resource:///org/gnome/shell/extensions/extensi
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
 
+import { FocusManager } from "../managers/focus/manager.js";
 import { FullscreenAdapter } from "../managers/message-tray/fullscreen.js";
 import { IdleAdapter } from "../managers/message-tray/idle.js";
 import { MessageTrayManager } from "../managers/message-tray/manager.js";
@@ -38,6 +39,7 @@ export class NotificationsManager {
   private notificationDaemonManager: NotificationDaemonManager;
   private sourceManager: SourceManager;
   private windowAttentionManager: WindowAttentionManager;
+  private focusManager: FocusManager;
 
   private fullscreenAdapter: FullscreenAdapter;
   private groupingAdapter: GroupingAdapter;
@@ -52,6 +54,7 @@ export class NotificationsManager {
     this.notificationDaemonManager = new NotificationDaemonManager();
     this.sourceManager = new SourceManager(settingsManager);
     this.windowAttentionManager = new WindowAttentionManager();
+    this.focusManager = new FocusManager(settingsManager);
 
     this.fullscreenAdapter = new FullscreenAdapter(settingsManager);
     this.groupingAdapter = new GroupingAdapter(settingsManager);
@@ -266,9 +269,11 @@ export class NotificationsManager {
     this.notificationDaemonManager.enable();
     this.sourceManager.enable();
     this.windowAttentionManager.enable();
+    this.focusManager.enable();
   }
 
   private disable() {
+    this.focusManager.disable();
     this.windowAttentionManager.disable();
     this.sourceManager.disable();
     this.notificationDaemonManager.disable();

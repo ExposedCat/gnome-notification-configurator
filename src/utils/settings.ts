@@ -51,6 +51,7 @@ export type Matcher = {
 export type Configuration = {
   enabled: boolean;
   notificationCenter: {
+    clearOnFocus: boolean;
     disableGrouping: boolean;
     maximumPerSource: number;
   };
@@ -143,6 +144,7 @@ type SettingsEvents = {
   alwaysNormalUrgencyChanged: [boolean];
   activateWindowOnAttentionChanged: [boolean];
   topBarChanged: [];
+  clearOnFocusChanged: [];
 };
 
 export class SettingsManager {
@@ -174,6 +176,7 @@ export class SettingsManager {
     return {
       enabled: true,
       notificationCenter: {
+        clearOnFocus: false,
         disableGrouping: false,
         maximumPerSource: NOTIFICATIONS_PER_SOURCE_DEFAULT,
       },
@@ -250,6 +253,7 @@ export class SettingsManager {
       },
       filtering: { enabled: false, action: "hide" },
       notificationCenter: {
+        clearOnFocus: false,
         disableGrouping: false,
         maximumPerSource: NOTIFICATIONS_PER_SOURCE_DEFAULT,
       },
@@ -332,6 +336,20 @@ export class SettingsManager {
 
   get activateWindowOnAttention() {
     return this._activateWindowOnAttention;
+  }
+
+  get clearOnFocusEnabled() {
+    return (
+      (this._globalConfiguration.enabled &&
+        this._globalConfiguration.notificationCenter.clearOnFocus) ||
+      this._patterns.some(
+        (pattern) =>
+          pattern.enabled &&
+          (pattern.overrides.notificationCenter
+            ? pattern.notificationCenter.clearOnFocus
+            : this._globalConfiguration.notificationCenter.clearOnFocus),
+      )
+    );
   }
 
   get notificationPosition() {
@@ -580,6 +598,7 @@ export class SettingsManager {
         this._activateWindowOnAttention,
       );
       this.events.emit("topBarChanged");
+      this.events.emit("clearOnFocusChanged");
     };
 
     this.settingSignals.push(
@@ -667,6 +686,10 @@ export class SettingsManager {
     return {
       enabled: normalizeBoolean(candidate.enabled, defaults.enabled),
       notificationCenter: {
+        clearOnFocus: normalizeBoolean(
+          candidate.notificationCenter?.clearOnFocus,
+          defaults.notificationCenter.clearOnFocus,
+        ),
         disableGrouping: normalizeBoolean(
           candidate.notificationCenter?.disableGrouping,
           defaults.notificationCenter.disableGrouping,

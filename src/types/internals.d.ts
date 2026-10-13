@@ -114,6 +114,8 @@ declare module "resource:///org/gnome/shell/ui/messageTray.js" {
   } from "@girs/gnome-shell/ui/messageTray";
 
   export type MessageTrayProto = {
+    _notification: Notification | null;
+    _notificationQueue: Notification[];
     _updateNotificationTimeout: (timeout: number) => void;
     _updateState: () => void;
     _showNotification: () => void;

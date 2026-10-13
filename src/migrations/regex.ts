@@ -92,6 +92,7 @@ function createGlobalConfiguration(
   return {
     enabled: true,
     notificationCenter: {
+      clearOnFocus: false,
       disableGrouping: false,
       maximumPerSource: NOTIFICATIONS_PER_SOURCE_DEFAULT,
     },
