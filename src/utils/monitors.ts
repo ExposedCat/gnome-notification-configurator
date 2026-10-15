@@ -84,7 +84,6 @@ export class MonitorManager {
   private connection = Gio.DBus.session;
   private cancellable?: Gio.Cancellable;
   private subscription: number;
-  private disposed = false;
 
   constructor() {
     this.subscription = this.connection.signal_subscribe(
@@ -100,7 +99,6 @@ export class MonitorManager {
   }
 
   refresh() {
-    if (this.disposed) return;
     this.cancellable?.cancel();
     const cancellable = new Gio.Cancellable();
     this.cancellable = cancellable;
@@ -139,8 +137,6 @@ export class MonitorManager {
   }
 
   dispose() {
-    if (this.disposed) return;
-    this.disposed = true;
     this.cancellable?.cancel();
     this.loading = false;
     this.connection.signal_unsubscribe(this.subscription);

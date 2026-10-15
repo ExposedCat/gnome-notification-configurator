@@ -305,7 +305,6 @@ export class NotificationsManager {
 
     if (typeof this.positionSignalId === "number") {
       getMessageTrayContainer()?.disconnect(this.positionSignalId);
-      this.positionSignalId = undefined;
     }
 
     this.monitorAdapter.dispose();

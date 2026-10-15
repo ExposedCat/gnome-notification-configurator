@@ -146,13 +146,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
     window.connect("close-request", () => {
       this.monitors.dispose();
-      // biome-ignore lint/style/noNonNullAssertion: cleanup
-      this.settings = null!;
-      // biome-ignore lint/style/noNonNullAssertion: cleanup
-      this.globalConfig = null!;
-      this.patterns = [];
-      // biome-ignore lint/style/noNonNullAssertion: cleanup
-      this.patternsList = null!;
     });
   }
 

@@ -105,7 +105,6 @@ export class NotificationStack {
     signal: number;
   }> = [];
   private processing = false;
-  private disposed = false;
   private unredirectDisabled = false;
 
   constructor(private settingsManager: SettingsManager) {
@@ -218,7 +217,7 @@ export class NotificationStack {
         "notification-removed",
         this.tray._onNotificationRemoved.bind(Main.messageTray),
         "destroy",
-        () => this.tray._removeSource(source),
+        this.tray._removeSource.bind(Main.messageTray, source),
         Main.messageTray,
       );
     }
@@ -245,7 +244,7 @@ export class NotificationStack {
   }
 
   private request(notification: MessageTray.Notification) {
-    if (this.disposed || notification.acknowledged) return;
+    if (notification.acknowledged) return;
     const existing = this.banners.get(notification);
     if (existing) {
       notification.acknowledged = existing.actor !== null;
@@ -290,12 +289,7 @@ export class NotificationStack {
   }
 
   private adoptQueue() {
-    if (
-      !this.settingsManager.stackingEnabled ||
-      this.processing ||
-      this.disposed
-    )
-      return;
+    if (!this.settingsManager.stackingEnabled || this.processing) return;
     const notifications = this.tray._notificationQueue.splice(0);
     this.processing = true;
     try {
@@ -338,7 +332,7 @@ export class NotificationStack {
   }
 
   private update() {
-    if (this.disposed || this.processing) return;
+    if (this.processing) return;
     this.adoptQueue();
     this.processing = true;
     try {
@@ -622,18 +616,12 @@ export class NotificationStack {
       banner.lifecycle.hide(true);
       return;
     }
-    banner.removing = true;
-    if (banner.entrance) GLib.source_remove(banner.entrance);
-    banner.entrance = 0;
-    if (!this.banners.delete(banner.notification)) return;
+    this.banners.delete(banner.notification);
     this.queue = this.queue.filter((queued) => queued !== banner);
-    for (const signal of banner.signals) banner.notification.disconnect(signal);
-    banner.signals = [];
     if (banner.stack && banner.stack.container.get_n_children() > 1) {
       banner.stack.reflowUntil = GLib.get_monotonic_time() + 200000;
     }
-    banner.lifecycle?.dispose();
-    banner.actor?.destroy();
+    this.destroyBanner(banner);
     if (banner.stack) this.releaseStack(banner.stack);
     if (
       !preserve &&
@@ -648,6 +636,15 @@ export class NotificationStack {
     this.update();
     if (![...this.banners.values()].some((remaining) => remaining.actor))
       this.setUnredirect(false);
+  }
+
+  private destroyBanner(banner: Banner) {
+    if (banner.entrance) GLib.source_remove(banner.entrance);
+    banner.entrance = 0;
+    for (const signal of banner.signals) banner.notification.disconnect(signal);
+    banner.signals = [];
+    banner.lifecycle?.dispose();
+    banner.actor?.destroy();
   }
 
   private releaseStack(stack: Stack) {
@@ -685,7 +682,6 @@ export class NotificationStack {
   }
 
   dispose() {
-    this.disposed = true;
     this.settingsManager.events.off(this.settingsListener);
     this.monitors.events.off(this.monitorListener);
     this.monitors.dispose();
@@ -694,8 +690,16 @@ export class NotificationStack {
     this.injectionManager.clear();
     this.reconnectSources();
     const pending = this.queue.map((banner) => banner.notification);
-    for (const banner of [...this.banners.values()])
-      this.remove(banner, false, true);
+    const banners = [...this.banners.values()];
+    this.banners.clear();
+    this.queue = [];
+    for (const banner of banners) this.destroyBanner(banner);
+    for (const stack of this.stacks.values()) {
+      Main.layoutManager.removeChrome(stack.actor);
+      stack.actor.destroy();
+    }
+    this.stacks.clear();
+    this.setUnredirect(false);
     this.tray._notificationQueue.push(
       ...pending.filter((notification) => !notification.acknowledged),
     );

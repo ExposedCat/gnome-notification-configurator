@@ -175,7 +175,6 @@ export class NotificationDaemonManager {
 
   dispose() {
     this.disable();
-    this.currentNotification = null;
     this.getSourceForAppHooks = [];
     this.getSourceForPidAndNameHooks = [];
   }

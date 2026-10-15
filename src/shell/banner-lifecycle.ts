@@ -58,7 +58,7 @@ const ALIGNMENT: Record<VerticalPosition, Clutter.ActorAlign> = {
 export class BannerLifecycle {
   readonly actor: Lifecycle;
   private idleWatch = 0;
-  private disposed = false;
+  private signals: number[];
   private started = false;
 
   constructor(
@@ -133,16 +133,17 @@ export class BannerLifecycle {
       NATIVE_LIFECYCLE._expandBanner.call(actor, automatic);
     actor._ensureBannerFocused = () =>
       NATIVE_LIFECYCLE._ensureBannerFocused.call(actor);
-    actor.connect("notify::hover", () => actor._onNotificationHoverChanged());
-    actor.connect(
-      "key-release-event",
-      (_actor: St.Widget, event: Clutter.Event) =>
-        NATIVE_LIFECYCLE._onNotificationKeyRelease.call(actor, actor, event),
-    );
+    this.signals = [
+      actor.connect("notify::hover", () => actor._onNotificationHoverChanged()),
+      actor.connect(
+        "key-release-event",
+        (_actor: St.Widget, event: Clutter.Event) =>
+          NATIVE_LIFECYCLE._onNotificationKeyRelease.call(actor, actor, event),
+      ),
+    ];
   }
 
   show() {
-    if (this.disposed) return;
     const actor = this.actor;
     const notification = actor._notification;
     if (!notification) return;
@@ -176,40 +177,34 @@ export class BannerLifecycle {
   }
 
   update() {
-    if (this.disposed || !this.started) return;
     const actor = this.actor;
+    const notification = actor._notification;
+    if (!this.started || !notification) return;
     const tray = Main.messageTray as unknown as Lifecycle;
     if (tray._busy && !actor._busy) actor._updateNotificationTimeout(0);
     actor._busy = tray._busy;
     actor._bannerBlocked = tray._bannerBlocked;
-    const notification = actor._notification;
-    if (notification) {
-      const configuration = this.settingsManager.getConfigurationFor(
-        notification.source?.title ?? "",
-        notification.title,
-        notification.body,
-      );
-      if (
-        configuration.enabled &&
-        configuration.timeout.enabled &&
-        configuration.timeout.ignoreIdle
-      ) {
-        actor._userActiveWhileNotificationShown = true;
-      }
+    const configuration = this.settingsManager.getConfigurationFor(
+      notification.source?.title ?? "",
+      notification.title,
+      notification.body,
+    );
+    if (
+      configuration.enabled &&
+      configuration.timeout.enabled &&
+      configuration.timeout.ignoreIdle
+    ) {
+      actor._userActiveWhileNotificationShown = true;
     }
     UPDATE_STATE.call(actor);
   }
 
   hide(animate: boolean) {
-    if (this.disposed) return;
     this.actor._hideNotification(animate);
   }
 
   refreshTimeout() {
-    if (
-      !this.disposed &&
-      this.actor._notificationState === MessageTray.State.SHOWN
-    ) {
+    if (this.actor._notificationState === MessageTray.State.SHOWN) {
       this.actor._showNotificationCompleted();
       this.update();
     }
@@ -226,13 +221,15 @@ export class BannerLifecycle {
   }
 
   dispose() {
-    if (this.disposed) return;
-    this.disposed = true;
     this.actor._updateNotificationTimeout(0);
     this.actor._resetNotificationLeftTimeout();
-    this.actor._notificationFocusGrabber.ungrabFocus();
     if (this.idleWatch) this.actor.idleMonitor.remove_watch(this.idleWatch);
     this.idleWatch = 0;
+    for (const signal of this.signals) this.actor.disconnect(signal);
+    this.signals = [];
+    this.actor._notificationFocusGrabber.ungrabFocus();
+    this.actor._notification = null;
+    this.actor._notificationState = MessageTray.State.HIDDEN;
     this.actor.remove_all_transitions();
   }
 }
