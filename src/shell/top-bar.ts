@@ -3,7 +3,10 @@ import GObject from "gi://GObject";
 import St from "gi://St";
 import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
-import type { Source } from "resource:///org/gnome/shell/ui/messageTray.js";
+import type {
+  Notification,
+  Source,
+} from "resource:///org/gnome/shell/ui/messageTray.js";
 
 import type { SettingsManager } from "../utils/settings.js";
 import { makeColorStyle } from "../utils/themes.js";
@@ -17,8 +20,11 @@ export class TopBarManager {
   });
   private pendingPad = new St.Widget();
   private showBannersSignalId: number;
+  private menuSignalId: number;
+  private settingsListenerId: number;
   private traySignalIds: number[];
   private sourceSignalIds = new Map<Source, number[]>();
+  private seenNotifications = new WeakSet<Notification>();
 
   constructor(private settingsManager: SettingsManager) {
     const messagesIndicator = this.dateMenu._indicator;
@@ -45,6 +51,9 @@ export class TopBarManager {
         this.update();
       },
     );
+    this.menuSignalId = this.dateMenu.menu.connect("open-state-changed", () => {
+      this.update();
+    });
 
     this.pending.bind_property(
       "visible",
@@ -67,6 +76,9 @@ export class TopBarManager {
         this.trackSource(source),
       ),
       Main.messageTray.connect("source-removed", (_tray, source: Source) => {
+        for (const signalId of this.sourceSignalIds.get(source) ?? []) {
+          source.disconnect(signalId);
+        }
         this.sourceSignalIds.delete(source);
         this.update();
       }),
@@ -75,7 +87,7 @@ export class TopBarManager {
       this.trackSource(source);
     }
 
-    settingsManager.events.on("topBarChanged", () => {
+    this.settingsListenerId = settingsManager.events.on("topBarChanged", () => {
       messagesIndicator._sync();
       this.update();
     });
@@ -87,19 +99,26 @@ export class TopBarManager {
     this.sourceSignalIds.set(source, [
       source.connect("notify::count", () => this.update()),
       source.connect("notify::icon", () => this.update()),
+      source.connect(
+        "notification-request-banner",
+        (_source, notification: Notification) => {
+          this.seenNotifications.delete(notification);
+          this.update();
+        },
+      ),
     ]);
     this.update();
   }
 
-  private latestNotificationTime(source: Source) {
+  private latestNotificationTime(notifications: Notification[]) {
     return Math.max(
-      ...source.notifications.map((notification) =>
+      ...notifications.map((notification) =>
         notification.datetime.to_unix_usec(),
       ),
     );
   }
 
-  private createIcon(source: Source) {
+  private createIcon(source: Source, count: number) {
     const { monochrome, counts, countsBackground, countsColor } =
       this.settingsManager.recentIcons;
     const icon = new St.Icon({ gicon: source.icon, icon_size: 16 });
@@ -121,7 +140,7 @@ export class TopBarManager {
         : `${makeColorStyle(countsColor)} text-shadow: 0 0 2px #000;`;
       container.add_child(
         new St.Label({
-          text: `${source.count}`,
+          text: `${count}`,
           x_align: Clutter.ActorAlign.END,
           y_align: Clutter.ActorAlign.END,
           translation_x: 4,
@@ -135,29 +154,56 @@ export class TopBarManager {
 
   private update() {
     const { recentIcons, indicator, doNotDisturb } = this.settingsManager;
+    if (this.dateMenu.menu.isOpen) {
+      for (const source of this.sourceSignalIds.keys()) {
+        for (const notification of source.notifications) {
+          this.seenNotifications.add(notification);
+        }
+      }
+    }
+    const clearIndicator = indicator.onOpen === "clear";
+    const clearIcons =
+      recentIcons.onOpen === "followIndicator"
+        ? clearIndicator
+        : recentIcons.onOpen === "clear";
     const topBarMode = this.dateMenu._indicator._settings.get_boolean(
       "show-banners",
     )
       ? "show"
       : doNotDisturb.topBar;
-    const sources = [...this.sourceSignalIds.keys()]
-      .filter((source) => source.count > 0)
-      .sort(
-        (first, second) =>
-          this.latestNotificationTime(second) -
-          this.latestNotificationTime(first),
-      );
+    const sources = [...this.sourceSignalIds.keys()];
     const iconSources =
       recentIcons.enabled && topBarMode === "show"
-        ? sources.slice(0, recentIcons.maximumCount)
+        ? sources
+            .map((source) => ({
+              source,
+              notifications: source.notifications.filter(
+                (notification) =>
+                  !clearIcons || !this.seenNotifications.has(notification),
+              ),
+            }))
+            .filter(({ notifications }) => notifications.length > 0)
+            .sort(
+              (first, second) =>
+                this.latestNotificationTime(second.notifications) -
+                this.latestNotificationTime(first.notifications),
+            )
+            .slice(0, recentIcons.maximumCount)
         : [];
+    const iconNotifications = new Set(
+      iconSources.flatMap(({ notifications }) => notifications),
+    );
     const remainingCount = sources
-      .slice(iconSources.length)
-      .reduce((total, source) => total + source.count, 0);
+      .flatMap((source) => source.notifications)
+      .filter(
+        (notification) =>
+          !iconNotifications.has(notification) &&
+          (!clearIndicator || !this.seenNotifications.has(notification)),
+      ).length;
 
     this.pending.destroy_all_children();
-    for (const source of iconSources) {
-      this.pending.add_child(this.createIcon(source));
+    for (const { source, notifications } of iconSources) {
+      this.pending.add_child(this.createIcon(source, notifications.length));
     }
     if (indicator.enabled && topBarMode !== "hideAll" && remainingCount > 0) {
       this.pending.add_child(
@@ -179,6 +225,8 @@ export class TopBarManager {
   }
 
   dispose() {
+    this.settingsManager.events.off(this.settingsListenerId);
+    this.dateMenu.menu.disconnect(this.menuSignalId);
     this.injectionManager.clear();
     this.dateMenu._indicator._settings.disconnect(this.showBannersSignalId);
     this.dateMenu._indicator._sync();

@@ -17,7 +17,9 @@ import { MonitorManager } from "./utils/monitors.js";
 import type {
   Configuration,
   GlobalConfiguration,
+  IconsOnOpen,
   IndicatorFormat,
+  IndicatorOnOpen,
   PatternConfiguration,
   PatternOverrides,
   Position,
@@ -60,6 +62,12 @@ const VERTICAL_POSITION_VALUES: VerticalPosition[] = [
 ];
 
 const INDICATOR_FORMAT_VALUES: IndicatorFormat[] = ["dot", "count"];
+const INDICATOR_ON_OPEN_VALUES: IndicatorOnOpen[] = ["clear", "keep"];
+const ICONS_ON_OPEN_VALUES: IconsOnOpen[] = [
+  "followIndicator",
+  "clear",
+  "keep",
+];
 const TOP_BAR_DO_NOT_DISTURB_VALUES: TopBarDoNotDisturb[] = [
   "show",
   "hideIcons",
@@ -202,6 +210,21 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     });
     page.add(iconsGroup);
 
+    const iconsOnOpenRow = new Adw.ComboRow({
+      title: _("On Notification Center Opening"),
+      subtitle: _("Clear icons from the top bar or keep them until dismissed"),
+      model: Gtk.StringList.new([
+        _("Follow indicator"),
+        _("Clear icons"),
+        _("Keep icons"),
+      ]),
+      selected: ICONS_ON_OPEN_VALUES.indexOf(recentIcons.onOpen),
+    });
+    iconsOnOpenRow.connect("notify::selected", () => {
+      recentIcons.onOpen = ICONS_ON_OPEN_VALUES[iconsOnOpenRow.get_selected()];
+      this.saveGlobal();
+    });
+
     const maximumIconsRow = new Adw.SpinRow({
       title: _("Maximum Icons"),
       subtitle: _("Number of most recent apps shown"),
@@ -261,6 +284,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     iconsEnabledRow.set_active(recentIcons.enabled);
 
     const updateIconsVisibility = () => {
+      iconsOnOpenRow.set_visible(recentIcons.enabled);
       maximumIconsRow.set_visible(recentIcons.enabled);
       monochromeRow.set_visible(recentIcons.enabled);
       countsRow.set_visible(recentIcons.enabled);
@@ -283,6 +307,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     });
 
     iconsGroup.add(iconsEnabledRow);
+    iconsGroup.add(iconsOnOpenRow);
     iconsGroup.add(maximumIconsRow);
     iconsGroup.add(monochromeRow);
     iconsGroup.add(countsRow);
@@ -295,6 +320,20 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       description: _("Mark pending notifications that are not shown as icons"),
     });
     page.add(indicatorGroup);
+
+    const indicatorOnOpenRow = new Adw.ComboRow({
+      title: _("On Notification Center Opening"),
+      subtitle: _(
+        "Clear the indicator or keep it until notifications are dismissed",
+      ),
+      model: Gtk.StringList.new([_("Clear indicator"), _("Keep indicator")]),
+      selected: INDICATOR_ON_OPEN_VALUES.indexOf(indicator.onOpen),
+    });
+    indicatorOnOpenRow.connect("notify::selected", () => {
+      indicator.onOpen =
+        INDICATOR_ON_OPEN_VALUES[indicatorOnOpenRow.get_selected()];
+      this.saveGlobal();
+    });
 
     const formatRow = new Adw.ComboRow({
       title: _("Indicator Format"),
@@ -322,13 +361,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
     const indicatorEnabledRow = new Adw.SwitchRow({
       title: _("Show Indicator"),
-      subtitle: _(
-        "Keep it next to the clock until notifications are dismissed",
-      ),
+      subtitle: _("Show pending notifications next to the clock"),
     });
     indicatorEnabledRow.set_active(indicator.enabled);
 
     const updateIndicatorVisibility = () => {
+      indicatorOnOpenRow.set_visible(indicator.enabled);
       formatRow.set_visible(indicator.enabled);
       colorRow.set_visible(indicator.enabled);
     };
@@ -340,6 +378,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     });
 
     indicatorGroup.add(indicatorEnabledRow);
+    indicatorGroup.add(indicatorOnOpenRow);
     indicatorGroup.add(formatRow);
     indicatorGroup.add(colorRow);
     updateIndicatorVisibility();

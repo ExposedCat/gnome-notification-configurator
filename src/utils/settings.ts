@@ -8,7 +8,9 @@ import {
 } from "./constants.js";
 import { TypedEventEmitter } from "./event-emitter.js";
 import type {
+  IconsOnOpen,
   IndicatorFormat,
+  IndicatorOnOpen,
   Margins,
   MonitorSelection,
   NotificationAction,
@@ -20,7 +22,9 @@ import {
   normalizeAction,
   normalizeBoolean,
   normalizeColor,
+  normalizeIconsOnOpen,
   normalizeIndicatorFormat,
+  normalizeIndicatorOnOpen,
   normalizeInteger,
   normalizeMargins,
   normalizeMonitor,
@@ -36,7 +40,9 @@ export const NOTIFICATIONS_PER_SOURCE_DEFAULT = 10;
 export const RECENT_ICONS_DEFAULT = 3;
 
 export type {
+  IconsOnOpen,
   IndicatorFormat,
+  IndicatorOnOpen,
   Margins,
   MonitorSelection,
   NotificationAction,
@@ -98,6 +104,7 @@ export type Configuration = {
   };
   recentIcons: {
     enabled: boolean;
+    onOpen: IconsOnOpen;
     maximumCount: number;
     monochrome: boolean;
     counts: boolean;
@@ -106,6 +113,7 @@ export type Configuration = {
   };
   indicator: {
     enabled: boolean;
+    onOpen: IndicatorOnOpen;
     format: IndicatorFormat;
     color: number[];
   };
@@ -230,6 +238,7 @@ export class SettingsManager {
       },
       recentIcons: {
         enabled: false,
+        onOpen: "followIndicator",
         maximumCount: RECENT_ICONS_DEFAULT,
         monochrome: false,
         counts: false,
@@ -238,6 +247,7 @@ export class SettingsManager {
       },
       indicator: {
         enabled: true,
+        onOpen: "clear",
         format: "dot",
         color: [...DEFAULT_INDICATOR_COLOR],
       },
@@ -295,6 +305,7 @@ export class SettingsManager {
       windowAttention: { activateInstead: false },
       recentIcons: {
         enabled: false,
+        onOpen: "followIndicator",
         maximumCount: RECENT_ICONS_DEFAULT,
         monochrome: false,
         counts: false,
@@ -303,6 +314,7 @@ export class SettingsManager {
       },
       indicator: {
         enabled: true,
+        onOpen: "clear",
         format: "dot",
         color: [...DEFAULT_INDICATOR_COLOR],
       },
@@ -843,6 +855,7 @@ export class SettingsManager {
           candidate.recentIcons?.enabled,
           defaults.recentIcons.enabled,
         ),
+        onOpen: normalizeIconsOnOpen(candidate.recentIcons?.onOpen),
         maximumCount: normalizeInteger(
           candidate.recentIcons?.maximumCount,
           defaults.recentIcons.maximumCount,
@@ -869,6 +882,7 @@ export class SettingsManager {
           candidate.indicator?.enabled,
           defaults.indicator.enabled,
         ),
+        onOpen: normalizeIndicatorOnOpen(candidate.indicator?.onOpen),
         format: normalizeIndicatorFormat(candidate.indicator?.format),
         color: normalizeColor(
           candidate.indicator?.color,

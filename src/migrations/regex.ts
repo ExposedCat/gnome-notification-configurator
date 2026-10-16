@@ -138,6 +138,7 @@ function createGlobalConfiguration(
     },
     recentIcons: {
       enabled: false,
+      onOpen: "followIndicator",
       maximumCount: RECENT_ICONS_DEFAULT,
       monochrome: false,
       counts: false,
@@ -146,6 +147,7 @@ function createGlobalConfiguration(
     },
     indicator: {
       enabled: true,
+      onOpen: "clear",
       format: "dot",
       color: [...DEFAULT_INDICATOR_COLOR],
     },

@@ -5,6 +5,8 @@ export type NotificationAction = "hide" | "close";
 export type Position = "fill" | "left" | "right" | "center";
 export type VerticalPosition = "fill" | "top" | "center" | "bottom";
 export type IndicatorFormat = "dot" | "count";
+export type IndicatorOnOpen = "clear" | "keep";
+export type IconsOnOpen = "followIndicator" | IndicatorOnOpen;
 export type TopBarDoNotDisturb = "show" | "hideIcons" | "hideAll";
 export type MonitorSelection = {
   connector: string;
@@ -43,6 +45,14 @@ export function normalizeVerticalPosition(value: unknown): VerticalPosition {
 
 export function normalizeIndicatorFormat(value: unknown): IndicatorFormat {
   return value === "count" ? value : "dot";
+}
+
+export function normalizeIndicatorOnOpen(value: unknown): IndicatorOnOpen {
+  return value === "keep" ? value : "clear";
+}
+
+export function normalizeIconsOnOpen(value: unknown): IconsOnOpen {
+  return value === "clear" || value === "keep" ? value : "followIndicator";
 }
 
 export function normalizeTopBarDoNotDisturb(

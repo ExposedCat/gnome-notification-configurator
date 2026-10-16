@@ -9,6 +9,7 @@ import {
 import type { FdoNotificationDaemonProto as RuntimeFdoNotificationDaemonProto } from "resource:///org/gnome/shell/ui/notificationDaemon.js";
 import type { NotificationDaemon as ShellNotificationDaemon } from "@girs/gnome-shell/ui/notificationDaemon";
 import type { Panel } from "@girs/gnome-shell/ui/panel";
+import type { PopupMenu } from "@girs/gnome-shell/ui/popupMenu";
 
 declare module "resource:///org/gnome/shell/extensions/extension.js" {
   export * from "@girs/gnome-shell/extensions/extension";
@@ -51,14 +52,19 @@ declare module "resource:///org/gnome/shell/ui/main.js" {
     _sync: () => void;
   };
 
-  type DateMenuButton = Panel["statusArea"]["dateMenu"] & {
+  type DateMenuButton = Omit<Panel["statusArea"]["dateMenu"], "menu"> & {
+    menu: PopupMenu<{ "open-state-changed": [boolean] }>;
     _indicator: MessagesIndicator;
     _clockDisplay: St.Label;
   };
 
   export const notificationDaemon: NotificationDaemon;
   export const windowAttentionHandler: WindowAttentionHandler;
-  export const panel: Panel & { statusArea: { dateMenu: DateMenuButton } };
+  export const panel: Omit<Panel, "statusArea"> & {
+    statusArea: Omit<Panel["statusArea"], "dateMenu"> & {
+      dateMenu: DateMenuButton;
+    };
+  };
 }
 
 declare module "resource:///org/gnome/shell/ui/notificationDaemon.js" {
