@@ -17,6 +17,19 @@ export function buildNotificationCenterPage(
     title: _("Notification Center"),
     icon_name: "preferences-system-notifications-symbolic",
   });
+  const appearance = new Adw.PreferencesGroup({ title: _("Appearance") });
+  const followBannerAppearance = new Adw.SwitchRow({
+    title: _("Follow banner appearance"),
+    subtitle: _("Use banner colors, fonts, header visibility, and margins"),
+    active: configuration().notificationCenter.followBannerAppearance,
+  });
+  followBannerAppearance.connect("notify::active", () => {
+    configuration().notificationCenter.followBannerAppearance =
+      followBannerAppearance.active;
+    save();
+  });
+  appearance.add(followBannerAppearance);
+  page.add(appearance);
   const group = new Adw.PreferencesGroup({ title: _("Media Player") });
   page.add(group);
   const preview = createSvgPreview(_("Media player appearance preview"));

@@ -154,6 +154,9 @@ export type MediaPlayerConfiguration = {
 };
 
 export type GlobalConfiguration = Configuration & {
+  notificationCenter: Configuration["notificationCenter"] & {
+    followBannerAppearance: boolean;
+  };
   mediaPlayer: MediaPlayerConfiguration;
 };
 export type PatternConfiguration = Configuration & PatternConfigurationPrefs;
@@ -202,6 +205,7 @@ export class SettingsManager {
       },
       stacking: { maximumVisible: 1, direction: "down" },
       notificationCenter: {
+        followBannerAppearance: true,
         clearOnFocus: false,
         disableGrouping: false,
         maximumPerSource: NOTIFICATIONS_PER_SOURCE_DEFAULT,
@@ -398,6 +402,10 @@ export class SettingsManager {
     return this._globalConfiguration.enabled
       ? this._globalConfiguration.mediaPlayer
       : null;
+  }
+
+  get followBannerAppearance() {
+    return this._globalConfiguration.notificationCenter.followBannerAppearance;
   }
 
   get recentIcons() {
@@ -614,9 +622,20 @@ export class SettingsManager {
     try {
       const parsed = JSON.parse(value) as Partial<GlobalConfiguration>;
       const defaults = SettingsManager.defaultGlobalConfiguration();
+      const configuration = SettingsManager.normalizeConfiguration(
+        parsed,
+        defaults,
+      );
       const mediaPlayer = parsed.mediaPlayer;
       return {
-        ...SettingsManager.normalizeConfiguration(parsed, defaults),
+        ...configuration,
+        notificationCenter: {
+          ...configuration.notificationCenter,
+          followBannerAppearance: normalizeBoolean(
+            parsed.notificationCenter?.followBannerAppearance,
+            defaults.notificationCenter.followBannerAppearance,
+          ),
+        },
         mediaPlayer: {
           enabled: normalizeBoolean(mediaPlayer?.enabled, true),
           enlarge: normalizeBoolean(mediaPlayer?.enlarge, false),

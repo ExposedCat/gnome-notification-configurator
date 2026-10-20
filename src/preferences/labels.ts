@@ -35,6 +35,9 @@ export function configurationLabels(): Map<string, string> {
       "overrides.windowAttention": _("Override Window Attention"),
       "filtering.enabled": _("Enable Filtering"),
       "filtering.action": _("Filter Action"),
+      "notificationCenter.followBannerAppearance": _(
+        "Follow banner appearance",
+      ),
       "notificationCenter.clearOnFocus": _("Clear Notifications on Focus"),
       "notificationCenter.disableGrouping": _("Disable Stacking"),
       "notificationCenter.maximumPerSource": _("Maximum Per Source"),
