@@ -194,7 +194,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
   private buildGlobalPage(page: SectionedPreferences) {
     const enabledGroup = new Adw.PreferencesGroup({ title: _("General") });
-    page.add(enabledGroup);
+    page.add(enabledGroup, "preferences-system-symbolic");
 
     const enabledRow = new Adw.SwitchRow({
       title: _("Enabled"),
@@ -226,7 +226,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Top Bar Icons"),
       description: _("Show apps with pending notifications next to the clock"),
     });
-    page.add(iconsGroup);
+    page.add(iconsGroup, "view-app-grid-symbolic");
 
     const iconsOnOpenRow = new Adw.ComboRow({
       title: _("On Notification Center Opening"),
@@ -337,7 +337,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Top Bar Indicator"),
       description: _("Mark pending notifications that are not shown as icons"),
     });
-    page.add(indicatorGroup);
+    page.add(indicatorGroup, "dialog-information-symbolic");
 
     const indicatorOnOpenRow = new Adw.ComboRow({
       title: _("On Notification Center Opening"),
@@ -404,7 +404,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     const doNotDisturbGroup = new Adw.PreferencesGroup({
       title: _("Do Not Disturb"),
     });
-    page.add(doNotDisturbGroup);
+    page.add(doNotDisturbGroup, "notifications-disabled-symbolic");
 
     const doNotDisturbRow = new Adw.ComboRow({
       title: _("Top Bar"),
@@ -506,7 +506,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     const identityGroup = new Adw.PreferencesGroup({
       title: _("Pattern Identity"),
     });
-    detailPage.add(identityGroup);
+    detailPage.add(identityGroup, "document-properties-symbolic");
 
     const shortNameRow = new Adw.EntryRow({
       title: _("Short Name"),
@@ -533,7 +533,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Matchers"),
       description: _("RegExp patterns to match notifications"),
     });
-    detailPage.add(matcherGroup);
+    detailPage.add(matcherGroup, "system-search-symbolic");
 
     const appNameRow = this.createRegexEntryRow(
       _("App Name"),
@@ -569,7 +569,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Filtering"),
       description: _("Block or hide matching notifications"),
     });
-    detailPage.add(filterGroup);
+    detailPage.add(filterGroup, "view-sort-descending-symbolic");
 
     const filterActionRow = new Adw.ComboRow({
       title: _("Filter Action"),
@@ -610,7 +610,11 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     this.addTestSection(detailPage);
 
     const deleteGroup = new Adw.PreferencesGroup();
-    detailPage.add(deleteGroup, _("Pattern Identity"));
+    detailPage.add(
+      deleteGroup,
+      "document-properties-symbolic",
+      _("Pattern Identity"),
+    );
 
     const deleteButton = new Gtk.Button({
       label: _("Delete Pattern"),
@@ -652,7 +656,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
         "Control how matching notifications are stored and cleared",
       ),
     });
-    page.add(notificationCenterGroup);
+    page.add(
+      notificationCenterGroup,
+      "preferences-system-notifications-symbolic",
+    );
 
     const clearOnFocusRow = new Adw.SwitchRow({
       title: _("Clear Notifications on Focus"),
@@ -720,7 +727,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Rate Limiting"),
       description: _("Control notification frequency per application"),
     });
-    page.add(rateLimitGroup);
+    page.add(rateLimitGroup, "preferences-system-time-symbolic");
 
     const thresholdRow = new Adw.SpinRow({
       title: _("Notification Threshold"),
@@ -795,7 +802,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Visible Notifications"),
       description: _("Control how many notifications appear at the same time"),
     });
-    page.add(visibleNotificationsGroup);
+    page.add(visibleNotificationsGroup, "view-list-symbolic");
 
     const maximumVisibleRow = new Adw.SpinRow({
       title: _("Maximum Visible Notifications"),
@@ -851,7 +858,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Notification Timeout"),
       description: _("Control how long notifications stay visible"),
     });
-    page.add(timeoutGroup);
+    page.add(timeoutGroup, "alarm-symbolic");
 
     const timeoutRow = new Adw.SpinRow({
       title: _("Timeout Duration"),
@@ -918,7 +925,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     const urgencyGroup = new Adw.PreferencesGroup({
       title: _("Urgency"),
     });
-    page.add(urgencyGroup);
+    page.add(urgencyGroup, "dialog-warning-symbolic");
 
     const forceNormalRow = new Adw.SwitchRow({
       title: _("Force Normal Urgency"),
@@ -951,7 +958,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Window Attention"),
       description: _("Control what happens when a window demands attention"),
     });
-    page.add(windowAttentionGroup);
+    page.add(windowAttentionGroup, "focus-windows-symbolic");
 
     const activateInsteadRow = new Adw.SwitchRow({
       title: _("Activate Window Instead of Notifying"),
@@ -985,7 +992,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     const displayGroup = new Adw.PreferencesGroup({
       title: _("Display"),
     });
-    page.add(displayGroup);
+    page.add(displayGroup, "video-display-symbolic");
 
     if (!overrides) {
       const fullscreenRow = new Adw.SwitchRow({
@@ -1070,7 +1077,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       title: _("Appearance"),
       description: _("Customize notification styles and margins"),
     });
-    page.add(appearanceGroup);
+    page.add(appearanceGroup, "applications-graphics-symbolic");
 
     const hideAppTitleRow = new Adw.SwitchRow({
       title: _("Hide App Title Row"),
@@ -1394,7 +1401,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     const testGroup = new Adw.PreferencesGroup({
       title: _("Test Notifications"),
     });
-    page.add(testGroup);
+    page.add(testGroup, "media-playback-start-symbolic");
 
     const appEntry = new Adw.EntryRow({
       title: _("App Name"),
@@ -1415,7 +1422,11 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     testGroup.add(bodyEntry);
 
     const testButtonGroup = new Adw.PreferencesGroup();
-    page.add(testButtonGroup, _("Test Notifications"));
+    page.add(
+      testButtonGroup,
+      "media-playback-start-symbolic",
+      _("Test Notifications"),
+    );
 
     const testButton = new Gtk.Button({
       label: _("Send Test Notification"),
