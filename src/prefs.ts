@@ -10,6 +10,10 @@ import {
 
 import { migrateRegexSchema } from "./migrations/regex.js";
 import { createMonitorRow } from "./preferences/monitors.js";
+import { buildNotificationCenterPage } from "./preferences/notification-center.js";
+import { notificationPreview } from "./preferences/notification-preview.js";
+import { createSvgPreview } from "./preferences/preview.js";
+import { SectionedPreferences } from "./preferences/sections.js";
 import { buildSyncPage } from "./preferences/sync.js";
 import type { NotificationTheme } from "./utils/constants.js";
 import { DEFAULT_THEME } from "./utils/constants.js";
@@ -120,11 +124,13 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     migrateRegexSchema(this.settings);
     this.loadData();
 
-    let globalPage = new Adw.PreferencesPage({
+    window.set_default_size(1000, 740);
+
+    let globalPage = new SectionedPreferences({
       title: _("Global"),
       icon_name: "preferences-system-symbolic",
     });
-    window.add(globalPage);
+    window.add(globalPage.page);
     this.buildGlobalPage(globalPage);
 
     const patternsPage = new Adw.PreferencesPage({
@@ -134,17 +140,29 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     window.add(patternsPage);
     this.buildPatternsPage(window, patternsPage);
 
+    let notificationCenterPage = buildNotificationCenterPage(
+      () => this.globalConfig,
+      () => this.saveGlobal(),
+    );
+    window.add(notificationCenterPage);
+
     const syncPage = buildSyncPage(window, this.settings, () => {
       this.loadData();
-      window.remove(globalPage);
-      globalPage = new Adw.PreferencesPage({
+      window.remove(globalPage.page);
+      globalPage = new SectionedPreferences({
         title: _("Global"),
         icon_name: "preferences-system-symbolic",
       });
       window.remove(patternsPage);
+      window.remove(notificationCenterPage);
+      notificationCenterPage = buildNotificationCenterPage(
+        () => this.globalConfig,
+        () => this.saveGlobal(),
+      );
       window.remove(syncPage);
-      window.add(globalPage);
+      window.add(globalPage.page);
       window.add(patternsPage);
+      window.add(notificationCenterPage);
       window.add(syncPage);
       this.buildGlobalPage(globalPage);
       this.rebuildPatternsList(window);
@@ -174,8 +192,8 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     this.settings.set_string("patterns", JSON.stringify(this.patterns));
   }
 
-  private buildGlobalPage(page: Adw.PreferencesPage) {
-    const enabledGroup = new Adw.PreferencesGroup();
+  private buildGlobalPage(page: SectionedPreferences) {
+    const enabledGroup = new Adw.PreferencesGroup({ title: _("General") });
     page.add(enabledGroup);
 
     const enabledRow = new Adw.SwitchRow({
@@ -201,7 +219,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     this.addTestSection(page);
   }
 
-  private addTopBarGroups(page: Adw.PreferencesPage) {
+  private addTopBarGroups(page: SectionedPreferences) {
     const { recentIcons, indicator, doNotDisturb } = this.globalConfig;
 
     const iconsGroup = new Adw.PreferencesGroup({
@@ -483,7 +501,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
   private openPatternDetail(window: Adw.PreferencesWindow, index: number) {
     const pattern = this.patterns[index];
-    const detailPage = new Adw.PreferencesPage();
+    const detailPage = new SectionedPreferences();
 
     const identityGroup = new Adw.PreferencesGroup({
       title: _("Pattern Identity"),
@@ -592,7 +610,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     this.addTestSection(detailPage);
 
     const deleteGroup = new Adw.PreferencesGroup();
-    detailPage.add(deleteGroup);
+    detailPage.add(deleteGroup, _("Pattern Identity"));
 
     const deleteButton = new Gtk.Button({
       label: _("Delete Pattern"),
@@ -609,7 +627,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
     const toolbarView = new Adw.ToolbarView();
     toolbarView.add_top_bar(new Adw.HeaderBar());
-    toolbarView.set_content(detailPage);
+    toolbarView.set_content(detailPage.page);
 
     const navigationPage = new Adw.NavigationPage({
       title: pattern.shortName || _("Pattern"),
@@ -623,7 +641,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
   }
 
   private addConfigurationGroups(
-    page: Adw.PreferencesPage,
+    page: SectionedPreferences,
     config: Configuration,
     onSave: () => void,
     overrides: PatternOverrides | null,
@@ -1071,11 +1089,35 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     });
     stylesEnabledRow.set_active(config.colors.enabled);
 
-    const themeRows = this.addThemeEditor(
-      appearanceGroup,
-      config.colors.theme,
-      onSave,
-    );
+    const preview = createSvgPreview(_("Notification appearance preview"));
+    const desktop = new Gio.Settings({
+      schema_id: "org.gnome.desktop.interface",
+    });
+    const refreshPreview = () => {
+      const globalTheme = this.globalConfig.colors.enabled
+        ? this.globalConfig.colors.theme
+        : null;
+      const theme = !overrides
+        ? config.colors.enabled
+          ? config.colors.theme
+          : null
+        : overrides.colors && config.colors.enabled
+          ? config.colors.theme
+          : globalTheme;
+      preview.update(
+        notificationPreview(
+          theme,
+          shouldHideHeaderThemeRows(),
+          preview.picture,
+          desktop,
+        ),
+      );
+    };
+    appearanceGroup.add(preview.row);
+    const themeRows = this.addThemeEditor(config.colors.theme, () => {
+      onSave();
+      refreshPreview();
+    });
 
     const marginTopRow = new Adw.SpinRow({
       title: _("Margin Top"),
@@ -1151,6 +1193,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     ];
 
     const updateThemeRowsVisibility = () => {
+      refreshPreview();
       const active = !overrides || overrides.colors || overrides.margins;
       stylesEnabledRow.set_visible(active);
       hideAppTitleRow.set_visible(active);
@@ -1243,7 +1286,6 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
   }
 
   private addThemeEditor(
-    _group: Adw.PreferencesGroup,
     theme: NotificationTheme,
     onSave: () => void,
   ): ThemeEditorRow[] {
@@ -1348,7 +1390,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     }
   }
 
-  private addTestSection(page: Adw.PreferencesPage) {
+  private addTestSection(page: SectionedPreferences) {
     const testGroup = new Adw.PreferencesGroup({
       title: _("Test Notifications"),
     });
@@ -1373,7 +1415,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     testGroup.add(bodyEntry);
 
     const testButtonGroup = new Adw.PreferencesGroup();
-    page.add(testButtonGroup);
+    page.add(testButtonGroup, _("Test Notifications"));
 
     const testButton = new Gtk.Button({
       label: _("Send Test Notification"),

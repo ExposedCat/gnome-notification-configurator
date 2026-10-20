@@ -66,6 +66,4 @@ export class GroupingAdapter {
       this.createGetSourceForPidAndNameHook(),
     );
   }
-
-  dispose(): void {}
 }

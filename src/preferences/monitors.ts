@@ -22,7 +22,7 @@ export function createMonitorRow(
 
   const rebuild = () => {
     const model = new Gtk.StringList();
-    model.append(_("Main monitor"));
+    model.append(_("Top bar monitor"));
     selections = [normalizeMonitor(undefined)];
     const selected = configuration.display.monitor;
     const matching = findMonitor(monitors.monitors, selected);

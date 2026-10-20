@@ -10,10 +10,11 @@ import * as Layout from "resource:///org/gnome/shell/ui/layout.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as MessageList from "resource:///org/gnome/shell/ui/messageList.js";
 import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
-import { MonitorManager, findMonitor } from "../utils/monitors.js";
+import { MonitorManager } from "../utils/monitors.js";
 import { type Configuration, SettingsManager } from "../utils/settings.js";
 import { applyNotificationTheme } from "../utils/themes.js";
 import { BannerLifecycle, type BannerMessage } from "./banner-lifecycle.js";
+import { getPanelMonitor, resolveNotificationMonitor } from "./monitors.js";
 import {
   hideBannerAppTitleRow,
   resolveBannerWidgets,
@@ -106,6 +107,7 @@ export class NotificationStack {
   }> = [];
   private processing = false;
   private unredirectDisabled = false;
+  private panelMonitorIndex = getPanelMonitor()?.index;
 
   constructor(private settingsManager: SettingsManager) {
     this.patchTray();
@@ -140,6 +142,16 @@ export class NotificationStack {
         }
       }
     }
+    const panel = Main.layoutManager.panelBox;
+    this.shellSignals.push({
+      actor: panel,
+      signal: panel.connect("notify::allocation", () => {
+        const index = getPanelMonitor()?.index;
+        if (index === this.panelMonitorIndex) return;
+        this.panelMonitorIndex = index;
+        this.update();
+      }),
+    });
     this.update();
   }
 
@@ -313,16 +325,9 @@ export class NotificationStack {
   }
 
   private monitor(configuration: Configuration) {
-    const connected = findMonitor(
+    return resolveNotificationMonitor(
       this.monitors.monitors,
       configuration.display.monitor,
-    );
-    if (!connected?.active) return Main.layoutManager.primaryMonitor;
-    const index = global.backend
-      .get_monitor_manager()
-      .get_monitor_for_connector(connected.selection.connector);
-    return (
-      Main.layoutManager.monitors[index] ?? Main.layoutManager.primaryMonitor
     );
   }
 

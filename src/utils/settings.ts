@@ -144,26 +144,31 @@ export type PatternConfigurationPrefs = {
   };
 };
 
-export type GlobalConfiguration = Configuration;
+export type MediaPlayerConfiguration = {
+  enabled: boolean;
+  enlarge: boolean;
+  background: "empty" | "thumbnail" | "blurred";
+  thumbnail: "small" | "big" | "hide";
+  source: "show" | "hide";
+  sourceRegex: string;
+};
+
+export type GlobalConfiguration = Configuration & {
+  mediaPlayer: MediaPlayerConfiguration;
+};
 export type PatternConfiguration = Configuration & PatternConfigurationPrefs;
 type MatchableText = string | null;
 
 type SettingsEvents = {
   colorsEnabledChanged: [boolean];
-  rateLimitingEnabledChanged: [boolean];
-  filteringEnabledChanged: [boolean];
-  notificationThresholdChanged: [number];
   notificationPositionChanged: [Position];
   verticalPositionChanged: [VerticalPosition];
   monitorChanged: [];
   fullscreenEnabledChanged: [boolean];
-  notificationTimeoutChanged: [number];
-  ignoreIdleChanged: [boolean];
-  alwaysNormalUrgencyChanged: [boolean];
-  activateWindowOnAttentionChanged: [boolean];
   topBarChanged: [];
   clearOnFocusChanged: [];
   stackingChanged: [];
+  mediaPlayerChanged: [];
 };
 
 export class SettingsManager {
@@ -171,14 +176,7 @@ export class SettingsManager {
   private settingSignals: number[] = [];
 
   private _colorsEnabled = true;
-  private _rateLimitingEnabled = true;
-  private _filteringEnabled = false;
   private _fullscreenEnabled = false;
-  private _notificationThreshold = 5000;
-  private _notificationTimeout = 4000;
-  private _ignoreIdle = true;
-  private _alwaysNormalUrgency = false;
-  private _activateWindowOnAttention = false;
   private _globalConfiguration: GlobalConfiguration =
     SettingsManager.defaultGlobalConfiguration();
   private _patterns: PatternConfiguration[] = [];
@@ -194,6 +192,14 @@ export class SettingsManager {
   static defaultGlobalConfiguration(): GlobalConfiguration {
     return {
       enabled: true,
+      mediaPlayer: {
+        enabled: true,
+        enlarge: false,
+        background: "blurred",
+        thumbnail: "hide",
+        source: "hide",
+        sourceRegex: "",
+      },
       stacking: { maximumVisible: 1, direction: "down" },
       notificationCenter: {
         clearOnFocus: false,
@@ -348,36 +354,8 @@ export class SettingsManager {
     return this._colorsEnabled;
   }
 
-  get rateLimitingEnabled() {
-    return this._rateLimitingEnabled;
-  }
-
-  get filteringEnabled() {
-    return this._filteringEnabled;
-  }
-
   get fullscreenEnabled() {
     return this._fullscreenEnabled;
-  }
-
-  get notificationThreshold() {
-    return this._notificationThreshold;
-  }
-
-  get notificationTimeout() {
-    return this._notificationTimeout;
-  }
-
-  get ignoreIdle() {
-    return this._ignoreIdle;
-  }
-
-  get alwaysNormalUrgency() {
-    return this._alwaysNormalUrgency;
-  }
-
-  get activateWindowOnAttention() {
-    return this._activateWindowOnAttention;
   }
 
   get clearOnFocusEnabled() {
@@ -414,6 +392,12 @@ export class SettingsManager {
       (pattern) => pattern.overrides.display,
     );
     return pattern?.display.monitor ?? this.monitor;
+  }
+
+  get mediaPlayer() {
+    return this._globalConfiguration.enabled
+      ? this._globalConfiguration.mediaPlayer
+      : null;
   }
 
   get recentIcons() {
@@ -488,18 +472,6 @@ export class SettingsManager {
         (pattern) => pattern.filtering.enabled,
       )?.filtering.action ?? null
     );
-  }
-
-  isValidRegexPattern(pattern: string): boolean {
-    if (!pattern.trim()) {
-      return true;
-    }
-    try {
-      new RegExp(pattern, "i");
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   getThemeFor(source: string, title: string, body: string) {
@@ -610,39 +582,14 @@ export class SettingsManager {
         (pattern) =>
           pattern.enabled && pattern.overrides.colors && pattern.colors.enabled,
       );
-    this._rateLimitingEnabled =
-      this._globalConfiguration.rateLimiting.enabled ||
-      this._patterns.some(
-        (pattern) =>
-          pattern.enabled &&
-          pattern.overrides.rateLimiting &&
-          pattern.rateLimiting.enabled,
-      );
-    this._filteringEnabled = this._patterns.some(
-      (pattern) => pattern.enabled && pattern.filtering.enabled,
-    );
     this._fullscreenEnabled =
       this._globalConfiguration.display.enableFullscreen;
-    this._notificationThreshold =
-      this._globalConfiguration.rateLimiting.notificationThreshold;
-    this._notificationTimeout =
-      this._globalConfiguration.timeout.notificationTimeout;
-    this._ignoreIdle = this._globalConfiguration.timeout.ignoreIdle;
-    this._alwaysNormalUrgency =
-      this._globalConfiguration.urgency.alwaysNormalUrgency;
-    this._activateWindowOnAttention =
-      this._globalConfiguration.windowAttention.activateInstead;
   }
 
   private listen() {
-    const emitChanges = () => {
+    const reload = () => {
+      this.load();
       this.events.emit("colorsEnabledChanged", this._colorsEnabled);
-      this.events.emit("rateLimitingEnabledChanged", this._rateLimitingEnabled);
-      this.events.emit("filteringEnabledChanged", this._filteringEnabled);
-      this.events.emit(
-        "notificationThresholdChanged",
-        this._notificationThreshold,
-      );
       this.events.emit(
         "notificationPositionChanged",
         this.notificationPosition,
@@ -650,39 +597,43 @@ export class SettingsManager {
       this.events.emit("verticalPositionChanged", this.verticalPosition);
       this.events.emit("monitorChanged");
       this.events.emit("fullscreenEnabledChanged", this._fullscreenEnabled);
-      this.events.emit("notificationTimeoutChanged", this._notificationTimeout);
-      this.events.emit("ignoreIdleChanged", this._ignoreIdle);
-      this.events.emit("alwaysNormalUrgencyChanged", this._alwaysNormalUrgency);
-      this.events.emit(
-        "activateWindowOnAttentionChanged",
-        this._activateWindowOnAttention,
-      );
       this.events.emit("topBarChanged");
       this.events.emit("clearOnFocusChanged");
       this.events.emit("stackingChanged");
+      this.events.emit("mediaPlayerChanged");
     };
 
-    this.settingSignals.push(
-      this.settings.connect("changed::global", () => {
-        this.load();
-        emitChanges();
-      }),
-    );
-    this.settingSignals.push(
-      this.settings.connect("changed::patterns", () => {
-        this.load();
-        emitChanges();
-      }),
-    );
+    for (const key of ["global", "patterns"]) {
+      this.settingSignals.push(
+        this.settings.connect(`changed::${key}`, reload),
+      );
+    }
   }
 
   static parseGlobalConfiguration(value: string): GlobalConfiguration {
     try {
       const parsed = JSON.parse(value) as Partial<GlobalConfiguration>;
-      return SettingsManager.normalizeConfiguration(
-        parsed,
-        SettingsManager.defaultGlobalConfiguration(),
-      );
+      const defaults = SettingsManager.defaultGlobalConfiguration();
+      const mediaPlayer = parsed.mediaPlayer;
+      return {
+        ...SettingsManager.normalizeConfiguration(parsed, defaults),
+        mediaPlayer: {
+          enabled: normalizeBoolean(mediaPlayer?.enabled, true),
+          enlarge: normalizeBoolean(mediaPlayer?.enlarge, false),
+          background:
+            mediaPlayer?.background === "empty" ||
+            mediaPlayer?.background === "thumbnail"
+              ? mediaPlayer.background
+              : "blurred",
+          thumbnail:
+            mediaPlayer?.thumbnail === "small" ||
+            mediaPlayer?.thumbnail === "big"
+              ? mediaPlayer.thumbnail
+              : "hide",
+          source: mediaPlayer?.source === "show" ? "show" : "hide",
+          sourceRegex: normalizeString(mediaPlayer?.sourceRegex, ""),
+        },
+      };
     } catch {
       return SettingsManager.defaultGlobalConfiguration();
     }
@@ -935,16 +886,8 @@ export class SettingsManager {
     if (!value.trim()) {
       return false;
     }
-    return this.matchesRegex(value, matcher);
-  }
-
-  private matchesRegex(text: string, pattern: string): boolean {
-    if (!pattern.trim()) {
-      return false;
-    }
     try {
-      const regex = new RegExp(pattern, "i");
-      return regex.test(text);
+      return new RegExp(matcher, "i").test(value);
     } catch {
       return false;
     }

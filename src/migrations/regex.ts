@@ -1,14 +1,9 @@
 import type Gio from "gi://Gio";
 
 import {
-  DEFAULT_COUNTS_COLOR,
-  DEFAULT_INDICATOR_COLOR,
-  DEFAULT_THEME,
-} from "../utils/constants.js";
-import {
   normalizeAction,
-  normalizeMonitor,
   normalizePosition,
+  normalizeString,
   normalizeTheme,
 } from "../utils/normalize.js";
 import type {
@@ -16,11 +11,7 @@ import type {
   Matcher,
   PatternConfiguration,
 } from "../utils/settings.js";
-import {
-  NOTIFICATIONS_PER_SOURCE_DEFAULT,
-  RECENT_ICONS_DEFAULT,
-  SettingsManager,
-} from "../utils/settings.js";
+import { SettingsManager } from "../utils/settings.js";
 
 const OLD_KEYS = [
   "notification-threshold",
@@ -90,14 +81,9 @@ function shouldMigrate(currentSettings: Gio.Settings): boolean {
 function createGlobalConfiguration(
   oldSettings: Gio.Settings,
 ): GlobalConfiguration {
+  const defaults = SettingsManager.defaultGlobalConfiguration();
   return {
-    enabled: true,
-    stacking: { maximumVisible: 1, direction: "down" },
-    notificationCenter: {
-      clearOnFocus: false,
-      disableGrouping: false,
-      maximumPerSource: NOTIFICATIONS_PER_SOURCE_DEFAULT,
-    },
+    ...defaults,
     rateLimiting: {
       enabled: oldSettings.get_boolean("enable-rate-limiting"),
       notificationThreshold: oldSettings.get_int("notification-threshold"),
@@ -112,47 +98,15 @@ function createGlobalConfiguration(
       alwaysNormalUrgency: oldSettings.get_boolean("always-normal-urgency"),
     },
     display: {
-      monitor: normalizeMonitor(undefined),
+      ...defaults.display,
       enableFullscreen: oldSettings.get_boolean("enable-fullscreen"),
       notificationPosition: normalizePosition(
         oldSettings.get_string("notification-position"),
       ),
-      verticalPosition: "top",
-      hideAppTitleRow: false,
     },
     colors: {
+      ...defaults.colors,
       enabled: oldSettings.get_boolean("enable-custom-colors"),
-      theme: {
-        ...DEFAULT_THEME,
-      },
-    },
-    margins: {
-      enabled: false,
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-    },
-    windowAttention: {
-      activateInstead: false,
-    },
-    recentIcons: {
-      enabled: false,
-      onOpen: "followIndicator",
-      maximumCount: RECENT_ICONS_DEFAULT,
-      monochrome: false,
-      counts: false,
-      countsBackground: true,
-      countsColor: [...DEFAULT_COUNTS_COLOR],
-    },
-    indicator: {
-      enabled: true,
-      onOpen: "clear",
-      format: "dot",
-      color: [...DEFAULT_INDICATOR_COLOR],
-    },
-    doNotDisturb: {
-      topBar: "show",
     },
   };
 }
@@ -185,9 +139,9 @@ function createPatternConfigurations(
     | [];
   for (const candidate of blockList) {
     const matcher = {
-      title: asString(candidate.title),
-      body: asString(candidate.body),
-      appName: asString(candidate.appName),
+      title: normalizeString(candidate.title, ""),
+      body: normalizeString(candidate.body, ""),
+      appName: normalizeString(candidate.appName, ""),
     };
     const pattern = getOrCreatePattern(patternsByMatcher, matcher);
     pattern.filtering.enabled = filteringEnabled;
@@ -235,10 +189,6 @@ function createShortName(matcher: Matcher): string {
 
 function buildMatcherKey(matcher: Matcher): string {
   return `${matcher.title}\u0000${matcher.body}\u0000${matcher.appName}`;
-}
-
-function asString(value: unknown): string {
-  return typeof value === "string" ? value : "";
 }
 
 function safeParseObject(value: string): Record<string, unknown> | null {

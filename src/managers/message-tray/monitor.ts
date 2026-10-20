@@ -1,7 +1,11 @@
 import * as Layout from "resource:///org/gnome/shell/ui/layout.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
-import { MonitorManager, findMonitor } from "../../utils/monitors.js";
+import {
+  getPanelMonitor,
+  resolveNotificationMonitor,
+} from "../../shell/monitors.js";
+import { MonitorManager } from "../../utils/monitors.js";
 import type { SettingsManager } from "../../utils/settings.js";
 import type { MessageTrayManager } from "./manager.js";
 
@@ -18,6 +22,8 @@ export class MonitorAdapter {
   private settingsListeners: number[] = [];
   private layoutSignal?: number;
   private fullscreenSignal?: number;
+  private panelSignal?: number;
+  private panelMonitorIndex = getPanelMonitor()?.index;
 
   constructor(private settingsManager: SettingsManager) {}
 
@@ -42,16 +48,7 @@ export class MonitorAdapter {
   }
 
   getMonitor(): NotificationMonitor {
-    if (!this.constraint) return Main.layoutManager.primaryMonitor;
-    const monitor = findMonitor(this.monitors.monitors, this.selection);
-    if (!monitor?.active) return Main.layoutManager.primaryMonitor;
-
-    const index = global.backend
-      .get_monitor_manager()
-      .get_monitor_for_connector(monitor.selection.connector);
-    return (
-      Main.layoutManager.monitors[index] ?? Main.layoutManager.primaryMonitor
-    );
+    return resolveNotificationMonitor(this.monitors.monitors, this.selection);
   }
 
   private updateConstraint() {
@@ -106,6 +103,15 @@ export class MonitorAdapter {
       "in-fullscreen-changed",
       update,
     );
+    this.panelSignal = Main.layoutManager.panelBox.connect(
+      "notify::allocation",
+      () => {
+        const index = getPanelMonitor()?.index;
+        if (index === this.panelMonitorIndex) return;
+        this.panelMonitorIndex = index;
+        update();
+      },
+    );
     this.updateConstraint();
   }
 
@@ -115,6 +121,9 @@ export class MonitorAdapter {
     }
     if (this.fullscreenSignal !== undefined) {
       global.display.disconnect(this.fullscreenSignal);
+    }
+    if (this.panelSignal !== undefined) {
+      Main.layoutManager.panelBox.disconnect(this.panelSignal);
     }
     if (this.monitorListener !== undefined) {
       this.monitors.events.off(this.monitorListener);

@@ -4,22 +4,20 @@ export class TypedEventEmitter<T extends Record<string, unknown[]>> {
   private nextId = 1;
 
   on<K extends keyof T>(event: K, listener: (...args: T[K]) => void): number {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Map());
+    let eventListeners = this.listeners.get(event);
+    if (!eventListeners) {
+      eventListeners = new Map();
+      this.listeners.set(event, eventListeners);
     }
 
     const id = this.nextId++;
-    // biome-ignore lint/style/noNonNullAssertion: Checked above
-    this.listeners
-      .get(event)!
-      .set(id, listener as (...args: T[keyof T]) => void);
+    eventListeners.set(id, listener as (...args: T[keyof T]) => void);
     return id;
   }
 
   off(id: number): void {
     for (const eventListeners of this.listeners.values()) {
-      if (eventListeners.has(id)) {
-        eventListeners.delete(id);
+      if (eventListeners.delete(id)) {
         return;
       }
     }

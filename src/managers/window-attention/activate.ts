@@ -55,6 +55,4 @@ export class ActivateAdapter {
   register(manager: WindowAttentionManager): void {
     manager.registerHook(this.createHook());
   }
-
-  dispose(): void {}
 }

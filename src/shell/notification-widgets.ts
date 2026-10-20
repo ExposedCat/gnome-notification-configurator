@@ -24,6 +24,8 @@ export type NotificationWidgets = {
   bodyText: string;
 };
 
+const hiddenHeaders = new WeakSet<Clutter.Actor>();
+
 export function getMessageTrayContainer() {
   return Main.messageTray.get_first_child();
 }
@@ -42,6 +44,10 @@ export function getFirstBannerRow(banner = getBannerBin()) {
 }
 
 export function hideBannerAppTitleRow(banner = getBannerBin()) {
+  const message = banner?.get_first_child();
+  if (!message) return false;
+  if (hiddenHeaders.has(message)) return true;
+
   const appTitleRow = getFirstBannerRow(banner);
   if (!appTitleRow) return false;
 
@@ -57,6 +63,7 @@ export function hideBannerAppTitleRow(banner = getBannerBin()) {
 
   targetWrapper?.set_style("margin-top: 2px !important");
   targetWrapper?.add_child(appTitleRow);
+  hiddenHeaders.add(message);
 
   return true;
 }

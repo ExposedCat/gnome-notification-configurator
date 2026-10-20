@@ -1,5 +1,5 @@
 import type { SettingsManager } from "../../utils/settings.js";
-import type { AddNotificationHook } from "./manager.js";
+import type { AddNotificationHook, SourceManager } from "./manager.js";
 
 export class ProcessingAdapter {
   private timings: Record<string, number> = {};
@@ -56,7 +56,7 @@ export class ProcessingAdapter {
     };
   }
 
-  register(manager: import("./manager.js").SourceManager): void {
+  register(manager: SourceManager): void {
     manager.registerAddNotificationHook(this.createHook());
   }
 

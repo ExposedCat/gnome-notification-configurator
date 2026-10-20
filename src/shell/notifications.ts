@@ -1,5 +1,4 @@
 import Clutter from "gi://Clutter";
-import GLib from "gi://GLib";
 import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
@@ -176,27 +175,26 @@ export class NotificationsManager {
     this.injectionManager.overrideMethod(
       proto,
       "_hideNotification",
-      (original) =>
+      () =>
         function (this: MessageTray.MessageTrayProto, animate) {
-          if (self.isVerticalAlignTop(this._bannerBin)) {
-            original.call(this, animate);
-            return;
-          }
-
           this._notificationFocusGrabber.ungrabFocus();
           this._banner?.disconnectObject(this);
           this._resetNotificationLeftTimeout();
           this._bannerBin.remove_all_transitions();
 
           const duration = animate ? ANIMATION_TIME : 0;
+          const top = self.isVerticalAlignTop(this._bannerBin);
           this._notificationState = MessageTray.State.HIDING;
           this._bannerBin.ease({
             opacity: 0,
-            scale_x: 0.9,
-            scale_y: 0.9,
+            ...(top
+              ? { y: -this._bannerBin.height }
+              : { scale_x: 0.9, scale_y: 0.9 }),
             duration,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onStopped: () => {
+            mode: top
+              ? Clutter.AnimationMode.EASE_OUT_BACK
+              : Clutter.AnimationMode.EASE_OUT_QUAD,
+            onComplete: () => {
               this._notificationState = MessageTray.State.HIDDEN;
               this._hideNotificationCompleted();
               this._updateState();
@@ -274,10 +272,7 @@ export class NotificationsManager {
       }
 
       if (shouldHideAppTitleRow) {
-        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-          hideBannerAppTitleRow();
-          return GLib.SOURCE_REMOVE;
-        });
+        hideBannerAppTitleRow(bannerBin);
       }
     });
   }
@@ -308,10 +303,7 @@ export class NotificationsManager {
     }
 
     this.monitorAdapter.dispose();
-    this.groupingAdapter.dispose();
-    this.urgencyAdapter.dispose();
     this.processingAdapter.dispose();
-    this.activateAdapter.dispose();
 
     this.messageTrayManager.dispose();
     this.notificationDaemonManager.dispose();

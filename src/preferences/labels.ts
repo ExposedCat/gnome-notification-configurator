@@ -1,5 +1,8 @@
 import { gettext as _ } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
-import type { PatternConfiguration } from "../utils/settings.js";
+import type {
+  GlobalConfiguration,
+  PatternConfiguration,
+} from "../utils/settings.js";
 
 type FieldPath<Configuration> = {
   [Key in keyof Configuration & string]: Configuration[Key] extends
@@ -79,7 +82,16 @@ export function configurationLabels(): Map<string, string> {
       "indicator.onOpen": _("Indicator on Notification Center Opening"),
       "indicator.format": _("Indicator Format"),
       "indicator.color": _("Indicator Color"),
+      "mediaPlayer.enabled": _("Media Player Enabled"),
+      "mediaPlayer.enlarge": _("Enlarge Media Player"),
+      "mediaPlayer.background": _("Media Player Background"),
+      "mediaPlayer.thumbnail": _("Media Player Thumbnail"),
+      "mediaPlayer.source": _("Media Player Source"),
+      "mediaPlayer.sourceRegex": _("Media Player Source Pattern"),
       "doNotDisturb.topBar": _("Top Bar in Do Not Disturb"),
-    } satisfies Record<FieldPath<PatternConfiguration>, string>),
+    } satisfies Record<
+      FieldPath<PatternConfiguration & GlobalConfiguration>,
+      string
+    >),
   );
 }

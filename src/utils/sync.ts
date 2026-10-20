@@ -1,4 +1,8 @@
-import type { GlobalConfiguration, PatternConfiguration } from "./settings.js";
+import type {
+  Configuration,
+  GlobalConfiguration,
+  PatternConfiguration,
+} from "./settings.js";
 import { SettingsManager } from "./settings.js";
 
 type Setting = boolean | number | string | number[];
@@ -51,11 +55,11 @@ export function configurationFields(
   return fields;
 }
 
-export function mergeConfiguration<Configuration extends GlobalConfiguration>(
-  current: Configuration,
+export function mergeConfiguration<Settings extends Configuration>(
+  current: Settings,
   incoming: ConfigurationFields,
   excluded: Set<string> = new Set(),
-): Configuration {
+): Settings {
   const merge = (candidate: unknown, path: string): unknown => {
     if (isObject(candidate)) {
       return Object.fromEntries(
@@ -67,7 +71,7 @@ export function mergeConfiguration<Configuration extends GlobalConfiguration>(
     }
     return excluded.has(path) ? candidate : (incoming.get(path) ?? candidate);
   };
-  return merge(current, "") as Configuration;
+  return merge(current, "") as Settings;
 }
 
 function parseFields(
