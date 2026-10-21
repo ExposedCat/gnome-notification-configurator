@@ -26,7 +26,6 @@ export class SectionedPreferences {
     const sidebar = new Gtk.ScrolledWindow({
       hscrollbar_policy: Gtk.PolicyType.NEVER,
       width_request: 240,
-      css_classes: ["sidebar-pane"],
       child: this.navigation,
     });
     const layout = new Gtk.Box({ vexpand: true });

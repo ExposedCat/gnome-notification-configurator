@@ -27,6 +27,7 @@ export default class NotificationConfiguratorExtension extends Extension {
     this.themesManager = new ThemesManager(this.settingsManager);
     this.notificationCenterManager = new NotificationCenterManager(
       this.settingsManager,
+      () => this.openPreferences(),
     );
     this.topBarManager = new TopBarManager(this.settingsManager);
     this.mediaPlayerManager = new MediaPlayerManager(this.settingsManager);

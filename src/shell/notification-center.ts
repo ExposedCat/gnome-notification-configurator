@@ -1,5 +1,7 @@
 import Clutter from "gi://Clutter";
+import GObject from "gi://GObject";
 import St from "gi://St";
+import { gettext as _ } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as Config from "resource:///org/gnome/shell/misc/config.js";
 import * as Calendar from "resource:///org/gnome/shell/ui/calendar.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
@@ -65,6 +67,8 @@ function shadeBackground(background: number[], adjustment: number) {
 }
 
 export class NotificationCenterManager {
+  private settingsButton?: St.Button;
+  private buttonBindings: GObject.Binding[] = [];
   private signals = new Map<Clutter.Actor, number[]>();
   private messages = new Map<NotificationMessage, Appearance>();
   private settingsListener: number;
@@ -78,7 +82,10 @@ export class NotificationCenterManager {
       : Calendar) as unknown as NotificationNamespace
   ).NotificationMessage;
 
-  constructor(private settingsManager: SettingsManager) {
+  constructor(
+    private settingsManager: SettingsManager,
+    openPreferences: () => void,
+  ) {
     const refresh = () => {
       for (const message of this.messages.keys()) this.update(message);
     };
@@ -89,9 +96,44 @@ export class NotificationCenterManager {
     this.themeSignal = this.themeContext.connect("changed", refresh);
     const calendar = (
       Main.panel.statusArea.dateMenu as unknown as {
-        _messageList: St.Widget;
+        _messageList: St.Widget & { _clearButton: St.Button };
       }
     )._messageList;
+    const controls = calendar._clearButton.get_parent();
+    if (controls) {
+      this.settingsButton = new St.Button({
+        style_class: "message-list-clear-button button",
+        style: "padding-left: 0; padding-right: 0;",
+        can_focus: true,
+        x_align: Clutter.ActorAlign.END,
+        y_align: Clutter.ActorAlign.CENTER,
+        x_expand: true,
+        accessible_name: _("Notification Configurator Settings"),
+        child: new St.Icon({
+          icon_name: "emblem-system-symbolic",
+          style_class: "popup-menu-icon",
+        }),
+      });
+      this.buttonBindings = [
+        calendar._clearButton.bind_property(
+          "height",
+          this.settingsButton,
+          "height",
+          GObject.BindingFlags.SYNC_CREATE,
+        ),
+        this.settingsButton.bind_property(
+          "height",
+          this.settingsButton,
+          "width",
+          GObject.BindingFlags.SYNC_CREATE,
+        ),
+      ];
+      this.settingsButton.connect("clicked", () => {
+        Main.panel.closeCalendar();
+        openPreferences();
+      });
+      controls.add_child(this.settingsButton);
+    }
     this.watch(calendar);
   }
 
@@ -247,6 +289,10 @@ export class NotificationCenterManager {
   }
 
   dispose() {
+    for (const binding of this.buttonBindings) binding.unbind();
+    this.buttonBindings = [];
+    this.settingsButton?.destroy();
+    this.settingsButton = undefined;
     this.settingsManager.events.off(this.settingsListener);
     this.themeContext.disconnect(this.themeSignal);
     for (const [actor, signals] of this.signals) {

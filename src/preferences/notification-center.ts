@@ -8,15 +8,13 @@ import type {
 } from "../utils/settings.js";
 import { mediaPlayerPreview } from "./media-preview.js";
 import { createSvgPreview } from "./preview.js";
+import type { SectionedPreferences } from "./sections.js";
 
-export function buildNotificationCenterPage(
+export function addNotificationCenterAppearance(
+  page: SectionedPreferences,
   configuration: () => GlobalConfiguration,
   save: () => void,
-): Adw.PreferencesPage {
-  const page = new Adw.PreferencesPage({
-    title: _("Notification Center"),
-    icon_name: "preferences-system-notifications-symbolic",
-  });
+): void {
   const appearance = new Adw.PreferencesGroup({ title: _("Appearance") });
   const followBannerAppearance = new Adw.SwitchRow({
     title: _("Follow banner appearance"),
@@ -29,9 +27,16 @@ export function buildNotificationCenterPage(
     save();
   });
   appearance.add(followBannerAppearance);
-  page.add(appearance);
+  page.add(appearance, "preferences-system-symbolic", _("General"));
+}
+
+export function addMediaPlayerGroup(
+  page: SectionedPreferences,
+  configuration: () => GlobalConfiguration,
+  save: () => void,
+): void {
   const group = new Adw.PreferencesGroup({ title: _("Media Player") });
-  page.add(group);
+  page.add(group, "multimedia-player-symbolic");
   const preview = createSvgPreview(_("Media player appearance preview"));
   group.add(preview.row);
   const desktop = new Gio.Settings({
@@ -132,5 +137,4 @@ export function buildNotificationCenterPage(
   group.add(sourcePattern);
   rows.push(sourcePattern);
   refresh();
-  return page;
 }
