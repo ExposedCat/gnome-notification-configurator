@@ -1,0 +1,720 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Notification Configurator 3\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-10-23 00:00+0800\n"
+"Last-Translator: \n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Enabled"
+msgstr "启用"
+
+msgid "Short Name"
+msgstr "简称"
+
+msgid "App Name"
+msgstr "应用名称"
+
+msgid "Title"
+msgstr "标题"
+
+msgid "Body"
+msgstr "正文"
+
+msgid "Override Notification Center"
+msgstr "覆盖通知中心设置"
+
+msgid "Override Rate Limiting"
+msgstr "覆盖频率限制设置"
+
+msgid "Override Visible Notifications"
+msgstr "覆盖可见通知设置"
+
+msgid "Maximum Visible Notifications"
+msgstr "最大可见通知数"
+
+msgid "Stack Direction"
+msgstr "堆叠方向"
+
+msgid "Override Notification Timeout"
+msgstr "覆盖通知显示时长"
+
+msgid "Override Urgency"
+msgstr "覆盖紧急程度"
+
+msgid "Override Display"
+msgstr "覆盖显示设置"
+
+msgid "Override Custom Styles"
+msgstr "覆盖自定义样式"
+
+msgid "Override Custom Margins"
+msgstr "覆盖自定义边距"
+
+msgid "Override Window Attention"
+msgstr "覆盖窗口提醒设置"
+
+msgid "Enable Filtering"
+msgstr "启用过滤"
+
+msgid "Filter Action"
+msgstr "过滤操作"
+
+msgid "Follow banner appearance"
+msgstr "沿用横幅外观"
+
+msgid "Clear Notifications on Focus"
+msgstr "应用获得焦点时清除通知"
+
+msgid "Disable Stacking"
+msgstr "禁用堆叠"
+
+msgid "Maximum Per Source"
+msgstr "每个应用的通知上限"
+
+msgid "Enable Rate Limiting"
+msgstr "启用频率限制"
+
+msgid "Notification Threshold"
+msgstr "通知间隔阈值"
+
+msgid "Rate Limiting Action"
+msgstr "频率限制操作"
+
+msgid "Enable Timeout Override"
+msgstr "启用显示时长覆盖"
+
+msgid "Timeout Duration"
+msgstr "显示时长"
+
+msgid "Ignore Idle State"
+msgstr "忽略空闲状态"
+
+msgid "Force Normal Urgency"
+msgstr "强制使用普通紧急程度"
+
+msgid "Enable Notifications in Fullscreen"
+msgstr "全屏时显示通知"
+
+msgid "Monitor Connector"
+msgstr "显示器接口"
+
+msgid "Monitor Vendor"
+msgstr "显示器厂商"
+
+msgid "Monitor Model"
+msgstr "显示器型号"
+
+msgid "Monitor Serial"
+msgstr "显示器序列号"
+
+msgid "Horizontal Alignment"
+msgstr "水平对齐"
+
+msgid "Vertical Alignment"
+msgstr "垂直对齐"
+
+msgid "Hide App Title Row"
+msgstr "隐藏应用标题栏"
+
+msgid "Enable Custom Styles"
+msgstr "启用自定义样式"
+
+msgid "App Name Color"
+msgstr "应用名称颜色"
+
+msgid "Time Color"
+msgstr "时间颜色"
+
+msgid "Background Color"
+msgstr "背景颜色"
+
+msgid "Title Color"
+msgstr "标题颜色"
+
+msgid "Body Text Color"
+msgstr "正文颜色"
+
+msgid "App Name Font Size"
+msgstr "应用名称字号"
+
+msgid "Time Font Size"
+msgstr "时间字号"
+
+msgid "Title Font Size"
+msgstr "标题字号"
+
+msgid "Body Text Font Size"
+msgstr "正文字号"
+
+msgid "Enable Custom Margins"
+msgstr "启用自定义边距"
+
+msgid "Margin Top"
+msgstr "上边距"
+
+msgid "Margin Bottom"
+msgstr "下边距"
+
+msgid "Margin Left"
+msgstr "左边距"
+
+msgid "Margin Right"
+msgstr "右边距"
+
+msgid "Activate Window Instead of Notifying"
+msgstr "直接激活窗口"
+
+msgid "Show App Icons"
+msgstr "显示应用图标"
+
+msgid "Icons on Notification Center Opening"
+msgstr "打开通知中心时的图标行为"
+
+msgid "Maximum Icons"
+msgstr "最大图标数"
+
+msgid "Monochrome Icons"
+msgstr "单色图标"
+
+msgid "Notification Counts"
+msgstr "通知数量"
+
+msgid "Counts Background"
+msgstr "计数背景"
+
+msgid "Counts Color"
+msgstr "计数颜色"
+
+msgid "Show Indicator"
+msgstr "显示指示器"
+
+msgid "Indicator on Notification Center Opening"
+msgstr "打开通知中心时的指示器行为"
+
+msgid "Indicator Format"
+msgstr "指示器样式"
+
+msgid "Indicator Color"
+msgstr "指示器颜色"
+
+msgid "Media Player Enabled"
+msgstr "启用媒体播放器"
+
+msgid "Enlarge Media Player"
+msgstr "放大媒体播放器"
+
+msgid "Media Player Background"
+msgstr "媒体播放器背景"
+
+msgid "Media Player Thumbnail"
+msgstr "媒体播放器缩略图"
+
+msgid "Media Player Source"
+msgstr "媒体播放器来源"
+
+msgid "Media Player Source Pattern"
+msgstr "媒体播放器来源匹配规则"
+
+msgid "Top Bar in Do Not Disturb"
+msgstr "勿扰模式下的顶栏"
+
+msgid "Track title"
+msgstr "曲目标题"
+
+msgid "Artist name"
+msgstr "艺术家名称"
+
+msgid "Monitor"
+msgstr "显示器"
+
+msgid "Use the main monitor when the selected monitor is unavailable"
+msgstr "所选显示器不可用时使用主显示器"
+
+msgid "Top bar monitor"
+msgstr "顶栏所在显示器"
+
+msgid "Unavailable — using main monitor"
+msgstr "不可用 — 使用主显示器"
+
+msgid "Appearance"
+msgstr "外观"
+
+msgid "Use banner colors, fonts, header visibility, and margins"
+msgstr "沿用横幅的颜色、字体、标题栏可见性和边距"
+
+msgid "General"
+msgstr "常规"
+
+msgid "Media Player"
+msgstr "媒体播放器"
+
+msgid "Media player appearance preview"
+msgstr "媒体播放器外观预览"
+
+msgid "Source Title Pattern (optional)"
+msgstr "来源标题匹配规则（可选）"
+
+msgid "Case-insensitive regular expression matching the source app title. Empty hides all sources."
+msgstr "用于匹配来源应用标题的正则表达式，不区分大小写。留空则隐藏所有来源。"
+
+msgid "Show media players in the notification center"
+msgstr "在通知中心显示媒体播放器"
+
+msgid "Enlarge"
+msgstr "放大"
+
+msgid "Use a taller banner and larger track text"
+msgstr "使用更高的横幅和更大的曲目文字"
+
+msgid "Background"
+msgstr "背景"
+
+msgid "Artwork behind the track and playback controls"
+msgstr "在曲目信息和播放控件后显示封面"
+
+msgid "Empty"
+msgstr "无"
+
+msgid "Thumbnail"
+msgstr "缩略图"
+
+msgid "Blurred"
+msgstr "模糊"
+
+msgid "Rounded artwork beside the track"
+msgstr "在曲目信息旁显示圆角封面"
+
+msgid "Small"
+msgstr "小"
+
+msgid "Big"
+msgstr "大"
+
+msgid "Hide"
+msgstr "隐藏"
+
+msgid "Source"
+msgstr "来源"
+
+msgid "App name and icon above the track"
+msgstr "在曲目信息上方显示应用名称和图标"
+
+msgid "Show"
+msgstr "显示"
+
+msgid "Notification title"
+msgstr "通知标题"
+
+msgid "This is how your notification will look."
+msgstr "通知将以此样式显示。"
+
+msgid "Just now"
+msgstr "刚刚"
+
+msgid "Example App"
+msgstr "示例应用"
+
+msgid "Sync"
+msgstr "同步"
+
+msgid "Export your settings or import selected settings from a configuration file."
+msgstr "导出设置，或从配置文件中导入选定的设置。"
+
+msgid "Configuration could not be transferred"
+msgstr "无法传输配置"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Export configuration"
+msgstr "导出配置"
+
+msgid "Import configuration"
+msgstr "导入配置"
+
+msgid "Configuration exported"
+msgstr "配置已导出"
+
+msgid "Could not read the configuration file."
+msgstr "无法读取配置文件。"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Configuration files (*.json)"
+msgstr "配置文件 (*.json)"
+
+msgid "Global"
+msgstr "全局"
+
+msgid "Unnamed Pattern"
+msgstr "未命名规则"
+
+msgid "Select what to import. Expand conflicts to choose which existing settings to replace."
+msgstr "选择要导入的内容。展开冲突项，选择要替换的现有设置。"
+
+msgid "Import"
+msgstr "导入"
+
+msgid "Import global settings"
+msgstr "导入全局设置"
+
+msgid "Matches an existing pattern"
+msgstr "与现有规则匹配"
+
+msgid "Add as a new pattern"
+msgstr "添加为新规则"
+
+msgid "Setting"
+msgstr "设置"
+
+msgid "Settings changed while the import was open. Select the file again to review the latest conflicts."
+msgstr "导入窗口打开期间设置已更改。请重新选择文件，查看最新的冲突项。"
+
+msgid "Global settings could not be saved."
+msgstr "无法保存全局设置。"
+
+msgid "Patterns could not be saved."
+msgstr "无法保存规则。"
+
+msgid "Configuration imported"
+msgstr "配置已导入"
+
+msgid "Body Text"
+msgstr "正文"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Patterns"
+msgstr "规则"
+
+msgid "Master switch for all notification configuration"
+msgstr "所有通知配置的总开关"
+
+msgid "Notification Center"
+msgstr "通知中心"
+
+msgid "Top Bar Icons"
+msgstr "顶栏图标"
+
+msgid "Show apps with pending notifications next to the clock"
+msgstr "在时钟旁显示有待处理通知的应用"
+
+msgid "Top Bar"
+msgstr "顶栏"
+
+msgid "On Notification Center Opening"
+msgstr "打开通知中心时"
+
+msgid "Clear icons from the top bar or keep them until dismissed"
+msgstr "清除顶栏图标，或保留至通知被清除"
+
+msgid "Follow indicator"
+msgstr "跟随指示器"
+
+msgid "Clear icons"
+msgstr "清除图标"
+
+msgid "Keep icons"
+msgstr "保留图标"
+
+msgid "Number of most recent apps shown"
+msgstr "显示最近发送通知的应用数量"
+
+msgid "Show app icons in black and white"
+msgstr "以黑白样式显示应用图标"
+
+msgid "Number of notifications on each icon"
+msgstr "在每个图标上显示通知数量"
+
+msgid "Show counts in a filled circle"
+msgstr "在实心圆内显示通知数量"
+
+msgid "Newest first, one icon per app"
+msgstr "最新的排在前面，每个应用显示一个图标"
+
+msgid "Top Bar Indicator"
+msgstr "顶栏指示器"
+
+msgid "Mark pending notifications that are not shown as icons"
+msgstr "标记未以图标显示的待处理通知"
+
+msgid "Clear the indicator or keep it until notifications are dismissed"
+msgstr "清除指示器，或保留至通知被清除"
+
+msgid "Clear indicator"
+msgstr "清除指示器"
+
+msgid "Keep indicator"
+msgstr "保留指示器"
+
+msgid "A dot or the number of notifications"
+msgstr "显示圆点或通知数量"
+
+msgid "Dot"
+msgstr "圆点"
+
+msgid "Number"
+msgstr "数字"
+
+msgid "Show pending notifications next to the clock"
+msgstr "在时钟旁显示待处理通知"
+
+msgid "Do Not Disturb"
+msgstr "勿扰模式"
+
+msgid "What to hide next to the clock while Do Not Disturb is on"
+msgstr "开启勿扰模式时，隐藏时钟旁的哪些内容"
+
+msgid "Nothing"
+msgstr "不隐藏"
+
+msgid "Hide icons"
+msgstr "隐藏图标"
+
+msgid "Hide everything"
+msgstr "全部隐藏"
+
+msgid "Notification Patterns"
+msgstr "通知规则"
+
+msgid "Per-pattern overrides that apply to matching notifications"
+msgstr "为匹配的通知单独设置覆盖规则"
+
+msgid "New Pattern"
+msgstr "新建规则"
+
+msgid "No matchers configured"
+msgstr "未配置匹配条件"
+
+msgid "Pattern Identity"
+msgstr "规则信息"
+
+msgid "Enable this pattern override"
+msgstr "启用此规则的覆盖设置"
+
+msgid "Matchers"
+msgstr "匹配条件"
+
+msgid "RegExp patterns to match notifications"
+msgstr "用于匹配通知的正则表达式"
+
+msgid "Matching"
+msgstr "匹配"
+
+msgid "Filtering"
+msgstr "过滤"
+
+msgid "Block or hide matching notifications"
+msgstr "拦截或隐藏匹配的通知"
+
+msgid "What to do with matching notifications"
+msgstr "如何处理匹配的通知"
+
+msgid "Hide notification"
+msgstr "隐藏通知"
+
+msgid "Close notification"
+msgstr "关闭通知"
+
+msgid "Apply filter action to matching notifications"
+msgstr "对匹配的通知执行过滤操作"
+
+msgid "Delete Pattern"
+msgstr "删除规则"
+
+msgid "Pattern"
+msgstr "规则"
+
+msgid "Control how matching notifications are stored and cleared"
+msgstr "控制匹配通知的保留和清除方式"
+
+msgid "Clear matching notifications when their application gains focus, and new ones after their banners close while it remains focused"
+msgstr "应用获得焦点时清除匹配的通知；保持焦点期间，新通知在横幅关闭后清除"
+
+msgid "Create a separate entry for each matching notification"
+msgstr "为每条匹配的通知创建独立条目"
+
+msgid "Number of notifications kept for one application"
+msgstr "每个应用保留的通知数量"
+
+msgid "Rate Limiting"
+msgstr "频率限制"
+
+msgid "Control notification frequency per application"
+msgstr "控制每个应用的通知频率"
+
+msgid "Time in milliseconds before allowing duplicate notifications"
+msgstr "允许重复通知的最小间隔，单位为毫秒"
+
+msgid "Action"
+msgstr "操作"
+
+msgid "What to do with rate-limited notifications"
+msgstr "如何处理超出频率限制的通知"
+
+msgid "Prevent duplicate notifications within threshold time"
+msgstr "阻止在设定间隔内出现重复通知"
+
+msgid "Visible Notifications"
+msgstr "可见通知"
+
+msgid "Control how many notifications appear at the same time"
+msgstr "控制同时显示的通知数量"
+
+msgid "1 shows notifications one at a time; additional notifications wait for a free space"
+msgstr "设为 1 时每次显示一条通知；其余通知等待空位后显示"
+
+msgid "Place new notifications above or below existing notifications"
+msgstr "将新通知放在现有通知的上方或下方"
+
+msgid "Downward"
+msgstr "向下"
+
+msgid "Upward"
+msgstr "向上"
+
+msgid "Notification Timeout"
+msgstr "通知显示时长"
+
+msgid "Control how long notifications stay visible"
+msgstr "控制通知的显示时长"
+
+msgid "Time in milliseconds before auto-dismiss (0 = never dismiss)"
+msgstr "自动关闭前的显示时长，单位为毫秒（0 表示永不自动关闭）"
+
+msgid "Keep showing notifications even when user is idle"
+msgstr "用户空闲时仍继续显示通知"
+
+msgid "Override default notification timeout"
+msgstr "覆盖默认的通知显示时长"
+
+msgid "Urgency"
+msgstr "紧急程度"
+
+msgid "Make all notifications use normal urgency level"
+msgstr "将所有通知的紧急程度设为普通"
+
+msgid "Window Attention"
+msgstr "窗口提醒"
+
+msgid "Control what happens when a window demands attention"
+msgstr "控制窗口请求关注时的行为"
+
+msgid "Switch directly to the window instead of showing a notification"
+msgstr "直接切换到窗口，不显示通知"
+
+msgid "Display"
+msgstr "显示"
+
+msgid "Show notifications even when applications are in fullscreen"
+msgstr "应用处于全屏模式时也显示通知"
+
+msgid "Horizontal position of notifications on screen"
+msgstr "通知在屏幕上的水平位置"
+
+msgid "Fill"
+msgstr "填满"
+
+msgid "Left"
+msgstr "左侧"
+
+msgid "Center"
+msgstr "居中"
+
+msgid "Right"
+msgstr "右侧"
+
+msgid "Vertical position of notifications on screen"
+msgstr "通知在屏幕上的垂直位置"
+
+msgid "Top"
+msgstr "顶部"
+
+msgid "Bottom"
+msgstr "底部"
+
+msgid "Customize notification styles and margins"
+msgstr "自定义通知样式和边距"
+
+msgid "Hide title and time row"
+msgstr "隐藏应用标题和时间所在行"
+
+msgid "Apply custom styles to notifications"
+msgstr "为通知应用自定义样式"
+
+msgid "Notification appearance preview"
+msgstr "通知外观预览"
+
+msgid "Apply custom margins to notifications"
+msgstr "为通知应用自定义边距"
+
+msgid "Banners"
+msgstr "横幅"
+
+msgid "Behavior"
+msgstr "行为"
+
+msgid "Override"
+msgstr "覆盖"
+
+msgid "Override global setting for this pattern"
+msgstr "为此规则覆盖全局设置"
+
+msgid "px"
+msgstr "像素"
+
+msgid "Test Notifications"
+msgstr "测试通知"
+
+msgid "Test Application Name"
+msgstr "测试应用名称"
+
+msgid "Test Notification Title"
+msgstr "测试通知标题"
+
+msgid "Test Notification Body"
+msgstr "测试通知正文"
+
+msgid "Send Test Notification"
+msgstr "发送测试通知"
+
+msgid "notify-send was not found. Install it and try again."
+msgstr "未找到 notify-send。请安装后重试。"
+
+msgid "Test App"
+msgstr "测试应用"
+
+msgid "Test Notification"
+msgstr "测试通知"
+
+msgid "This is a test notification"
+msgstr "这是一条测试通知"
+
+msgid "Notification Configurator Settings"
+msgstr "通知配置器设置"
+
+msgid "Notification Content"
+msgstr "通知内容"
+
+msgid "Hide Notification Body"
+msgstr "隐藏通知正文"
+
+msgid "Keep the notification title and hide its body text"
+msgstr "保留通知标题，隐藏正文内容"
+
+msgid "Override Notification Content"
+msgstr "覆盖通知内容设置"
