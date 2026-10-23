@@ -12,6 +12,7 @@ import { applyNotificationTheme } from "../utils/themes.js";
 import {
   type NotificationWidgets,
   resolveBannerWidgets,
+  setNotificationBodyHidden,
 } from "./notification-widgets.js";
 
 type NotificationMessage = St.Widget & {
@@ -259,9 +260,17 @@ export class NotificationCenterManager {
     const source = notification.source?.title ?? "";
     const title = notification.title ?? "";
     const body = notification.body ?? "";
+    const configuration = this.settingsManager.getConfigurationFor(
+      source,
+      title,
+      body,
+    );
+    setNotificationBodyHidden(
+      appearance.widgets,
+      configuration.enabled && configuration.content.hideBody,
+    );
     const enabled =
-      this.settingsManager.followBannerAppearance &&
-      this.settingsManager.getConfigurationFor(source, title, body).enabled;
+      this.settingsManager.followBannerAppearance && configuration.enabled;
     this.setHeaderHidden(
       appearance,
       enabled &&
@@ -300,6 +309,7 @@ export class NotificationCenterManager {
     }
     this.signals.clear();
     for (const appearance of this.messages.values()) {
+      setNotificationBodyHidden(appearance.widgets, false);
       this.setHeaderHidden(appearance, false);
       for (const [widget, style] of appearance.styles) widget.set_style(style);
     }
