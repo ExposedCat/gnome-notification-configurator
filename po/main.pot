@@ -384,3 +384,15 @@ msgstr ""
 #: dist/prefs.js:786
 msgid "This is a test notification"
 msgstr ""
+
+msgid "Notification Content"
+msgstr ""
+
+msgid "Hide Notification Body"
+msgstr ""
+
+msgid "Keep the notification title and hide its body text"
+msgstr ""
+
+msgid "Override Notification Content"
+msgstr ""

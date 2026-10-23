@@ -19,6 +19,7 @@ import { createNotificationSlot } from "./notification-layout.js";
 import {
   hideBannerAppTitleRow,
   resolveBannerWidgets,
+  setNotificationBodyHidden,
 } from "./notification-widgets.js";
 
 type BannerConstructor = new (
@@ -102,6 +103,7 @@ export class NotificationStack {
   private injectionManager = new InjectionManager();
   private monitors = new MonitorManager();
   private banners = new Map<MessageTray.Notification, Banner>();
+  private originalStyles = new WeakMap<St.Widget, string | null>();
   private queue: Banner[] = [];
   private stacks = new Map<string, Stack>();
   private settingsListener: number;
@@ -620,6 +622,10 @@ export class NotificationStack {
 
   private applyAppearance(banner: Banner, configuration: Configuration) {
     if (!banner.actor || !banner.message) return;
+    setNotificationBodyHidden(
+      resolveBannerWidgets(banner.message),
+      configuration.enabled && configuration.content.hideBody,
+    );
     const hidden =
       configuration.enabled &&
       this.settingsManager.shouldHideAppTitleRowFor(
@@ -628,6 +634,7 @@ export class NotificationStack {
         banner.notification.body ?? "",
       );
     const appearance = JSON.stringify([
+      configuration.enabled,
       configuration.colors,
       configuration.margins,
       hidden,
@@ -646,24 +653,35 @@ export class NotificationStack {
       );
       if (expanded) banner.message.expand(false);
       banner.headerHidden = false;
+      setNotificationBodyHidden(
+        resolveBannerWidgets(banner.message),
+        configuration.enabled && configuration.content.hideBody,
+      );
     }
-    const margins = configuration.margins;
-    banner.actor.set_style(
-      configuration.enabled && margins.enabled
-        ? `margin-top: ${margins.top}px; margin-bottom: ${margins.bottom}px; margin-left: ${margins.left}px; margin-right: ${margins.right}px;`
-        : "",
-    );
-    banner.message.set_style(
-      (banner.message.get_style() ?? "").replace(banner.background, ""),
-    );
     const widgets = resolveBannerWidgets(banner.message);
     for (const widget of [
+      banner.actor,
+      widgets.container,
       widgets.source,
       widgets.time,
       widgets.title,
       widgets.body,
-    ])
-      widget?.set_style("");
+    ]) {
+      if (!widget) continue;
+      if (!this.originalStyles.has(widget)) {
+        this.originalStyles.set(widget, widget.get_style());
+      } else {
+        const original = this.originalStyles.get(widget) ?? null;
+        if (widget.get_style() !== original) widget.set_style(original);
+      }
+    }
+    const margins = configuration.margins;
+    if (configuration.enabled && margins.enabled) {
+      const original = this.originalStyles.get(banner.actor);
+      banner.actor.set_style(
+        `${original ?? ""}; margin-top: ${margins.top}px; margin-bottom: ${margins.bottom}px; margin-left: ${margins.left}px; margin-right: ${margins.right}px;`,
+      );
+    }
     banner.background = "";
     if (configuration.colors.enabled) {
       applyNotificationTheme(widgets, configuration.colors.theme);

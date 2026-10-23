@@ -16,6 +16,7 @@ export function notificationPreview(
   hideHeader: boolean,
   widget: Gtk.Widget,
   desktop: Gio.Settings,
+  hideBody = false,
 ): string {
   const { fontFamily, fontSize, renderText } = previewTypography(
     widget,
@@ -84,7 +85,7 @@ export function notificationPreview(
 <rect width="${width}" height="${height}" rx="16" ${fill(theme?.backgroundColor ?? [0.329, 0.329, 0.353, 1])}/>
 <g font-family="${fontFamily}">${header}${expand}${close}
 <text x="${contentLeft}" y="${bodyTop + title.baseline}" ${fill(theme?.titleColor ?? foreground)}>${title.markup}</text>
-<text x="${contentLeft}" y="${bodyTop + title.height + 4 + body.baseline}" ${fill(theme?.bodyColor ?? foreground)}>${body.markup}</text>
+${hideBody ? "" : `<text x="${contentLeft}" y="${bodyTop + title.height + 4 + body.baseline}" ${fill(theme?.bodyColor ?? foreground)}>${body.markup}</text>`}
 </g>
 </svg>`;
 }
