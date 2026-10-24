@@ -451,7 +451,10 @@ export class NotificationStack {
       reactive: false,
     });
     actor.add_child(container);
-    Main.layoutManager.addChrome(actor);
+    Main.layoutManager.addChrome(
+      actor,
+      SHELL_VERSION < 50 ? { affectsInputRegion: false } : {},
+    );
     const stack = { actor, container, reflowUntil: 0 };
     this.stacks.set(key, stack);
     container.connect("notify::allocation", () => this.animateReflow(stack));
@@ -535,6 +538,8 @@ export class NotificationStack {
     });
     this.queue = this.queue.filter((queued) => queued !== banner);
     this.place(banner, this.getStack(configuration), configuration);
+    if (SHELL_VERSION < 50)
+      Main.layoutManager.trackChrome(actor, { affectsInputRegion: true });
     this.applyAppearance(banner, configuration);
     this.setUnredirect(true);
     const delay = Math.max(
