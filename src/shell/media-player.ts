@@ -85,17 +85,20 @@ const LegacyRoundedClip = Shell.GLSLEffect
     )
   : null;
 
+const createSnippetEffect = (
+  Clutter.ShaderEffect as typeof Clutter.ShaderEffect & {
+    new_with_snippet?: (snippet: Cogl.Snippet) => SnippetEffect;
+  }
+).new_with_snippet?.bind(Clutter.ShaderEffect);
+
 class RoundedClip {
   readonly effect: Clutter.Effect;
   private dimensions = "";
   private setCorners: (corners: number[]) => void;
 
   constructor() {
-    const shaderEffect = Clutter.ShaderEffect as typeof Clutter.ShaderEffect & {
-      new_with_snippet?: (snippet: Cogl.Snippet) => SnippetEffect;
-    };
-    if (shaderEffect.new_with_snippet) {
-      const effect = shaderEffect.new_with_snippet(
+    if (createSnippetEffect) {
+      const effect = createSnippetEffect(
         Cogl.Snippet.new(
           Cogl.SnippetHook.FRAGMENT,
           CORNER_DECLARATIONS,
