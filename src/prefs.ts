@@ -49,7 +49,7 @@ type FontSizeKey =
   | "bodyFontSize";
 
 type ThemeField = {
-  label: string;
+  label: () => string;
   colorKey: ColorKey;
   fontKey: FontSizeKey | null;
   hideWhenAppTitleRowHidden: boolean;
@@ -83,31 +83,31 @@ const TOP_BAR_DO_NOT_DISTURB_VALUES: TopBarDoNotDisturb[] = [
 
 const THEME_FIELDS: ThemeField[] = [
   {
-    label: "Background",
+    label: () => _("Background"),
     colorKey: "backgroundColor",
     fontKey: null,
     hideWhenAppTitleRowHidden: false,
   },
   {
-    label: "Title",
+    label: () => _("Title"),
     colorKey: "titleColor",
     fontKey: "titleFontSize",
     hideWhenAppTitleRowHidden: false,
   },
   {
-    label: "Body Text",
+    label: () => _("Body Text"),
     colorKey: "bodyColor",
     fontKey: "bodyFontSize",
     hideWhenAppTitleRowHidden: false,
   },
   {
-    label: "App Name",
+    label: () => _("App Name"),
     colorKey: "appNameColor",
     fontKey: "appNameFontSize",
     hideWhenAppTitleRowHidden: true,
   },
   {
-    label: "Time",
+    label: () => _("Time"),
     colorKey: "timeColor",
     fontKey: "timeFontSize",
     hideWhenAppTitleRowHidden: true,
@@ -1340,7 +1340,7 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
 
     for (const field of THEME_FIELDS) {
       const row = new Adw.ActionRow({
-        title: _(field.label),
+        title: field.label(),
       });
 
       row.add_suffix(
