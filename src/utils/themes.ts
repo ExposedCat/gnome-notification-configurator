@@ -82,6 +82,7 @@ function makeStyle(color: Color, fontSize: number): string {
 export function applyNotificationTheme(
   widgets: NotificationWidgets,
   theme: NotificationTheme,
+  containerStyle = widgets.container.get_style(),
 ) {
   widgets.source?.set_style(
     makeStyle(
@@ -108,8 +109,7 @@ export function applyNotificationTheme(
     ),
   );
 
-  const existingStyle = widgets.container?.get_style() ?? "";
-  widgets.container?.set_style(
-    `${existingStyle} ${makeColorStyle(theme.backgroundColor, "background")}`,
+  widgets.container.set_style(
+    `${containerStyle ?? ""} ${makeColorStyle(theme.backgroundColor, "background")}`,
   );
 }

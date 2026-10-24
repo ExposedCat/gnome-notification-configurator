@@ -33,6 +33,7 @@ type Appearance = {
   headerChildren: Map<Clutter.Actor, boolean>;
   content: St.Widget | null;
   contentStyle: string | null;
+  bodyClipped: boolean;
   hidden: boolean;
 };
 
@@ -182,6 +183,7 @@ export class NotificationCenterManager {
         ),
         content,
         contentStyle: content?.get_style() ?? null,
+        bodyClipped: widgets.body?.clip_to_allocation ?? false,
         hidden: false,
       });
       for (const property of ["title", "body", "pseudo-class"]) {
@@ -253,7 +255,6 @@ export class NotificationCenterManager {
   private update(message: NotificationMessage) {
     const appearance = this.messages.get(message);
     if (!appearance) return;
-    for (const [widget, style] of appearance.styles) widget.set_style(style);
     const notification = message.notification;
     if (!notification) return;
     const source = notification.source?.title ?? "";
@@ -267,24 +268,37 @@ export class NotificationCenterManager {
       enabled &&
         this.settingsManager.shouldHideAppTitleRowFor(source, title, body),
     );
-    if (!enabled) return;
-    const margins = this.settingsManager.getMarginsFor(source, title, body);
-    if (margins)
-      message.set_style(
-        extendStyle(
-          message.get_style(),
+    if (appearance.widgets.body)
+      appearance.widgets.body.clip_to_allocation =
+        enabled || appearance.bodyClipped;
+    const margins = enabled
+      ? this.settingsManager.getMarginsFor(source, title, body)
+      : null;
+    const original = appearance.styles.get(message) ?? null;
+    const style = margins
+      ? extendStyle(
+          original,
           `margin-top: ${margins.top}px; margin-bottom: ${margins.bottom}px; margin-left: ${margins.left}px; margin-right: ${margins.right}px;`,
-        ),
-      );
-    const theme = this.settingsManager.getThemeFor(source, title, body);
+        )
+      : original;
+    const theme = enabled
+      ? this.settingsManager.getThemeFor(source, title, body)
+      : null;
     if (theme) {
-      applyNotificationTheme(appearance.widgets, {
-        ...theme,
-        backgroundColor: shadeBackground(
-          theme.backgroundColor,
-          this.stackAdjustment(message, appearance.styles.get(message) ?? null),
-        ),
-      });
+      applyNotificationTheme(
+        appearance.widgets,
+        {
+          ...theme,
+          backgroundColor: shadeBackground(
+            theme.backgroundColor,
+            this.stackAdjustment(message, original),
+          ),
+        },
+        style,
+      );
+    } else {
+      for (const [widget, original] of appearance.styles)
+        widget.set_style(widget === message ? style : original);
     }
   }
 
@@ -301,6 +315,8 @@ export class NotificationCenterManager {
     this.signals.clear();
     for (const appearance of this.messages.values()) {
       this.setHeaderHidden(appearance, false);
+      if (appearance.widgets.body)
+        appearance.widgets.body.clip_to_allocation = appearance.bodyClipped;
       for (const [widget, style] of appearance.styles) widget.set_style(style);
     }
     this.messages.clear();
