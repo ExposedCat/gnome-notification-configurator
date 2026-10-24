@@ -55,38 +55,81 @@ function extendStyle(
   return style ? `${style.replace(/;\s*$/, "")}; ${overrides}` : overrides;
 }
 
-const RoundedClip = GObject.registerClass(
-  class RoundedClip extends Shell.GLSLEffect {
-    private dimensions = "";
+type SnippetEffect = Clutter.Effect & {
+  set_uniform_float: (
+    name: string,
+    components: number,
+    contents: number[],
+  ) => void;
+};
 
-    vfunc_build_pipeline() {
-      this.add_glsl_snippet(
-        Cogl.SnippetHook.FRAGMENT,
-        "uniform vec3 corners;",
-        `
-        vec2 corner = abs((cogl_tex_coord_in[0].xy - 0.5) * corners.xy) - (corners.xy * 0.5 - corners.z);
-        float distance = length(max(corner, 0.0)) + min(max(corner.x, corner.y), 0.0) - corners.z;
-        cogl_color_out *= 1.0 - smoothstep(-1.0, 0.0, distance);
-      `,
-        false,
+const CORNER_DECLARATIONS = "uniform vec3 corners;";
+const CORNER_SHADER = `
+  vec2 corner = abs((cogl_tex_coord_in[0].xy - 0.5) * corners.xy) - (corners.xy * 0.5 - corners.z);
+  float distance = length(max(corner, 0.0)) + min(max(corner.x, corner.y), 0.0) - corners.z;
+  cogl_color_out *= 1.0 - smoothstep(-1.0, 0.0, distance);
+`;
+
+const LegacyRoundedClip = Shell.GLSLEffect
+  ? GObject.registerClass(
+      class LegacyRoundedClip extends Shell.GLSLEffect {
+        vfunc_build_pipeline() {
+          this.add_glsl_snippet(
+            Cogl.SnippetHook.FRAGMENT,
+            CORNER_DECLARATIONS,
+            CORNER_SHADER,
+            false,
+          );
+        }
+      },
+    )
+  : null;
+
+class RoundedClip {
+  readonly effect: Clutter.Effect;
+  private dimensions = "";
+  private setCorners: (corners: number[]) => void;
+
+  constructor() {
+    const shaderEffect = Clutter.ShaderEffect as typeof Clutter.ShaderEffect & {
+      new_with_snippet?: (snippet: Cogl.Snippet) => SnippetEffect;
+    };
+    if (shaderEffect.new_with_snippet) {
+      const effect = shaderEffect.new_with_snippet(
+        Cogl.Snippet.new(
+          Cogl.SnippetHook.FRAGMENT,
+          CORNER_DECLARATIONS,
+          CORNER_SHADER,
+        ),
       );
+      this.effect = effect;
+      this.setCorners = (corners) =>
+        effect.set_uniform_float("corners", 3, corners);
+    } else if (LegacyRoundedClip) {
+      const effect = new LegacyRoundedClip();
+      this.effect = effect;
+      this.setCorners = (corners) =>
+        effect.set_uniform_float(
+          effect.get_uniform_location("corners"),
+          3,
+          corners,
+        );
+    } else {
+      throw new Error("No supported shader effect is available");
     }
+    this.effect.enabled = false;
+  }
 
-    update(width: number, height: number, radius: number) {
-      this.enabled = width > 0 && height > 0;
-      if (!this.enabled) return;
-      const dimensions = `${width}:${height}:${radius}`;
-      if (dimensions === this.dimensions) return;
-      this.dimensions = dimensions;
-      this.set_uniform_float(this.get_uniform_location("corners"), 3, [
-        width,
-        height,
-        Math.min(radius, width / 2, height / 2),
-      ]);
-      this.queue_repaint();
-    }
-  },
-);
+  update(width: number, height: number, radius: number) {
+    this.effect.enabled = width > 0 && height > 0;
+    if (!this.effect.enabled) return;
+    const dimensions = `${width}:${height}:${radius}`;
+    if (dimensions === this.dimensions) return;
+    this.dimensions = dimensions;
+    this.setCorners([width, height, Math.min(radius, width / 2, height / 2)]);
+    this.effect.queue_repaint();
+  }
+}
 
 const MediaLayout = GObject.registerClass(
   class MediaLayout extends Clutter.BinLayout {
@@ -131,9 +174,9 @@ class MediaCard {
     brightness: 0.5,
     mode: Shell.BlurMode.ACTOR,
   });
-  private clipping = new RoundedClip({ enabled: false });
-  private iconClipping = new RoundedClip({ enabled: false });
-  private coverClipping = new RoundedClip({ enabled: false });
+  private clipping = new RoundedClip();
+  private iconClipping = new RoundedClip();
+  private coverClipping = new RoundedClip();
   private loader?: Clutter.Actor;
   private artwork = "";
   private aspectRatio = 1;
@@ -190,9 +233,9 @@ class MediaCard {
     this.surface.add_child(this.foreground);
     message.set_child(this.surface);
     this.background.add_effect(this.blur);
-    this.cover.add_effect(this.coverClipping);
-    this.surface.add_effect(this.clipping);
-    message._icon.add_effect(this.iconClipping);
+    this.cover.add_effect(this.coverClipping.effect);
+    this.surface.add_effect(this.clipping.effect);
+    message._icon.add_effect(this.iconClipping.effect);
     this.foreground.y_expand = true;
     body.y_expand = true;
     body.y_align = Clutter.ActorAlign.CENTER;
@@ -381,7 +424,7 @@ class MediaCard {
     this.loader?.destroy();
     for (const signal of this.signals) this.message.disconnect(signal);
     this.message._icon.disconnect(this.iconSignal);
-    this.message._icon.remove_effect(this.iconClipping);
+    this.message._icon.remove_effect(this.iconClipping.effect);
     this.positionControls(false);
     this.surface.disconnect(this.allocationSignal);
     this.surface.remove_child(this.foreground);
