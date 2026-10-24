@@ -18,6 +18,8 @@ export function configurationLabels(): Map<string, string> {
   return new Map(
     Object.entries({
       enabled: _("Enabled"),
+      "content.hideBody": _("Hide Notification Body"),
+      "overrides.content": _("Override Notification Content"),
       shortName: _("Short Name"),
       "matcher.appName": _("App Name"),
       "matcher.title": _("Title"),

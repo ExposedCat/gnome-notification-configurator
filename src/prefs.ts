@@ -1096,6 +1096,34 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     displayGroup.add(verticalRow);
     updateDisplayVisibility();
 
+    const contentGroup = new Adw.PreferencesGroup({
+      title: _("Notification Content"),
+    });
+    const hideBodyRow = new Adw.SwitchRow({
+      title: _("Hide Notification Body"),
+      subtitle: _("Keep the notification title and hide its body text"),
+      active: config.content.hideBody,
+    });
+    const updateContentVisibility = () => {
+      hideBodyRow.set_visible(!overrides || overrides.content);
+      refreshPreview();
+    };
+    hideBodyRow.connect("notify::active", () => {
+      config.content.hideBody = hideBodyRow.get_active();
+      onSave();
+      refreshPreview();
+    });
+    if (overrides) {
+      this.addOverrideRow(
+        contentGroup,
+        overrides,
+        "content",
+        onSave,
+        updateContentVisibility,
+      );
+    }
+    contentGroup.add(hideBodyRow);
+
     const appearanceGroup = new Adw.PreferencesGroup({
       title: _("Appearance"),
       description: _("Customize notification styles and margins"),
@@ -1139,9 +1167,13 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
           shouldHideHeaderThemeRows(),
           preview.picture,
           desktop,
+          !overrides || overrides.content
+            ? config.content.hideBody
+            : this.globalConfig.content.hideBody,
         ),
       );
     };
+    updateContentVisibility();
     appearanceGroup.add(preview.row);
     const themeRows = this.addThemeEditor(config.colors.theme, () => {
       onSave();
@@ -1301,7 +1333,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
         _("Banners"),
       );
     }
-    for (const group of [rateLimitGroup, urgencyGroup, windowAttentionGroup]) {
+    for (const group of [
+      contentGroup,
+      rateLimitGroup,
+      urgencyGroup,
+      windowAttentionGroup,
+    ]) {
       page.add(group, "preferences-system-time-symbolic", _("Behavior"));
     }
     page.add(appearanceGroup, "applications-graphics-symbolic");

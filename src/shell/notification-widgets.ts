@@ -19,6 +19,7 @@ export type NotificationWidgets = {
   bodyText: string;
 };
 
+const hiddenBodies = new WeakMap<St.Bin, { opacity: number; signal: number }>();
 const hiddenHeaders = new WeakSet<Clutter.Actor>();
 const resolvedWidgets = new WeakMap<St.Widget, NotificationWidgets>();
 
@@ -120,4 +121,30 @@ export function resolveBannerWidgets(
     : readText(widgets.body?.get_first_child()) || widgets.bodyText;
 
   return widgets;
+}
+
+export function setNotificationBodyHidden(
+  widgets: NotificationWidgets,
+  hidden: boolean,
+) {
+  const body = widgets.body;
+  if (!body) return;
+  const previous = hiddenBodies.get(body);
+  if (hidden) {
+    if (previous) return;
+    const state = {
+      opacity: body.opacity,
+      signal: body.connect("notify::opacity", () => {
+        if (body.opacity === 0) return;
+        state.opacity = body.opacity;
+        body.opacity = 0;
+      }),
+    };
+    hiddenBodies.set(body, state);
+    body.opacity = 0;
+  } else if (previous) {
+    body.disconnect(previous.signal);
+    hiddenBodies.delete(body);
+    body.opacity = previous.opacity;
+  }
 }

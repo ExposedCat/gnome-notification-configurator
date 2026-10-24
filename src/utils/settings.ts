@@ -88,6 +88,9 @@ export type Configuration = {
     verticalPosition: VerticalPosition;
     hideAppTitleRow: boolean;
   };
+  content: {
+    hideBody: boolean;
+  };
   colors: {
     enabled: boolean;
     theme: NotificationTheme;
@@ -123,6 +126,7 @@ export type Configuration = {
 };
 
 export type PatternOverrides = {
+  content: boolean;
   stacking: boolean;
   notificationCenter: boolean;
   rateLimiting: boolean;
@@ -230,6 +234,7 @@ export class SettingsManager {
         verticalPosition: "top",
         hideAppTitleRow: false,
       },
+      content: { hideBody: false },
       colors: {
         enabled: true,
         theme: {
@@ -275,6 +280,7 @@ export class SettingsManager {
       shortName: "",
       matcher,
       overrides: {
+        content: false,
         stacking: false,
         notificationCenter: false,
         rateLimiting: false,
@@ -310,6 +316,7 @@ export class SettingsManager {
         verticalPosition: "top",
         hideAppTitleRow: false,
       },
+      content: { hideBody: false },
       colors: { enabled: false, theme: { ...DEFAULT_THEME } },
       margins: { enabled: false, top: 0, bottom: 0, left: 0, right: 0 },
       windowAttention: { activateInstead: false },
@@ -541,6 +548,9 @@ export class SettingsManager {
       display: overrides.display
         ? matchedPattern.display
         : this._globalConfiguration.display,
+      content: overrides.content
+        ? matchedPattern.content
+        : this._globalConfiguration.content,
       colors: overrides.colors
         ? matchedPattern.colors
         : this._globalConfiguration.colors,
@@ -688,6 +698,7 @@ export class SettingsManager {
         appName: normalizeString(object.matcher?.appName, ""),
       },
       overrides: {
+        content: normalizeBoolean(object.overrides?.content, false),
         stacking: normalizeBoolean(object.overrides?.stacking, false),
         notificationCenter: normalizeBoolean(
           object.overrides?.notificationCenter,
@@ -798,6 +809,12 @@ export class SettingsManager {
         hideAppTitleRow: normalizeBoolean(
           candidate.display?.hideAppTitleRow,
           defaults.display.hideAppTitleRow,
+        ),
+      },
+      content: {
+        hideBody: normalizeBoolean(
+          candidate.content?.hideBody,
+          defaults.content.hideBody,
         ),
       },
       colors: {
