@@ -678,8 +678,9 @@ export class NotificationStack {
     const margins = configuration.margins;
     if (configuration.enabled && margins.enabled) {
       const original = this.originalStyles.get(banner.actor);
+      const style = `margin-top: ${margins.top}px; margin-bottom: ${margins.bottom}px; margin-left: ${margins.left}px; margin-right: ${margins.right}px;`;
       banner.actor.set_style(
-        `${original ?? ""}; margin-top: ${margins.top}px; margin-bottom: ${margins.bottom}px; margin-left: ${margins.left}px; margin-right: ${margins.right}px;`,
+        original ? `${original.replace(/;\s*$/, "")}; ${style}` : style,
       );
     }
     banner.background = "";

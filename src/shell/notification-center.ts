@@ -447,12 +447,12 @@ export class NotificationCenterManager {
       title,
       body,
     );
-    setNotificationBodyHidden(
-      appearance.widgets,
-      configuration.enabled && configuration.content.hideBody,
-    );
     const enabled =
       this.settingsManager.followBannerAppearance && configuration.enabled;
+    setNotificationBodyHidden(
+      appearance.widgets,
+      enabled && configuration.content.hideBody,
+    );
     this.setHeaderHidden(
       appearance,
       enabled &&

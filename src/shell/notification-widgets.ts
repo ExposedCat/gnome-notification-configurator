@@ -19,7 +19,10 @@ export type NotificationWidgets = {
   bodyText: string;
 };
 
-const hiddenBodies = new WeakMap<St.Bin, { opacity: number; signal: number }>();
+const hiddenBodies = new WeakMap<
+  St.Bin,
+  { visible: boolean; signal: number }
+>();
 const hiddenHeaders = new WeakSet<Clutter.Actor>();
 const resolvedWidgets = new WeakMap<St.Widget, NotificationWidgets>();
 
@@ -133,18 +136,18 @@ export function setNotificationBodyHidden(
   if (hidden) {
     if (previous) return;
     const state = {
-      opacity: body.opacity,
-      signal: body.connect("notify::opacity", () => {
-        if (body.opacity === 0) return;
-        state.opacity = body.opacity;
-        body.opacity = 0;
+      visible: body.visible,
+      signal: body.connect("notify::visible", () => {
+        if (!body.visible) return;
+        state.visible = true;
+        body.hide();
       }),
     };
     hiddenBodies.set(body, state);
-    body.opacity = 0;
+    body.hide();
   } else if (previous) {
     body.disconnect(previous.signal);
     hiddenBodies.delete(body);
-    body.opacity = previous.opacity;
+    body.visible = previous.visible && widgets.bodyText.length > 0;
   }
 }

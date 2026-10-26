@@ -54,7 +54,7 @@ export function notificationPreview(
   const headerContentHeight = Math.max(24, source.height, time.height + 1) + 6;
   const headerHeight = Math.max(34, headerContentHeight);
   const bodyTop = hideHeader ? 15 : 13 + headerHeight;
-  const bodyHeight = title.height + 4 + body.height;
+  const bodyHeight = title.height + (hideBody ? 0 : 4 + body.height);
   const height = Math.max(64, bodyTop + bodyHeight + 13);
   const headerBottom = Math.round(
     7 + (headerHeight - headerContentHeight) / 2 + headerContentHeight - 6,
@@ -69,12 +69,13 @@ export function notificationPreview(
     closeMiddle,
     '<path d="m-4-4 8 8m0-8-8 8" stroke="#fafafa" stroke-width="2"/>',
   );
-  const expand = body.truncated
-    ? button(
-        closeMiddle - 37,
-        '<path d="m-4-2 4 4 4-4" fill="none" stroke="#fafafa" stroke-width="2"/>',
-      )
-    : "";
+  const expand =
+    !hideBody && body.truncated
+      ? button(
+          closeMiddle - 37,
+          '<path d="m-4-2 4 4 4-4" fill="none" stroke="#fafafa" stroke-width="2"/>',
+        )
+      : "";
   const header = hideHeader
     ? ""
     : `
