@@ -8,391 +8,974 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Notification Configurator 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 01:17+0200\n"
+"POT-Creation-Date: 2026-10-26 13:45+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dist/prefs.js:58
-msgid "Global"
+#: dist/prefs.js:38 dist/preferences/notification-center.js:84
+msgid "Background"
 msgstr ""
 
-#: dist/prefs.js:64
-msgid "Patterns"
-msgstr ""
-
-#: dist/prefs.js:93 dist/prefs.js:183
-msgid "Enabled"
-msgstr ""
-
-#: dist/prefs.js:94
-msgid "Master switch for all notification configuration"
-msgstr ""
-
-#: dist/prefs.js:107
-msgid "Notification Patterns"
-msgstr ""
-
-#: dist/prefs.js:108
-msgid "Per-pattern overrides that apply to matching notifications"
-msgstr ""
-
-#: dist/prefs.js:120
-msgid "New Pattern"
-msgstr ""
-
-#: dist/prefs.js:142
-msgid "Unnamed Pattern"
-msgstr ""
-
-#: dist/prefs.js:164
-msgid "No matchers configured"
-msgstr ""
-
-#: dist/prefs.js:170
-msgid "Pattern Identity"
-msgstr ""
-
-#: dist/prefs.js:174
-msgid "Short Name"
-msgstr ""
-
-#: dist/prefs.js:184
-msgid "Enable this pattern override"
-msgstr ""
-
-#: dist/prefs.js:193
-msgid "Matchers"
-msgstr ""
-
-#: dist/prefs.js:194
-msgid "RegExp patterns to match notifications"
-msgstr ""
-
-#: dist/prefs.js:197 dist/prefs.js:762
-msgid "App Name"
-msgstr ""
-
-#: dist/prefs.js:202 dist/prefs.js:767
+#: dist/prefs.js:44 dist/prefs.js:430 dist/prefs.js:1117
+#: dist/preferences/labels.js:9 dist/preferences/sync.js:185
 msgid "Title"
 msgstr ""
 
-#: dist/prefs.js:207 dist/prefs.js:772
-msgid "Body"
+#: dist/prefs.js:50
+msgid "Body Text"
 msgstr ""
 
-#: dist/prefs.js:213
-msgid "Filtering"
+#: dist/prefs.js:56 dist/prefs.js:425 dist/prefs.js:1112
+#: dist/preferences/labels.js:8 dist/preferences/sync.js:184
+msgid "App Name"
 msgstr ""
 
-#: dist/prefs.js:214
-msgid "Block or hide matching notifications"
+#: dist/prefs.js:62
+msgid "Time"
 msgstr ""
 
-#: dist/prefs.js:218
-msgid "Filter Action"
+#: dist/prefs.js:81 dist/prefs.js:98 dist/preferences/sync.js:141
+msgid "Global"
 msgstr ""
 
-#: dist/prefs.js:219
-msgid "What to do with matching notifications"
+#: dist/prefs.js:87
+msgid "Patterns"
 msgstr ""
 
-#: dist/prefs.js:222 dist/prefs.js:341
-msgid "Hide notification"
+#: dist/prefs.js:129 dist/prefs.js:400 dist/prefs.js:475 dist/prefs.js:502
+#: dist/prefs.js:1110 dist/prefs.js:1127
+#: dist/preferences/notification-center.js:20
+msgid "General"
 msgstr ""
 
-#: dist/prefs.js:223 dist/prefs.js:340
-msgid "Close notification"
+#: dist/prefs.js:132 dist/prefs.js:411 dist/preferences/labels.js:4
+#: dist/preferences/notification-center.js:44
+msgid "Enabled"
 msgstr ""
 
-#: dist/prefs.js:233
-msgid "Enable Filtering"
+#: dist/prefs.js:133
+msgid "Master switch for all notification configuration"
 msgstr ""
 
-#: dist/prefs.js:234
-msgid "Apply filter action to matching notifications"
-msgstr ""
-
-#: dist/prefs.js:249
-msgid "Delete Pattern"
-msgstr ""
-
-#: dist/prefs.js:264
-msgid "Pattern"
-msgstr ""
-
-#: dist/prefs.js:274
+#: dist/prefs.js:146 dist/prefs.js:502
 msgid "Notification Center"
 msgstr ""
 
+#: dist/prefs.js:159
+msgid "Top Bar Icons"
+msgstr ""
+
+#: dist/prefs.js:160
+msgid "Show apps with pending notifications next to the clock"
+msgstr ""
+
+#: dist/prefs.js:162 dist/prefs.js:257 dist/prefs.js:315 dist/prefs.js:317
+msgid "Top Bar"
+msgstr ""
+
+#: dist/prefs.js:164 dist/prefs.js:259
+msgid "On Notification Center Opening"
+msgstr ""
+
+#: dist/prefs.js:165
+msgid "Clear icons from the top bar or keep them until dismissed"
+msgstr ""
+
+#: dist/prefs.js:167
+msgid "Follow indicator"
+msgstr ""
+
+#: dist/prefs.js:168
+msgid "Clear icons"
+msgstr ""
+
+#: dist/prefs.js:169
+msgid "Keep icons"
+msgstr ""
+
+#: dist/prefs.js:178 dist/preferences/labels.js:61
+msgid "Maximum Icons"
+msgstr ""
+
+#: dist/prefs.js:179
+msgid "Number of most recent apps shown"
+msgstr ""
+
+#: dist/prefs.js:193 dist/preferences/labels.js:62
+msgid "Monochrome Icons"
+msgstr ""
+
+#: dist/prefs.js:194
+msgid "Show app icons in black and white"
+msgstr ""
+
+#: dist/prefs.js:202 dist/preferences/labels.js:63
+msgid "Notification Counts"
+msgstr ""
+
+#: dist/prefs.js:203
+msgid "Number of notifications on each icon"
+msgstr ""
+
+#: dist/prefs.js:207 dist/preferences/labels.js:64
+msgid "Counts Background"
+msgstr ""
+
+#: dist/prefs.js:208
+msgid "Show counts in a filled circle"
+msgstr ""
+
+#: dist/prefs.js:216 dist/preferences/labels.js:65
+msgid "Counts Color"
+msgstr ""
+
+#: dist/prefs.js:223 dist/preferences/labels.js:59
+msgid "Show App Icons"
+msgstr ""
+
+#: dist/prefs.js:224
+msgid "Newest first, one icon per app"
+msgstr ""
+
+#: dist/prefs.js:254
+msgid "Top Bar Indicator"
+msgstr ""
+
+#: dist/prefs.js:255
+msgid "Mark pending notifications that are not shown as icons"
+msgstr ""
+
+#: dist/prefs.js:260
+msgid "Clear the indicator or keep it until notifications are dismissed"
+msgstr ""
+
+#: dist/prefs.js:261
+msgid "Clear indicator"
+msgstr ""
+
+#: dist/prefs.js:261
+msgid "Keep indicator"
+msgstr ""
+
+#: dist/prefs.js:270 dist/preferences/labels.js:68
+msgid "Indicator Format"
+msgstr ""
+
+#: dist/prefs.js:271
+msgid "A dot or the number of notifications"
+msgstr ""
+
+#: dist/prefs.js:274
+msgid "Dot"
+msgstr ""
+
 #: dist/prefs.js:275
-msgid "Control how matching notifications stack together"
+msgid "Number"
 msgstr ""
 
-#: dist/prefs.js:279
-msgid "Disable Stacking"
+#: dist/prefs.js:283 dist/preferences/labels.js:69
+msgid "Indicator Color"
 msgstr ""
 
-#: dist/prefs.js:280
-msgid "Create a separate entry for each matching notification"
+#: dist/prefs.js:290 dist/preferences/labels.js:66
+msgid "Show Indicator"
 msgstr ""
 
-#: dist/prefs.js:289
-msgid "Maximum Per Source"
+#: dist/prefs.js:291
+msgid "Show pending notifications next to the clock"
 msgstr ""
 
-#: dist/prefs.js:290
-msgid "Number of notifications kept for one application"
+#: dist/prefs.js:313
+msgid "Do Not Disturb"
 msgstr ""
 
-#: dist/prefs.js:316
-msgid "Rate Limiting"
-msgstr ""
-
-#: dist/prefs.js:317
-msgid "Control notification frequency per application"
+#: dist/prefs.js:318
+msgid "What to hide next to the clock while Do Not Disturb is on"
 msgstr ""
 
 #: dist/prefs.js:321
-msgid "Notification Threshold"
+msgid "Nothing"
 msgstr ""
 
 #: dist/prefs.js:322
-msgid "Time in milliseconds before allowing duplicate notifications"
+msgid "Hide icons"
+msgstr ""
+
+#: dist/prefs.js:323
+msgid "Hide everything"
+msgstr ""
+
+#: dist/prefs.js:335
+msgid "Notification Patterns"
 msgstr ""
 
 #: dist/prefs.js:336
-msgid "Action"
+msgid "Per-pattern overrides that apply to matching notifications"
 msgstr ""
 
-#: dist/prefs.js:337
-msgid "What to do with rate-limited notifications"
+#: dist/prefs.js:348
+msgid "New Pattern"
 msgstr ""
 
-#: dist/prefs.js:350
-msgid "Enable Rate Limiting"
+#: dist/prefs.js:370 dist/preferences/sync.js:151
+msgid "Unnamed Pattern"
 msgstr ""
 
-#: dist/prefs.js:351
-msgid "Prevent duplicate notifications within threshold time"
+#: dist/prefs.js:392
+msgid "No matchers configured"
 msgstr ""
 
-#: dist/prefs.js:373
-msgid "Notification Timeout"
+#: dist/prefs.js:398
+msgid "Pattern Identity"
 msgstr ""
 
-#: dist/prefs.js:374
-msgid "Control how long notifications stay visible"
+#: dist/prefs.js:402 dist/preferences/labels.js:7
+msgid "Short Name"
 msgstr ""
 
-#: dist/prefs.js:378
-msgid "Timeout Duration"
+#: dist/prefs.js:412
+msgid "Enable this pattern override"
 msgstr ""
 
-#: dist/prefs.js:379
-msgid "Time in milliseconds before auto-dismiss (0 = never dismiss)"
+#: dist/prefs.js:421
+msgid "Matchers"
 msgstr ""
 
-#: dist/prefs.js:393
-msgid "Ignore Idle State"
+#: dist/prefs.js:422
+msgid "RegExp patterns to match notifications"
 msgstr ""
 
-#: dist/prefs.js:394
-msgid "Keep showing notifications even when user is idle"
+#: dist/prefs.js:424 dist/prefs.js:444
+msgid "Matching"
 msgstr ""
 
-#: dist/prefs.js:402
-msgid "Enable Timeout Override"
+#: dist/prefs.js:435 dist/prefs.js:1122 dist/preferences/labels.js:10
+#: dist/preferences/sync.js:186
+msgid "Body"
 msgstr ""
 
-#: dist/prefs.js:403
-msgid "Override default notification timeout"
+#: dist/prefs.js:441
+msgid "Filtering"
 msgstr ""
 
-#: dist/prefs.js:425
-msgid "Urgency"
+#: dist/prefs.js:442
+msgid "Block or hide matching notifications"
 msgstr ""
 
-#: dist/prefs.js:429
-msgid "Force Normal Urgency"
-msgstr ""
-
-#: dist/prefs.js:430
-msgid "Make all notifications use normal urgency level"
-msgstr ""
-
-#: dist/prefs.js:446
-msgid "Window Attention"
+#: dist/prefs.js:446 dist/preferences/labels.js:23
+msgid "Filter Action"
 msgstr ""
 
 #: dist/prefs.js:447
-msgid "Control what happens when a window demands attention"
+msgid "What to do with matching notifications"
 msgstr ""
 
-#: dist/prefs.js:451
-msgid "Activate Window Instead of Notifying"
+#: dist/prefs.js:450 dist/prefs.js:583
+msgid "Hide notification"
 msgstr ""
 
-#: dist/prefs.js:452
-msgid "Switch directly to the window instead of showing a notification"
+#: dist/prefs.js:451 dist/prefs.js:582
+msgid "Close notification"
 msgstr ""
 
-#: dist/prefs.js:468
-msgid "Display"
+#: dist/prefs.js:461 dist/preferences/labels.js:22
+msgid "Enable Filtering"
 msgstr ""
 
-#: dist/prefs.js:473
-msgid "Enable Notifications in Fullscreen"
+#: dist/prefs.js:462
+msgid "Apply filter action to matching notifications"
 msgstr ""
 
-#: dist/prefs.js:474
-msgid "Show notifications even when applications are in fullscreen"
+#: dist/prefs.js:477
+msgid "Delete Pattern"
 msgstr ""
 
-#: dist/prefs.js:484
-msgid "Horizontal Alignment"
+#: dist/prefs.js:492
+msgid "Pattern"
 msgstr ""
 
-#: dist/prefs.js:485
-msgid "Horizontal position of notifications on screen"
+#: dist/prefs.js:503
+msgid "Control how matching notifications are stored and cleared"
 msgstr ""
 
-#: dist/prefs.js:488 dist/prefs.js:505
-msgid "Fill"
+#: dist/prefs.js:509 dist/preferences/labels.js:25
+msgid "Clear Notifications on Focus"
 msgstr ""
 
-#: dist/prefs.js:489
-msgid "Left"
+#: dist/prefs.js:510
+msgid ""
+"Clear matching notifications when their application gains focus, and new "
+"ones after their banners close while it remains focused"
 msgstr ""
 
-#: dist/prefs.js:490 dist/prefs.js:507
-msgid "Center"
+#: dist/prefs.js:518 dist/preferences/labels.js:26
+msgid "Disable Stacking"
 msgstr ""
 
-#: dist/prefs.js:491
-msgid "Right"
+#: dist/prefs.js:519
+msgid "Create a separate entry for each matching notification"
 msgstr ""
 
-#: dist/prefs.js:501
-msgid "Vertical Alignment"
-msgstr ""
-
-#: dist/prefs.js:502
-msgid "Vertical position of notifications on screen"
-msgstr ""
-
-#: dist/prefs.js:506
-msgid "Top"
-msgstr ""
-
-#: dist/prefs.js:508
-msgid "Bottom"
+#: dist/prefs.js:528 dist/preferences/labels.js:27
+msgid "Maximum Per Source"
 msgstr ""
 
 #: dist/prefs.js:529
-msgid "Appearance"
+msgid "Number of notifications kept for one application"
 msgstr ""
 
-#: dist/prefs.js:530
-msgid "Customize notification styles and margins"
+#: dist/prefs.js:559
+msgid "Rate Limiting"
 msgstr ""
 
-#: dist/prefs.js:534
-msgid "Hide App Title Row"
+#: dist/prefs.js:560
+msgid "Control notification frequency per application"
 msgstr ""
 
-#: dist/prefs.js:535
-msgid "Hide title and time row"
+#: dist/prefs.js:563 dist/preferences/labels.js:29
+msgid "Notification Threshold"
 msgstr ""
 
-#: dist/prefs.js:542
-msgid "Enable Custom Styles"
+#: dist/prefs.js:564
+msgid "Time in milliseconds before allowing duplicate notifications"
 msgstr ""
 
-#: dist/prefs.js:543
-msgid "Apply custom styles to notifications"
+#: dist/prefs.js:578
+msgid "Action"
 msgstr ""
 
-#: dist/prefs.js:548
-msgid "Margin Top"
+#: dist/prefs.js:579
+msgid "What to do with rate-limited notifications"
 msgstr ""
 
-#: dist/prefs.js:562
-msgid "Margin Bottom"
+#: dist/prefs.js:592 dist/preferences/labels.js:28
+msgid "Enable Rate Limiting"
 msgstr ""
 
-#: dist/prefs.js:576
-msgid "Margin Left"
+#: dist/prefs.js:593
+msgid "Prevent duplicate notifications within threshold time"
 msgstr ""
 
-#: dist/prefs.js:590
-msgid "Margin Right"
+#: dist/prefs.js:615
+msgid "Visible Notifications"
 msgstr ""
 
-#: dist/prefs.js:604
-msgid "Enable Custom Margins"
+#: dist/prefs.js:616
+msgid "Control how many notifications appear at the same time"
 msgstr ""
 
-#: dist/prefs.js:605
-msgid "Apply custom margins to notifications"
+#: dist/prefs.js:619 dist/preferences/labels.js:14
+msgid "Maximum Visible Notifications"
 msgstr ""
 
-#: dist/prefs.js:668
-msgid "Override"
+#: dist/prefs.js:620
+msgid ""
+"1 shows notifications one at a time; additional notifications wait for a "
+"free space"
 msgstr ""
 
-#: dist/prefs.js:669
-msgid "Override global setting for this pattern"
+#: dist/prefs.js:630 dist/preferences/labels.js:15
+msgid "Stack Direction"
 msgstr ""
 
-#: dist/prefs.js:723
-msgid "px"
+#: dist/prefs.js:631
+msgid "Place new notifications above or below existing notifications"
 msgstr ""
 
-#: dist/prefs.js:758
-msgid "Test Notifications"
+#: dist/prefs.js:632
+msgid "Downward"
 msgstr ""
 
-#: dist/prefs.js:764
-msgid "Test Application Name"
+#: dist/prefs.js:632
+msgid "Upward"
 msgstr ""
 
-#: dist/prefs.js:769
-msgid "Test Notification Title"
+#: dist/prefs.js:657
+msgid "Notification Timeout"
 msgstr ""
 
-#: dist/prefs.js:774
-msgid "Test Notification Body"
+#: dist/prefs.js:658
+msgid "Control how long notifications stay visible"
 msgstr ""
 
-#: dist/prefs.js:779
-msgid "Send Test Notification"
+#: dist/prefs.js:661 dist/preferences/labels.js:32
+msgid "Timeout Duration"
 msgstr ""
 
-#: dist/prefs.js:784
-msgid "Test App"
+#: dist/prefs.js:662
+msgid "Time in milliseconds before auto-dismiss (0 = never dismiss)"
 msgstr ""
 
-#: dist/prefs.js:785
-msgid "Test Notification"
+#: dist/prefs.js:676 dist/preferences/labels.js:33
+msgid "Ignore Idle State"
 msgstr ""
 
-#: dist/prefs.js:786
-msgid "This is a test notification"
+#: dist/prefs.js:677
+msgid "Keep showing notifications even when user is idle"
 msgstr ""
 
+#: dist/prefs.js:685 dist/preferences/labels.js:31
+msgid "Enable Timeout Override"
+msgstr ""
+
+#: dist/prefs.js:686
+msgid "Override default notification timeout"
+msgstr ""
+
+#: dist/prefs.js:708
+msgid "Urgency"
+msgstr ""
+
+#: dist/prefs.js:711 dist/preferences/labels.js:34
+msgid "Force Normal Urgency"
+msgstr ""
+
+#: dist/prefs.js:712
+msgid "Make all notifications use normal urgency level"
+msgstr ""
+
+#: dist/prefs.js:728
+msgid "Window Attention"
+msgstr ""
+
+#: dist/prefs.js:729
+msgid "Control what happens when a window demands attention"
+msgstr ""
+
+#: dist/prefs.js:732 dist/preferences/labels.js:58
+msgid "Activate Window Instead of Notifying"
+msgstr ""
+
+#: dist/prefs.js:733
+msgid "Switch directly to the window instead of showing a notification"
+msgstr ""
+
+#: dist/prefs.js:749
+msgid "Display"
+msgstr ""
+
+#: dist/prefs.js:753 dist/preferences/labels.js:35
+msgid "Enable Notifications in Fullscreen"
+msgstr ""
+
+#: dist/prefs.js:754
+msgid "Show notifications even when applications are in fullscreen"
+msgstr ""
+
+#: dist/prefs.js:765 dist/preferences/labels.js:40
+msgid "Horizontal Alignment"
+msgstr ""
+
+#: dist/prefs.js:766
+msgid "Horizontal position of notifications on screen"
+msgstr ""
+
+#: dist/prefs.js:769 dist/prefs.js:786
+msgid "Fill"
+msgstr ""
+
+#: dist/prefs.js:770
+msgid "Left"
+msgstr ""
+
+#: dist/prefs.js:771 dist/prefs.js:788
+msgid "Center"
+msgstr ""
+
+#: dist/prefs.js:772
+msgid "Right"
+msgstr ""
+
+#: dist/prefs.js:782 dist/preferences/labels.js:41
+msgid "Vertical Alignment"
+msgstr ""
+
+#: dist/prefs.js:783
+msgid "Vertical position of notifications on screen"
+msgstr ""
+
+#: dist/prefs.js:787
+msgid "Top"
+msgstr ""
+
+#: dist/prefs.js:789
+msgid "Bottom"
+msgstr ""
+
+#: dist/prefs.js:812
 msgid "Notification Content"
 msgstr ""
 
+#: dist/prefs.js:815 dist/preferences/labels.js:5
 msgid "Hide Notification Body"
 msgstr ""
 
+#: dist/prefs.js:816
 msgid "Keep the notification title and hide its body text"
 msgstr ""
 
+#: dist/prefs.js:833 dist/preferences/notification-center.js:8
+msgid "Appearance"
+msgstr ""
+
+#: dist/prefs.js:834
+msgid "Customize notification styles and margins"
+msgstr ""
+
+#: dist/prefs.js:837 dist/preferences/labels.js:42
+msgid "Hide App Title Row"
+msgstr ""
+
+#: dist/prefs.js:838
+msgid "Hide title and time row"
+msgstr ""
+
+#: dist/prefs.js:845 dist/preferences/labels.js:43
+msgid "Enable Custom Styles"
+msgstr ""
+
+#: dist/prefs.js:846
+msgid "Apply custom styles to notifications"
+msgstr ""
+
+#: dist/prefs.js:849
+msgid "Notification appearance preview"
+msgstr ""
+
+#: dist/prefs.js:875 dist/preferences/labels.js:54
+msgid "Margin Top"
+msgstr ""
+
+#: dist/prefs.js:889 dist/preferences/labels.js:55
+msgid "Margin Bottom"
+msgstr ""
+
+#: dist/prefs.js:903 dist/preferences/labels.js:56
+msgid "Margin Left"
+msgstr ""
+
+#: dist/prefs.js:917 dist/preferences/labels.js:57
+msgid "Margin Right"
+msgstr ""
+
+#: dist/prefs.js:931 dist/preferences/labels.js:53
+msgid "Enable Custom Margins"
+msgstr ""
+
+#: dist/prefs.js:932
+msgid "Apply custom margins to notifications"
+msgstr ""
+
+#: dist/prefs.js:997
+msgid "Banners"
+msgstr ""
+
+#: dist/prefs.js:1005
+msgid "Behavior"
+msgstr ""
+
+#: dist/prefs.js:1014
+msgid "Override"
+msgstr ""
+
+#: dist/prefs.js:1015
+msgid "Override global setting for this pattern"
+msgstr ""
+
+#: dist/prefs.js:1056
+msgid "px"
+msgstr ""
+
+#: dist/prefs.js:1108
+msgid "Test Notifications"
+msgstr ""
+
+#: dist/prefs.js:1114
+msgid "Test Application Name"
+msgstr ""
+
+#: dist/prefs.js:1119
+msgid "Test Notification Title"
+msgstr ""
+
+#: dist/prefs.js:1124
+msgid "Test Notification Body"
+msgstr ""
+
+#: dist/prefs.js:1129
+msgid "Send Test Notification"
+msgstr ""
+
+#: dist/prefs.js:1134
+msgid "notify-send was not found. Install it and try again."
+msgstr ""
+
+#: dist/prefs.js:1145
+msgid "Test App"
+msgstr ""
+
+#: dist/prefs.js:1146
+msgid "Test Notification"
+msgstr ""
+
+#: dist/prefs.js:1147
+msgid "This is a test notification"
+msgstr ""
+
+#: dist/preferences/labels.js:6
 msgid "Override Notification Content"
+msgstr ""
+
+#: dist/preferences/labels.js:11
+msgid "Override Notification Center"
+msgstr ""
+
+#: dist/preferences/labels.js:12
+msgid "Override Rate Limiting"
+msgstr ""
+
+#: dist/preferences/labels.js:13
+msgid "Override Visible Notifications"
+msgstr ""
+
+#: dist/preferences/labels.js:16
+msgid "Override Notification Timeout"
+msgstr ""
+
+#: dist/preferences/labels.js:17
+msgid "Override Urgency"
+msgstr ""
+
+#: dist/preferences/labels.js:18
+msgid "Override Display"
+msgstr ""
+
+#: dist/preferences/labels.js:19
+msgid "Override Custom Styles"
+msgstr ""
+
+#: dist/preferences/labels.js:20
+msgid "Override Custom Margins"
+msgstr ""
+
+#: dist/preferences/labels.js:21
+msgid "Override Window Attention"
+msgstr ""
+
+#: dist/preferences/labels.js:24 dist/preferences/notification-center.js:10
+msgid "Follow banner appearance"
+msgstr ""
+
+#: dist/preferences/labels.js:30
+msgid "Rate Limiting Action"
+msgstr ""
+
+#: dist/preferences/labels.js:36
+msgid "Monitor Connector"
+msgstr ""
+
+#: dist/preferences/labels.js:37
+msgid "Monitor Vendor"
+msgstr ""
+
+#: dist/preferences/labels.js:38
+msgid "Monitor Model"
+msgstr ""
+
+#: dist/preferences/labels.js:39
+msgid "Monitor Serial"
+msgstr ""
+
+#: dist/preferences/labels.js:44
+msgid "App Name Color"
+msgstr ""
+
+#: dist/preferences/labels.js:45
+msgid "Time Color"
+msgstr ""
+
+#: dist/preferences/labels.js:46
+msgid "Background Color"
+msgstr ""
+
+#: dist/preferences/labels.js:47
+msgid "Title Color"
+msgstr ""
+
+#: dist/preferences/labels.js:48
+msgid "Body Text Color"
+msgstr ""
+
+#: dist/preferences/labels.js:49
+msgid "App Name Font Size"
+msgstr ""
+
+#: dist/preferences/labels.js:50
+msgid "Time Font Size"
+msgstr ""
+
+#: dist/preferences/labels.js:51
+msgid "Title Font Size"
+msgstr ""
+
+#: dist/preferences/labels.js:52
+msgid "Body Text Font Size"
+msgstr ""
+
+#: dist/preferences/labels.js:60
+msgid "Icons on Notification Center Opening"
+msgstr ""
+
+#: dist/preferences/labels.js:67
+msgid "Indicator on Notification Center Opening"
+msgstr ""
+
+#: dist/preferences/labels.js:70
+msgid "Media Player Enabled"
+msgstr ""
+
+#: dist/preferences/labels.js:71
+msgid "Enlarge Media Player"
+msgstr ""
+
+#: dist/preferences/labels.js:72
+msgid "Media Player Background"
+msgstr ""
+
+#: dist/preferences/labels.js:73
+msgid "Media Player Thumbnail"
+msgstr ""
+
+#: dist/preferences/labels.js:74
+msgid "Media Player Source"
+msgstr ""
+
+#: dist/preferences/labels.js:75
+msgid "Media Player Source Pattern"
+msgstr ""
+
+#: dist/preferences/labels.js:76
+msgid "Top Bar in Do Not Disturb"
+msgstr ""
+
+#: dist/preferences/media-preview.js:31
+msgid "Track title"
+msgstr ""
+
+#: dist/preferences/media-preview.js:32
+msgid "Artist name"
+msgstr ""
+
+#: dist/preferences/monitors.js:8
+msgid "Monitor"
+msgstr ""
+
+#: dist/preferences/monitors.js:9
+msgid "Use the main monitor when the selected monitor is unavailable"
+msgstr ""
+
+#: dist/preferences/monitors.js:16
+msgid "Top bar monitor"
+msgstr ""
+
+#: dist/preferences/monitors.js:25 dist/preferences/monitors.js:31
+msgid "Unavailable — using main monitor"
+msgstr ""
+
+#: dist/preferences/notification-center.js:11
+msgid "Use banner colors, fonts, header visibility, and margins"
+msgstr ""
+
+#: dist/preferences/notification-center.js:23
+msgid "Media Player"
+msgstr ""
+
+#: dist/preferences/notification-center.js:25
+msgid "Media player appearance preview"
+msgstr ""
+
+#: dist/preferences/notification-center.js:32
+msgid "Source Title Pattern (optional)"
+msgstr ""
+
+#: dist/preferences/notification-center.js:33
+msgid ""
+"Case-insensitive regular expression matching the source app title. Empty "
+"hides all sources."
+msgstr ""
+
+#: dist/preferences/notification-center.js:45
+msgid "Show media players in the notification center"
+msgstr ""
+
+#: dist/preferences/notification-center.js:55
+msgid "Enlarge"
+msgstr ""
+
+#: dist/preferences/notification-center.js:56
+msgid "Use a taller banner and larger track text"
+msgstr ""
+
+#: dist/preferences/notification-center.js:84
+msgid "Artwork behind the track and playback controls"
+msgstr ""
+
+#: dist/preferences/notification-center.js:84
+msgid "Empty"
+msgstr ""
+
+#: dist/preferences/notification-center.js:84
+#: dist/preferences/notification-center.js:85
+msgid "Thumbnail"
+msgstr ""
+
+#: dist/preferences/notification-center.js:84
+msgid "Blurred"
+msgstr ""
+
+#: dist/preferences/notification-center.js:85
+msgid "Rounded artwork beside the track"
+msgstr ""
+
+#: dist/preferences/notification-center.js:85
+msgid "Small"
+msgstr ""
+
+#: dist/preferences/notification-center.js:85
+msgid "Big"
+msgstr ""
+
+#: dist/preferences/notification-center.js:85
+#: dist/preferences/notification-center.js:86
+msgid "Hide"
+msgstr ""
+
+#: dist/preferences/notification-center.js:86
+msgid "Source"
+msgstr ""
+
+#: dist/preferences/notification-center.js:86
+msgid "App name and icon above the track"
+msgstr ""
+
+#: dist/preferences/notification-center.js:86
+msgid "Show"
+msgstr ""
+
+#: dist/preferences/notification-preview.js:16
+msgid "Notification title"
+msgstr ""
+
+#: dist/preferences/notification-preview.js:17
+msgid "This is how your notification will look."
+msgstr ""
+
+#: dist/preferences/notification-preview.js:18
+msgid "Just now"
+msgstr ""
+
+#: dist/preferences/notification-preview.js:19
+msgid "Example App"
+msgstr ""
+
+#: dist/preferences/sync.js:11
+msgid "Sync"
+msgstr ""
+
+#: dist/preferences/sync.js:15
+msgid ""
+"Export your settings or import selected settings from a configuration file."
+msgstr ""
+
+#: dist/preferences/sync.js:26
+msgid "Configuration could not be transferred"
+msgstr ""
+
+#: dist/preferences/sync.js:29
+msgid "Close"
+msgstr ""
+
+#: dist/preferences/sync.js:34
+msgid "Export configuration"
+msgstr ""
+
+#: dist/preferences/sync.js:35 dist/preferences/sync.js:156
+msgid "Import configuration"
+msgstr ""
+
+#: dist/preferences/sync.js:61
+msgid "Configuration exported"
+msgstr ""
+
+#: dist/preferences/sync.js:74
+msgid "Could not read the configuration file."
+msgstr ""
+
+#: dist/preferences/sync.js:99 dist/preferences/sync.js:159
+msgid "Cancel"
+msgstr ""
+
+#: dist/preferences/sync.js:100
+msgid "Save"
+msgstr ""
+
+#: dist/preferences/sync.js:100
+msgid "Open"
+msgstr ""
+
+#: dist/preferences/sync.js:103
+msgid "Configuration files (*.json)"
+msgstr ""
+
+#: dist/preferences/sync.js:157
+msgid ""
+"Select what to import. Expand conflicts to choose which existing settings to "
+"replace."
+msgstr ""
+
+#: dist/preferences/sync.js:160 dist/preferences/sync.js:176
+msgid "Import"
+msgstr ""
+
+#: dist/preferences/sync.js:179
+msgid "Import global settings"
+msgstr ""
+
+#: dist/preferences/sync.js:181
+msgid "Matches an existing pattern"
+msgstr ""
+
+#: dist/preferences/sync.js:182
+msgid "Add as a new pattern"
+msgstr ""
+
+#: dist/preferences/sync.js:199
+msgid "Setting"
+msgstr ""
+
+#: dist/preferences/sync.js:244
+msgid ""
+"Settings changed while the import was open. Select the file again to review "
+"the latest conflicts."
+msgstr ""
+
+#: dist/preferences/sync.js:267
+msgid "Global settings could not be saved."
+msgstr ""
+
+#: dist/preferences/sync.js:272
+msgid "Patterns could not be saved."
+msgstr ""
+
+#: dist/preferences/sync.js:276
+msgid "Configuration imported"
+msgstr ""
+
+#: dist/shell/notification-center.js:65
+msgid "Notification Configurator Settings"
 msgstr ""
