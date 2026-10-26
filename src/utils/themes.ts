@@ -11,19 +11,16 @@ type Color = number[];
 
 export function makeColorStyle(
   [red, green, blue, alpha]: Color,
-  kind: "color" | "background" = "color",
+  kind: "color" | "background" | "border-color" = "color",
 ): string {
   const redComponent = Math.round(red * 255);
   const greenComponent = Math.round(green * 255);
   const blueComponent = Math.round(blue * 255);
-  const hex = `#${redComponent.toString(16).padStart(2, "0")}${greenComponent.toString(16).padStart(2, "0")}${blueComponent.toString(16).padStart(2, "0")}`;
-  const value =
+  const color =
     alpha < 1
-      ? `${hex}${Math.round(alpha * 255)
-          .toString(16)
-          .padStart(2, "0")}`
-      : hex;
-  return `${kind}: ${value};`;
+      ? `rgba(${redComponent}, ${greenComponent}, ${blueComponent}, ${alpha})`
+      : `#${redComponent.toString(16).padStart(2, "0")}${greenComponent.toString(16).padStart(2, "0")}${blueComponent.toString(16).padStart(2, "0")}`;
+  return `${kind}: ${color};`;
 }
 
 export class ThemesManager {

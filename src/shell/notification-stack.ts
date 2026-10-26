@@ -12,9 +12,10 @@ import * as MessageList from "resource:///org/gnome/shell/ui/messageList.js";
 import * as MessageTray from "resource:///org/gnome/shell/ui/messageTray.js";
 import { MonitorManager } from "../utils/monitors.js";
 import { type Configuration, SettingsManager } from "../utils/settings.js";
-import { applyNotificationTheme } from "../utils/themes.js";
+import { applyNotificationTheme, makeColorStyle } from "../utils/themes.js";
 import { BannerLifecycle, type BannerMessage } from "./banner-lifecycle.js";
 import { getPanelMonitor, resolveNotificationMonitor } from "./monitors.js";
+import { createNotificationSlot } from "./notification-layout.js";
 import {
   hideBannerAppTitleRow,
   resolveBannerWidgets,
@@ -35,12 +36,15 @@ type BannerActor = St.Bin & {
 type Stack = {
   actor: St.Widget;
   container: St.BoxLayout;
+  monitor: number;
+  origin: [number, number] | null;
   reflowUntil: number;
 };
 
 type Banner = {
   notification: MessageTray.Notification;
   actor: BannerActor | null;
+  slot: St.Widget | null;
   message: BannerMessage | null;
   stack: Stack | null;
   lifecycle: BannerLifecycle | null;
@@ -48,6 +52,7 @@ type Banner = {
   signals: number[];
   removing: boolean;
   appearance: string;
+  background: string;
   headerHidden: boolean;
   timeoutSettings: string;
   position: number | null;
@@ -276,6 +281,7 @@ export class NotificationStack {
     const banner: Banner = {
       notification,
       actor: null,
+      slot: null,
       message: null,
       stack: null,
       lifecycle: null,
@@ -283,6 +289,7 @@ export class NotificationStack {
       signals: [],
       removing: false,
       appearance: "",
+      background: "",
       headerHidden: false,
       timeoutSettings: "",
       position: null,
@@ -455,8 +462,27 @@ export class NotificationStack {
       actor,
       SHELL_VERSION < 50 ? { affectsInputRegion: false } : {},
     );
-    const stack = { actor, container, reflowUntil: 0 };
+    const stack: Stack = {
+      actor,
+      container,
+      monitor: this.monitor(configuration)?.index ?? 0,
+      origin: null,
+      reflowUntil: 0,
+    };
     this.stacks.set(key, stack);
+    actor.connect("notify::allocation", () => {
+      const allocation = actor.get_allocation_box();
+      if (
+        stack.origin &&
+        (stack.origin[0] !== allocation.x1 || stack.origin[1] !== allocation.y1)
+      ) {
+        for (const banner of this.banners.values()) {
+          if (banner.stack === stack) banner.slot?.queue_relayout();
+        }
+      }
+      stack.origin = [allocation.x1, allocation.y1];
+      this.animateReflow(stack);
+    });
     container.connect("notify::allocation", () => this.animateReflow(stack));
     return stack;
   }
@@ -464,21 +490,12 @@ export class NotificationStack {
   private animateReflow(stack: Stack) {
     for (const banner of this.banners.values()) {
       const actor = banner.actor;
-      if (!actor || banner.stack !== stack || !actor.has_allocation()) continue;
-      const alignment = banner.lifecycle?.actor.y_align;
-      if (
-        alignment === Clutter.ActorAlign.START ||
-        alignment === Clutter.ActorAlign.FILL
-      ) {
-        actor.set_clip(
-          -stack.actor.width,
-          0,
-          stack.actor.width * 2,
-          stack.actor.height,
-        );
-      } else actor.remove_clip();
+      if (!actor || banner.stack !== stack || !banner.slot?.get_parent())
+        continue;
+      this.clipBanner(banner);
       const position =
-        actor.get_transformed_position()[1] - actor.translation_y;
+        banner.slot.get_transformed_position()[1] +
+        actor.get_theme_node().get_margin(St.Side.TOP);
       if (!Number.isFinite(position)) continue;
       const previous = banner.position;
       banner.position = position;
@@ -492,11 +509,37 @@ export class NotificationStack {
     }
   }
 
+  private clipBanner(banner: Banner) {
+    const { actor, stack, slot } = banner;
+    if (!actor?.get_parent() || !stack || !slot?.get_parent()) return;
+    const area = Main.layoutManager.getWorkAreaForMonitor(stack.monitor);
+    const [slotHorizontal, slotVertical] = slot.get_transformed_position();
+    const node = actor.get_theme_node();
+    const horizontal =
+      slotHorizontal + node.get_margin(St.Side.LEFT) + actor.translation_x;
+    const vertical =
+      slotVertical + node.get_margin(St.Side.TOP) + actor.translation_y;
+    const alignment = banner.lifecycle?.actor.y_align;
+    const top = Math.max(
+      area.y - vertical,
+      alignment === Clutter.ActorAlign.START ||
+        alignment === Clutter.ActorAlign.FILL
+        ? 0
+        : -area.height,
+    );
+    actor.set_clip(
+      area.x - horizontal,
+      top,
+      area.width,
+      Math.max(0, area.y + area.height - vertical - top),
+    );
+  }
+
   private place(banner: Banner, stack: Stack, configuration: Configuration) {
-    if (!banner.actor) return;
+    if (!banner.slot) return;
     const previous = banner.stack;
     banner.position = null;
-    banner.actor.get_parent()?.remove_child(banner.actor);
+    banner.slot.get_parent()?.remove_child(banner.slot);
     if (
       stack.container.get_n_children() &&
       (configuration.stacking.direction === "up" ||
@@ -506,7 +549,7 @@ export class NotificationStack {
       stack.reflowUntil = GLib.get_monotonic_time() + 200000;
     }
     stack.container.insert_child_at_index(
-      banner.actor,
+      banner.slot,
       configuration.stacking.direction === "up" ? 0 : -1,
     );
     banner.stack = stack;
@@ -529,6 +572,7 @@ export class NotificationStack {
       reactive: false,
     }) as BannerActor;
     banner.actor = actor;
+    banner.slot = createNotificationSlot(actor);
     banner.message = message;
     banner.lifecycle = lifecycle;
     lifecycle.setPosition(configuration.display.verticalPosition);
@@ -536,11 +580,14 @@ export class NotificationStack {
     actor.connect("notify::allocation", () => {
       if (banner.stack) this.animateReflow(banner.stack);
     });
+    actor.connect("notify::translation-y", () => this.clipBanner(banner));
     this.queue = this.queue.filter((queued) => queued !== banner);
     this.place(banner, this.getStack(configuration), configuration);
-    if (SHELL_VERSION < 50)
-      Main.layoutManager.trackChrome(actor, { affectsInputRegion: true });
     this.applyAppearance(banner, configuration);
+    Main.layoutManager.addChrome(
+      actor,
+      SHELL_VERSION < 50 ? { affectsInputRegion: true } : {},
+    );
     this.setUnredirect(true);
     const delay = Math.max(
       0,
@@ -591,6 +638,12 @@ export class NotificationStack {
       const expanded = banner.message.expanded;
       banner.message = this.createMessage(banner);
       banner.lifecycle?.replaceMessage(banner.message);
+      banner.background = "";
+      Main.layoutManager.removeChrome(banner.actor);
+      Main.layoutManager.addChrome(
+        banner.actor,
+        SHELL_VERSION < 50 ? { affectsInputRegion: true } : {},
+      );
       if (expanded) banner.message.expand(false);
       banner.headerHidden = false;
     }
@@ -600,7 +653,9 @@ export class NotificationStack {
         ? `margin-top: ${margins.top}px; margin-bottom: ${margins.bottom}px; margin-left: ${margins.left}px; margin-right: ${margins.right}px;`
         : "",
     );
-    banner.message.set_style("");
+    banner.message.set_style(
+      (banner.message.get_style() ?? "").replace(banner.background, ""),
+    );
     const widgets = resolveBannerWidgets(banner.message);
     for (const widget of [
       widgets.source,
@@ -609,10 +664,17 @@ export class NotificationStack {
       widgets.body,
     ])
       widget?.set_style("");
-    if (configuration.colors.enabled)
+    banner.background = "";
+    if (configuration.colors.enabled) {
       applyNotificationTheme(widgets, configuration.colors.theme);
+      banner.background = makeColorStyle(
+        configuration.colors.theme.backgroundColor,
+        "background",
+      );
+    }
     if (hidden && !banner.headerHidden)
       banner.headerHidden = hideBannerAppTitleRow(banner.lifecycle?.actor);
+    banner.slot?.queue_relayout();
   }
 
   private timeoutSettings(banner: Banner, configuration: Configuration) {
@@ -654,6 +716,8 @@ export class NotificationStack {
     for (const signal of banner.signals) banner.notification.disconnect(signal);
     banner.signals = [];
     banner.lifecycle?.dispose();
+    banner.slot?.destroy();
+    if (banner.actor) Main.layoutManager.removeChrome(banner.actor);
     banner.actor?.destroy();
   }
 
@@ -669,8 +733,9 @@ export class NotificationStack {
   }
 
   private setDragging(dragging: boolean) {
-    for (const stack of this.stacks.values())
-      Shell.util_set_hidden_from_pick(stack.actor, dragging);
+    for (const banner of this.banners.values()) {
+      if (banner.actor) Shell.util_set_hidden_from_pick(banner.actor, dragging);
+    }
   }
 
   private setUnredirect(disabled: boolean) {

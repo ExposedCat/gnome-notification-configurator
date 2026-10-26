@@ -1,4 +1,5 @@
 import Clutter from "gi://Clutter";
+import GLib from "gi://GLib";
 import GObject from "gi://GObject";
 import St from "gi://St";
 import { gettext as _ } from "resource:///org/gnome/shell/extensions/extension.js";
@@ -8,7 +9,8 @@ import * as Main from "resource:///org/gnome/shell/ui/main.js";
 import * as MessageList from "resource:///org/gnome/shell/ui/messageList.js";
 import type { Notification } from "resource:///org/gnome/shell/ui/messageTray.js";
 import type { SettingsManager } from "../utils/settings.js";
-import { applyNotificationTheme } from "../utils/themes.js";
+import { applyNotificationTheme, makeColorStyle } from "../utils/themes.js";
+import { NotificationMask } from "./notification-mask.js";
 import {
   type NotificationWidgets,
   resolveBannerWidgets,
@@ -34,6 +36,7 @@ type Appearance = {
   content: St.Widget | null;
   contentStyle: string | null;
   bodyClipped: boolean;
+  contentOpacities: Map<Clutter.Actor, number>;
   hidden: boolean;
 };
 
@@ -67,11 +70,34 @@ function shadeBackground(background: number[], adjustment: number) {
   ];
 }
 
+function blendColor(foreground: number[], background: number[]) {
+  const opacity = foreground[3] + background[3] * (1 - foreground[3]);
+  if (opacity === 0) return [0, 0, 0, 0];
+  return [
+    ...foreground
+      .slice(0, 3)
+      .map(
+        (channel, index) =>
+          (channel * foreground[3] +
+            background[index] * background[3] * (1 - foreground[3])) /
+          opacity,
+      ),
+    opacity,
+  ];
+}
+
 export class NotificationCenterManager {
   private settingsButton?: St.Button;
   private buttonBindings: GObject.Binding[] = [];
   private signals = new Map<Clutter.Actor, number[]>();
   private messages = new Map<NotificationMessage, Appearance>();
+  private stackClips = new Map<
+    Clutter.Actor,
+    [number, number, number, number] | null
+  >();
+  private stackMasks = new Map<Clutter.Actor, NotificationMask>();
+  private pendingStacks = new Set<Clutter.Actor>();
+  private stackUpdate = 0;
   private settingsListener: number;
   private themeContext = St.ThemeContext.get_for_stage(
     global.stage as Clutter.Stage,
@@ -143,8 +169,12 @@ export class NotificationCenterManager {
     const signals = [
       actor.connect("destroy", () => {
         this.signals.delete(actor);
-        if (actor instanceof this.messageConstructor)
+        this.stackClips.delete(actor);
+        this.stackMasks.delete(actor);
+        this.pendingStacks.delete(actor);
+        if (actor instanceof this.messageConstructor) {
           this.messages.delete(actor);
+        }
       }),
     ];
     this.signals.set(actor, signals);
@@ -184,8 +214,15 @@ export class NotificationCenterManager {
         content,
         contentStyle: content?.get_style() ?? null,
         bodyClipped: widgets.body?.clip_to_allocation ?? false,
+        contentOpacities: new Map(),
         hidden: false,
       });
+      for (const signal of ["notify::allocation", "style-changed"])
+        signals.push(
+          actor.connect(signal, () =>
+            this.refreshStack(actor.get_parent()?.get_parent() ?? null),
+          ),
+        );
       for (const property of ["title", "body", "pseudo-class"]) {
         signals.push(
           actor.connect(`notify::${property}`, () => this.update(actor)),
@@ -194,8 +231,24 @@ export class NotificationCenterManager {
       this.update(actor);
       return;
     }
+    const parent = actor.get_parent();
+    const group = [actor, parent].find(
+      (candidate) =>
+        candidate instanceof St.Widget &&
+        candidate.has_style_class_name("message-notification-group"),
+    );
+    if (group) {
+      for (const property of ["allocation", "scale-x", "scale-y"])
+        signals.push(
+          actor.connect(`notify::${property}`, () => this.refreshStack(group)),
+        );
+    }
     signals.push(
-      actor.connect("child-added", (_parent, child) => this.watch(child)),
+      actor.connect("child-added", (_parent, child) => {
+        this.watch(child);
+        this.queueStack(group ?? null);
+      }),
+      actor.connect("child-removed", () => this.queueStack(group ?? null)),
     );
     for (const child of actor.get_children()) this.watch(child);
   }
@@ -226,19 +279,13 @@ export class NotificationCenterManager {
     message: NotificationMessage,
     original: string | null,
   ) {
-    const node = message.get_theme_node();
-    const states = node.get_pseudo_classes();
+    const states = message.get_theme_node().get_pseudo_classes();
     if (!states.some((state) => STACK_STATES.has(state))) return 0;
     const background = (pseudoClasses: string[]) => {
-      const reference = St.ThemeNode.new(
-        this.themeContext,
-        node.get_parent(),
-        node.get_theme(),
-        node.get_element_type(),
-        node.get_element_id(),
-        node.get_element_classes().join(" "),
-        pseudoClasses.join(" "),
-        original ?? "",
+      const reference = this.originalTheme(
+        message,
+        original,
+        pseudoClasses,
       ).get_background_color();
       return lightness([
         reference.red / 255,
@@ -250,6 +297,140 @@ export class NotificationCenterManager {
       background(states) -
       background(states.filter((state) => !STACK_STATES.has(state)))
     );
+  }
+
+  private originalTheme(
+    message: NotificationMessage,
+    original: string | null,
+    states?: string[],
+  ) {
+    const node = message.get_theme_node();
+    return St.ThemeNode.new(
+      this.themeContext,
+      node.get_parent(),
+      node.get_theme(),
+      node.get_element_type(),
+      node.get_element_id(),
+      node.get_element_classes().join(" "),
+      (states ?? node.get_pseudo_classes()).join(" "),
+      original ?? "",
+    );
+  }
+
+  private refreshStack(group: Clutter.Actor | null) {
+    this.updateStack(group);
+    this.queueStack(group);
+  }
+
+  private queueStack(group: Clutter.Actor | null) {
+    if (
+      !(group instanceof St.Widget) ||
+      !group.has_style_class_name("message-notification-group")
+    )
+      return;
+    this.pendingStacks.add(group);
+    if (this.stackUpdate) return;
+    this.stackUpdate = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+      this.stackUpdate = 0;
+      const groups = [...this.pendingStacks];
+      this.pendingStacks.clear();
+      for (const pending of groups)
+        if (this.signals.has(pending)) this.updateStack(pending);
+      return GLib.SOURCE_REMOVE;
+    });
+  }
+
+  private setStackOpacity(appearance: Appearance, expansion: number) {
+    const content = appearance.widgets.container.get_first_child();
+    for (const [actor, opacity] of appearance.contentOpacities) {
+      if (actor.get_parent() !== content || expansion >= 1) {
+        actor.opacity = opacity;
+        appearance.contentOpacities.delete(actor);
+      }
+    }
+    if (!content || expansion >= 1) return;
+    for (const actor of content.get_children()) {
+      const opacity = appearance.contentOpacities.get(actor) ?? actor.opacity;
+      appearance.contentOpacities.set(actor, opacity);
+      actor.opacity = Math.round(opacity * expansion);
+    }
+  }
+
+  private restoreStackClip(actor: Clutter.Actor) {
+    if (!this.stackClips.has(actor)) return;
+    const clip = this.stackClips.get(actor);
+    if (clip) actor.set_clip(...clip);
+    else actor.remove_clip();
+    this.stackClips.delete(actor);
+  }
+
+  private setStackClip(actor: Clutter.Actor, top: number, bottom: number) {
+    if (top <= 0 && bottom >= actor.height) {
+      this.restoreStackClip(actor);
+      return;
+    }
+    if (!this.stackClips.has(actor))
+      this.stackClips.set(actor, actor.has_clip ? actor.get_clip() : null);
+    const [left, originalTop, width, height] = this.stackClips.get(actor) ?? [
+      0,
+      0,
+      actor.width,
+      actor.height,
+    ];
+    const clippedTop = Math.max(top, originalTop);
+    actor.set_clip(
+      left,
+      clippedTop,
+      width,
+      Math.max(0, Math.min(bottom, originalTop + height) - clippedTop),
+    );
+  }
+
+  private updateStack(group: Clutter.Actor | null) {
+    if (
+      !(group instanceof St.Widget) ||
+      !group.has_style_class_name("message-notification-group")
+    )
+      return;
+    const layout = group.layout_manager as Clutter.LayoutManager & {
+      expansion: number;
+    };
+    const covers: NotificationMessage[] = [];
+    for (const child of group.get_children()) {
+      const message = child
+        .get_children()
+        .find(
+          (candidate): candidate is NotificationMessage =>
+            candidate instanceof this.messageConstructor,
+        );
+      if (!message) continue;
+      const appearance = this.messages.get(message);
+      if (appearance)
+        this.setStackOpacity(appearance, covers.length ? layout.expansion : 1);
+      if (covers.length >= 3 && layout.expansion === 0)
+        this.setStackClip(child, child.height, child.height);
+      else this.restoreStackClip(child);
+      this.updateStackMask(child, covers);
+      covers.push(message);
+    }
+    const header = group
+      .get_children()
+      .find(
+        (child) =>
+          child instanceof St.Widget &&
+          child.has_style_class_name("message-group-header"),
+      );
+    if (header) this.updateStackMask(header, covers.slice(0, 1));
+  }
+
+  private updateStackMask(actor: Clutter.Actor, covers: St.Widget[]) {
+    let mask = this.stackMasks.get(actor);
+    if (!mask) {
+      if (covers.length === 0) return;
+      mask = new NotificationMask(actor);
+      this.stackMasks.set(actor, mask);
+    }
+    mask.update(covers);
   }
 
   private update(message: NotificationMessage) {
@@ -284,17 +465,34 @@ export class NotificationCenterManager {
     const theme = enabled
       ? this.settingsManager.getThemeFor(source, title, body)
       : null;
+    this.updateStack(message.get_parent()?.get_parent() ?? null);
     if (theme) {
+      const backgroundColor = shadeBackground(
+        theme.backgroundColor,
+        this.stackAdjustment(message, original),
+      );
+      const border = this.originalTheme(message, original).get_border_color(
+        St.Side.TOP,
+      );
+      const borderStyle = makeColorStyle(
+        blendColor(
+          [
+            border.red / 255,
+            border.green / 255,
+            border.blue / 255,
+            border.alpha / 255,
+          ],
+          backgroundColor,
+        ),
+        "border-color",
+      );
       applyNotificationTheme(
         appearance.widgets,
         {
           ...theme,
-          backgroundColor: shadeBackground(
-            theme.backgroundColor,
-            this.stackAdjustment(message, original),
-          ),
+          backgroundColor,
         },
-        style,
+        extendStyle(style, borderStyle),
       );
     } else {
       for (const [widget, original] of appearance.styles)
@@ -303,6 +501,9 @@ export class NotificationCenterManager {
   }
 
   dispose() {
+    if (this.stackUpdate) GLib.source_remove(this.stackUpdate);
+    this.stackUpdate = 0;
+    this.pendingStacks.clear();
     for (const binding of this.buttonBindings) binding.unbind();
     this.buttonBindings = [];
     this.settingsButton?.destroy();
@@ -313,7 +514,11 @@ export class NotificationCenterManager {
       for (const signal of signals) actor.disconnect(signal);
     }
     this.signals.clear();
+    for (const actor of this.stackClips.keys()) this.restoreStackClip(actor);
+    for (const mask of this.stackMasks.values()) mask.dispose();
+    this.stackMasks.clear();
     for (const appearance of this.messages.values()) {
+      this.setStackOpacity(appearance, 1);
       this.setHeaderHidden(appearance, false);
       if (appearance.widgets.body)
         appearance.widgets.body.clip_to_allocation = appearance.bodyClipped;

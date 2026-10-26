@@ -1344,10 +1344,14 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
       });
 
       row.add_suffix(
-        this.createColorButton(theme[field.colorKey], (color) => {
-          theme[field.colorKey] = color;
-          onSave();
-        }),
+        this.createColorButton(
+          theme[field.colorKey],
+          (color) => {
+            theme[field.colorKey] = color;
+            onSave();
+          },
+          field.colorKey === "backgroundColor",
+        ),
       );
 
       if (field.fontKey) {
@@ -1388,9 +1392,10 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
   private createColorButton(
     color: number[],
     onChanged: (color: number[]) => void,
+    useAlpha = false,
   ): Gtk.ColorButton {
     const colorButton = new Gtk.ColorButton({
-      use_alpha: false,
+      use_alpha: useAlpha,
       valign: Gtk.Align.CENTER,
     });
     colorButton.set_rgba(
