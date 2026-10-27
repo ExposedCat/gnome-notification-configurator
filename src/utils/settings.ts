@@ -30,6 +30,7 @@ import {
   normalizeMonitor,
   normalizeNumber,
   normalizePosition,
+  normalizeSoundFile,
   normalizeString,
   normalizeTheme,
   normalizeTopBarDoNotDisturb,
@@ -81,6 +82,10 @@ export type Configuration = {
   urgency: {
     alwaysNormalUrgency: boolean;
   };
+  sound: {
+    enabled: boolean;
+    file: string;
+  };
   display: {
     monitor: MonitorSelection;
     enableFullscreen: boolean;
@@ -128,6 +133,7 @@ export type PatternOverrides = {
   rateLimiting: boolean;
   timeout: boolean;
   urgency: boolean;
+  sound: boolean;
   display: boolean;
   colors: boolean;
   margins: boolean;
@@ -223,6 +229,7 @@ export class SettingsManager {
       urgency: {
         alwaysNormalUrgency: false,
       },
+      sound: { enabled: false, file: "" },
       display: {
         monitor: normalizeMonitor(undefined),
         enableFullscreen: false,
@@ -280,6 +287,7 @@ export class SettingsManager {
         rateLimiting: false,
         timeout: false,
         urgency: false,
+        sound: false,
         display: false,
         colors: false,
         margins: false,
@@ -303,6 +311,7 @@ export class SettingsManager {
         ignoreIdle: true,
       },
       urgency: { alwaysNormalUrgency: false },
+      sound: { enabled: false, file: "" },
       display: {
         monitor: normalizeMonitor(undefined),
         enableFullscreen: false,
@@ -538,6 +547,9 @@ export class SettingsManager {
       urgency: overrides.urgency
         ? matchedPattern.urgency
         : this._globalConfiguration.urgency,
+      sound: overrides.sound
+        ? matchedPattern.sound
+        : this._globalConfiguration.sound,
       display: overrides.display
         ? matchedPattern.display
         : this._globalConfiguration.display,
@@ -696,6 +708,7 @@ export class SettingsManager {
         rateLimiting: normalizeBoolean(object.overrides?.rateLimiting, false),
         timeout: normalizeBoolean(object.overrides?.timeout, false),
         urgency: normalizeBoolean(object.overrides?.urgency, false),
+        sound: normalizeBoolean(object.overrides?.sound, false),
         display: normalizeBoolean(object.overrides?.display, false),
         colors: normalizeBoolean(object.overrides?.colors, false),
         margins: normalizeBoolean(object.overrides?.margins, false),
@@ -782,6 +795,13 @@ export class SettingsManager {
           candidate.urgency?.alwaysNormalUrgency,
           defaults.urgency.alwaysNormalUrgency,
         ),
+      },
+      sound: {
+        enabled: normalizeBoolean(
+          candidate.sound?.enabled,
+          defaults.sound.enabled,
+        ),
+        file: normalizeSoundFile(candidate.sound?.file),
       },
       display: {
         monitor: normalizeMonitor(candidate.display?.monitor),

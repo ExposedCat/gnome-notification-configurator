@@ -25,6 +25,7 @@ import type {
   SettingsManager,
   VerticalPosition,
 } from "../utils/settings.js";
+import { NotificationSoundManager } from "./notification-sound.js";
 import { NotificationStack } from "./notification-stack.js";
 import {
   getBannerBin,
@@ -36,6 +37,7 @@ import {
 const ANIMATION_TIME = 200;
 
 export class NotificationsManager {
+  private soundManager: NotificationSoundManager;
   private notificationStack: NotificationStack;
   private messageTrayManager: MessageTrayManager;
   private notificationDaemonManager: NotificationDaemonManager;
@@ -53,6 +55,7 @@ export class NotificationsManager {
   private activateAdapter: ActivateAdapter;
 
   constructor(settingsManager: SettingsManager) {
+    this.soundManager = new NotificationSoundManager(settingsManager);
     this.messageTrayManager = new MessageTrayManager();
     this.notificationDaemonManager = new NotificationDaemonManager();
     this.sourceManager = new SourceManager(settingsManager);
@@ -294,6 +297,7 @@ export class NotificationsManager {
   }
 
   dispose() {
+    this.soundManager.dispose();
     this.notificationStack.dispose();
     this.disable();
     this.injectionManager.clear();

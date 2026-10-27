@@ -35,6 +35,10 @@
 - **Notification Timeout** - Configure auto-dismiss timing, keep notifications
   visible while idle, or set timeout to `0` to keep notifications until dismissed
 - **Urgency Control** - Force notifications to normal urgency when needed
+- **Notification Sound** - Choose an Ogg or WAV audio file, or use the sound
+  theme's notification sound when an application supplies none, globally or for
+  matching patterns, while respecting application sound preferences and Do Not
+  Disturb. Missing or unreadable custom files fall back to the theme sound
 - **Window Attention Handling** - Activate attention-requesting windows instead
   of showing a notification
 - **Fullscreen Notifications** - Enable or disable notifications while

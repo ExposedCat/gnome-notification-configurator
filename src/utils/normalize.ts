@@ -72,6 +72,14 @@ export function normalizeString(candidate: unknown, fallback: string): string {
   return typeof candidate === "string" ? candidate : fallback;
 }
 
+export function normalizeSoundFile(candidate: unknown): string {
+  return typeof candidate === "string" &&
+    candidate.startsWith("/") &&
+    !candidate.includes("\0")
+    ? candidate
+    : "";
+}
+
 export function normalizeMonitor(candidate: unknown): MonitorSelection {
   const monitor =
     typeof candidate === "object" &&

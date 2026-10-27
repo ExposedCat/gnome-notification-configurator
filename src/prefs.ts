@@ -15,6 +15,7 @@ import {
   addNotificationCenterAppearance,
 } from "./preferences/notification-center.js";
 import { notificationPreview } from "./preferences/notification-preview.js";
+import { createSoundPicker } from "./preferences/notification-sound.js";
 import { createSvgPreview } from "./preferences/preview.js";
 import { SectionedPreferences } from "./preferences/sections.js";
 import { buildSyncPage } from "./preferences/sync.js";
@@ -979,6 +980,39 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
     urgencyGroup.add(forceNormalRow);
     updateUrgencyVisibility();
 
+    const soundGroup = new Adw.PreferencesGroup({
+      title: _("Notification Sound"),
+    });
+    const soundRow = new Adw.SwitchRow({
+      title: _("Play a Notification Sound"),
+      subtitle: _("Use the selected sound when an application supplies none"),
+    });
+    const soundPicker = createSoundPicker(config.sound, onSave);
+    soundRow.set_active(config.sound.enabled);
+    soundRow.connect("notify::active", () => {
+      config.sound.enabled = soundRow.get_active();
+      onSave();
+      updateSoundVisibility();
+    });
+    const updateSoundVisibility = () => {
+      soundRow.set_visible(!overrides || overrides.sound);
+      soundPicker.set_visible(
+        (!overrides || overrides.sound) && config.sound.enabled,
+      );
+    };
+    if (overrides) {
+      this.addOverrideRow(
+        soundGroup,
+        overrides,
+        "sound",
+        onSave,
+        updateSoundVisibility,
+      );
+    }
+    soundGroup.add(soundRow);
+    soundGroup.add(soundPicker);
+    updateSoundVisibility();
+
     const windowAttentionGroup = new Adw.PreferencesGroup({
       title: _("Window Attention"),
       description: _("Control what happens when a window demands attention"),
@@ -1301,7 +1335,12 @@ export default class NotificationConfiguratorPreferences extends ExtensionPrefer
         _("Banners"),
       );
     }
-    for (const group of [rateLimitGroup, urgencyGroup, windowAttentionGroup]) {
+    for (const group of [
+      rateLimitGroup,
+      urgencyGroup,
+      soundGroup,
+      windowAttentionGroup,
+    ]) {
       page.add(group, "preferences-system-time-symbolic", _("Behavior"));
     }
     page.add(appearanceGroup, "applications-graphics-symbolic");
