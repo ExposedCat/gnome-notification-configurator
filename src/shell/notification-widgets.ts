@@ -9,6 +9,7 @@ type NotificationContainer = St.Widget & {
 
 export type NotificationWidgets = {
   container: St.Widget;
+  notification: Notification | null;
   sourceText: Clutter.Text | null;
   source: St.Bin | null;
   time: St.Bin | null;
@@ -99,6 +100,7 @@ export function resolveBannerWidgets(
     const body = contentBody?.get_child_at_index(1) as St.Bin | null;
     widgets = {
       container,
+      notification: null,
       sourceText,
       source,
       time,
@@ -112,6 +114,7 @@ export function resolveBannerWidgets(
   }
 
   const notification = (container as NotificationContainer).notification;
+  widgets.notification = notification ?? null;
   widgets.sourceName =
     notification?.source?.title ??
     widgets.sourceText?.text ??
@@ -130,7 +133,8 @@ export function setNotificationBodyHidden(
   widgets: NotificationWidgets,
   hidden: boolean,
 ) {
-  const body = widgets.body;
+  const current = resolveBannerWidgets(widgets.container);
+  const body = current.body;
   if (!body) return;
   const previous = hiddenBodies.get(body);
   if (hidden) {
@@ -148,6 +152,6 @@ export function setNotificationBodyHidden(
   } else if (previous) {
     body.disconnect(previous.signal);
     hiddenBodies.delete(body);
-    body.visible = previous.visible && widgets.bodyText.length > 0;
+    body.visible = previous.visible && current.bodyText.length > 0;
   }
 }
