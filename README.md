@@ -150,7 +150,7 @@ npm run check:shexli
 ```
 
 CI runs the same scan after packaging and before uploading artifacts or creating
-a release. The check fails on errors and displays warnings and manual review
+a release. The check fails on errors and warnings and displays manual review
 findings. It allows Shexli 0.2.1's `EGO-M-004` false positive only when
 `shell-version` includes GNOME 51 and contains exclusively stable versions from
 40 through 51. The exception remains visible in the output; invalid versions,

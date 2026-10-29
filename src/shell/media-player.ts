@@ -159,7 +159,6 @@ class MediaCard {
   private body: St.Widget;
   private controlsIndex: number;
   private controlsAlignment: Clutter.ActorAlign;
-  private surface: St.Widget;
   private background = new Clutter.Actor({
     x_expand: true,
     y_expand: true,
@@ -225,25 +224,25 @@ class MediaCard {
     this.headerVisible = message._header.visible;
     const layout = new MediaLayout();
     layout.foreground = this.foreground;
-    this.surface = new St.Widget({
+    const surface = new St.Widget({
       layout_manager: layout,
       clip_to_allocation: true,
     });
     message.set_child(null);
-    this.surface.add_child(this.background);
-    this.surface.add_child(this.shade);
-    this.surface.add_child(this.cover);
-    this.surface.add_child(this.foreground);
-    message.set_child(this.surface);
+    surface.add_child(this.background);
+    surface.add_child(this.shade);
+    surface.add_child(this.cover);
+    surface.add_child(this.foreground);
+    message.set_child(surface);
     this.background.add_effect(this.blur);
     this.cover.add_effect(this.coverClipping.effect);
-    this.surface.add_effect(this.clipping.effect);
+    surface.add_effect(this.clipping.effect);
     message._icon.add_effect(this.iconClipping.effect);
     this.foreground.y_expand = true;
     body.y_expand = true;
     body.y_align = Clutter.ActorAlign.CENTER;
     message._mediaControls.y_align = Clutter.ActorAlign.CENTER;
-    this.allocationSignal = this.surface.connect("notify::allocation", () =>
+    this.allocationSignal = surface.connect("notify::allocation", () =>
       this.allocate(),
     );
     this.destroySignal = message.connect("destroy", () => {
@@ -344,7 +343,8 @@ class MediaCard {
     const scale = St.ThemeContext.get_for_stage(
       global.stage as Clutter.Stage,
     ).scale_factor;
-    const allocation = this.surface.get_allocation_box();
+    const surface = this.message.get_child() as St.Widget;
+    const allocation = surface.get_allocation_box();
     const width = allocation.get_width();
     const height = allocation.get_height();
     const artworkReady = this.cover.content !== null;
@@ -426,16 +426,17 @@ class MediaCard {
   }
 
   dispose() {
+    const surface = this.message.get_child() as St.Widget;
     this.message.disconnect(this.destroySignal);
     this.message._icon.disconnect(this.iconSignal);
-    this.surface.disconnect(this.allocationSignal);
+    surface.disconnect(this.allocationSignal);
     this.clearLoader();
     this.message._icon.remove_effect(this.iconClipping.effect);
     this.positionControls(false);
-    this.surface.remove_child(this.foreground);
+    surface.remove_child(this.foreground);
     this.message.set_child(null);
     this.message.set_child(this.foreground);
-    this.surface.destroy();
+    surface.destroy();
     for (const [widget, style] of this.styles) widget.set_style(style);
     for (const [actor, expansion] of this.expansion) {
       actor.y_expand = expansion.expand;

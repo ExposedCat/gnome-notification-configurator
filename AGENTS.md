@@ -20,3 +20,4 @@
 - Each class must clean up its own signals, sources, asynchronous operations, and resources. Remove sources and disconnect signals before destroying resources; call `super.destroy()` last when applicable.
 - Never disable selectively or skip required cleanup. Every `disable()` must undo all changes made by `enable()`, including when the session mode changes.
 - Do not specify versions in GNOME Shell runtime GI imports; use the library versions loaded by Shell.
+- Shexli errors and warnings must fail the build pipeline. Keep any exceptions explicit and narrowly scoped.

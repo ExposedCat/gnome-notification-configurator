@@ -51,12 +51,14 @@ def main() -> int:
     arguments = parser.parse_args()
     analysis = analyze_path(arguments.path.resolve())
     errors = 0
+    warnings = 0
     exceptions = 0
 
     for finding in analysis.findings:
         is_exception = is_gnome_51_exception(finding)
         exceptions += int(is_exception)
         errors += int(finding.severity == "error" and not is_exception)
+        warnings += int(finding.severity == "warning" and not is_exception)
         severity = "exception: GNOME 51 version limit" if is_exception else finding.severity
         print(f"{finding.rule_id} [{severity}] {finding.message}")
         for evidence in finding.evidence:
@@ -71,9 +73,9 @@ def main() -> int:
 
     print(
         f"shexli: {len(analysis.findings)} findings, "
-        f"{errors} errors, {exceptions} exceptions"
+        f"{errors} errors, {warnings} warnings, {exceptions} exceptions"
     )
-    return int(errors > 0)
+    return int(errors > 0 or warnings > 0)
 
 
 if __name__ == "__main__":
