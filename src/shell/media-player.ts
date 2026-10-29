@@ -1,7 +1,7 @@
 import Clutter from "gi://Clutter";
 import Cogl from "gi://Cogl";
 import GObject from "gi://GObject";
-import Gio from "gi://Gio?version=2.0";
+import Gio from "gi://Gio";
 import Shell from "gi://Shell";
 import St from "gi://St";
 import { InjectionManager } from "resource:///org/gnome/shell/extensions/extension.js";
@@ -181,6 +181,7 @@ class MediaCard {
   private iconClipping = new RoundedClip();
   private coverClipping = new RoundedClip();
   private loader?: Clutter.Actor;
+  private loaderSignal = 0;
   private artwork = "";
   private aspectRatio = 1;
   private configuration?: MediaPlayerConfiguration;
@@ -190,10 +191,9 @@ class MediaCard {
     { expand: boolean; align: Clutter.ActorAlign }
   >;
   private headerVisible: boolean;
-  private signals: number[];
+  private destroySignal: number;
   private iconSignal: number;
   private padding = "";
-  private destroyed = false;
   private removing = false;
   private allocationSignal: number;
 
@@ -246,13 +246,10 @@ class MediaCard {
     this.allocationSignal = this.surface.connect("notify::allocation", () =>
       this.allocate(),
     );
-    this.signals = [
-      message.connect("destroy", () => {
-        this.destroyed = true;
-        this.loader?.destroy();
-        onDestroy();
-      }),
-    ];
+    this.destroySignal = message.connect("destroy", () => {
+      this.clearLoader();
+      onDestroy();
+    });
     this.iconSignal = message._icon.connect("notify::allocation", () =>
       this.iconClipping.update(
         message._icon.width,
@@ -297,8 +294,7 @@ class MediaCard {
   private loadArtwork(artwork: string) {
     if (this.artwork === artwork) return;
     this.artwork = artwork;
-    this.loader?.destroy();
-    this.loader = undefined;
+    this.clearLoader();
     this.background.set_content(null);
     this.cover.set_content(null);
     this.aspectRatio = 1;
@@ -317,7 +313,6 @@ class MediaCard {
     );
     this.loader = loader;
     const loaded = () => {
-      if (this.destroyed || this.loader !== loader) return;
       const content = loader.get_content();
       if (!content) return;
       const texture = (
@@ -331,13 +326,21 @@ class MediaCard {
       this.cover.content = content;
       this.allocate();
     };
-    loader.connect("notify::content", loaded);
+    this.loaderSignal = loader.connect("notify::content", loaded);
     loaded();
+  }
+
+  private clearLoader() {
+    if (!this.loader) return;
+    this.loader.disconnect(this.loaderSignal);
+    this.loader.destroy();
+    this.loader = undefined;
+    this.loaderSignal = 0;
   }
 
   private allocate() {
     const configuration = this.configuration;
-    if (!configuration || this.destroyed || this.removing) return;
+    if (!configuration || this.removing) return;
     const scale = St.ThemeContext.get_for_stage(
       global.stage as Clutter.Stage,
     ).scale_factor;
@@ -423,13 +426,12 @@ class MediaCard {
   }
 
   dispose() {
-    if (this.destroyed) return;
-    this.loader?.destroy();
-    for (const signal of this.signals) this.message.disconnect(signal);
+    this.message.disconnect(this.destroySignal);
     this.message._icon.disconnect(this.iconSignal);
+    this.surface.disconnect(this.allocationSignal);
+    this.clearLoader();
     this.message._icon.remove_effect(this.iconClipping.effect);
     this.positionControls(false);
-    this.surface.disconnect(this.allocationSignal);
     this.surface.remove_child(this.foreground);
     this.message.set_child(null);
     this.message.set_child(this.foreground);
@@ -441,7 +443,6 @@ class MediaCard {
     }
     this.message._header.visible = this.headerVisible;
     this.message._update();
-    this.destroyed = true;
   }
 }
 

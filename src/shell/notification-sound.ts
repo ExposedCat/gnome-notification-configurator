@@ -77,20 +77,14 @@ export class NotificationSoundManager {
       return;
     }
     const file = Gio.File.new_for_path(sound.file);
-    let destroyed = false;
-    const destroySignal = notification.connect("destroy", () => {
-      destroyed = true;
-    });
     file.query_info_async(
       "standard::type,access::can-read",
       Gio.FileQueryInfoFlags.NONE,
       GLib.PRIORITY_DEFAULT,
       this.cancellable,
       (_queriedFile, result) => {
-        if (!destroyed) notification.disconnect(destroySignal);
         try {
           const information = file.query_info_finish(result);
-          if (destroyed) return;
           play(
             information.get_file_type() === Gio.FileType.REGULAR &&
               information.get_attribute_boolean("access::can-read")
@@ -98,7 +92,7 @@ export class NotificationSoundManager {
               : null,
           );
         } catch {
-          if (!destroyed) play(null);
+          play(null);
         }
       },
     );
