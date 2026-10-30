@@ -32,6 +32,7 @@ import {
   getMessageTrayContainer,
   hideBannerAppTitleRow,
   resolveNotificationWidgets,
+  setNotificationBodyHidden,
 } from "./notification-widgets.js";
 
 const ANIMATION_TIME = 200;
@@ -54,7 +55,7 @@ export class NotificationsManager {
   private processingAdapter: ProcessingAdapter;
   private activateAdapter: ActivateAdapter;
 
-  constructor(settingsManager: SettingsManager) {
+  constructor(private settingsManager: SettingsManager) {
     this.soundManager = new NotificationSoundManager(settingsManager);
     this.messageTrayManager = new MessageTrayManager();
     this.notificationDaemonManager = new NotificationDaemonManager();
@@ -89,6 +90,10 @@ export class NotificationsManager {
   }
 
   private positionSignalId?: number;
+  private bannerRemovedSignalId?: number;
+  private bodySettingsListener?: number;
+  private bodyNotification: MessageTray.Notification | null = null;
+  private bodySignals: number[] = [];
   private injectionManager = new InjectionManager();
 
   private static readonly HORIZONTAL_ALIGNMENT_MAP: Record<
@@ -207,6 +212,44 @@ export class NotificationsManager {
     );
   }
 
+  private disconnectBannerBody() {
+    for (const signal of this.bodySignals)
+      this.bodyNotification?.disconnect(signal);
+    this.bodySignals = [];
+    this.bodyNotification = null;
+  }
+
+  private refreshBannerBody() {
+    const widgets = resolveNotificationWidgets(getMessageTrayContainer());
+    const notification = widgets?.notification ?? null;
+    if (notification !== this.bodyNotification) {
+      this.disconnectBannerBody();
+      this.bodyNotification = notification;
+      if (notification) {
+        for (const property of ["title", "body"]) {
+          this.bodySignals.push(
+            notification.connect_after(`notify::${property}`, () =>
+              this.refreshBannerBody(),
+            ),
+          );
+        }
+        this.bodySignals.push(
+          notification.connect("destroy", () => this.disconnectBannerBody()),
+        );
+      }
+    }
+    if (!widgets) return;
+    const configuration = this.settingsManager.getConfigurationFor(
+      widgets.sourceName,
+      widgets.titleText,
+      widgets.bodyText,
+    );
+    setNotificationBodyHidden(
+      widgets,
+      configuration.enabled && configuration.content.hideBody,
+    );
+  }
+
   private setupPositioning(settingsManager: SettingsManager) {
     const bannerBin = getBannerBin();
 
@@ -239,6 +282,7 @@ export class NotificationsManager {
       if (!widgets) return;
 
       const { sourceName, titleText, bodyText } = widgets;
+      this.refreshBannerBody();
 
       const position = settingsManager.getPositionFor(
         sourceName,
@@ -278,6 +322,15 @@ export class NotificationsManager {
         hideBannerAppTitleRow(bannerBin);
       }
     });
+    this.bannerRemovedSignalId = messageTrayContainer?.connect(
+      "child-removed",
+      () => this.refreshBannerBody(),
+    );
+    this.bodySettingsListener = settingsManager.events.on(
+      "colorsEnabledChanged",
+      () => this.refreshBannerBody(),
+    );
+    this.refreshBannerBody();
   }
 
   private enable() {
@@ -297,14 +350,22 @@ export class NotificationsManager {
   }
 
   dispose() {
+    if (this.bodySettingsListener !== undefined)
+      this.settingsManager.events.off(this.bodySettingsListener);
+    this.disconnectBannerBody();
     this.soundManager.dispose();
     this.notificationStack.dispose();
+    const widgets = resolveNotificationWidgets(getMessageTrayContainer());
+    if (widgets) setNotificationBodyHidden(widgets, false);
     this.disable();
     this.injectionManager.clear();
 
     if (typeof this.positionSignalId === "number") {
       getMessageTrayContainer()?.disconnect(this.positionSignalId);
     }
+
+    if (this.bannerRemovedSignalId !== undefined)
+      getMessageTrayContainer()?.disconnect(this.bannerRemovedSignalId);
 
     this.monitorAdapter.dispose();
     this.processingAdapter.dispose();
