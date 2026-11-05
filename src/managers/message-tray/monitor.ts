@@ -55,12 +55,8 @@ export class MonitorAdapter {
     if (!this.constraint) return;
 
     const monitor = this.getMonitor();
-    if (!monitor || monitor.index === Main.layoutManager.primaryIndex) {
-      if (!this.constraint.primary) this.constraint.primary = true;
-    } else if (
-      this.constraint.primary ||
-      this.constraint.index !== monitor.index
-    ) {
+    if (!monitor) return;
+    if (this.constraint.primary || this.constraint.index !== monitor.index) {
       this.constraint.index = monitor.index;
     }
   }
