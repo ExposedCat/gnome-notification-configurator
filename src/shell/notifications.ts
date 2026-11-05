@@ -143,6 +143,8 @@ export class NotificationsManager {
       (original) =>
         function (this: MessageTray.MessageTrayProto) {
           if (self.isVerticalAlignTop(this._bannerBin)) {
+            this._bannerBin.scale_x = 1;
+            this._bannerBin.scale_y = 1;
             original.call(this);
             return;
           }
