@@ -14,6 +14,8 @@ import { NotificationMask } from "./notification-mask.js";
 import {
   type NotificationWidgets,
   resolveBannerWidgets,
+  restoreNotificationBody,
+  setNotificationBodyHidden,
 } from "./notification-widgets.js";
 
 type NotificationMessage = St.Widget & {
@@ -441,9 +443,17 @@ export class NotificationCenterManager {
     const source = notification.source?.title ?? "";
     const title = notification.title ?? "";
     const body = notification.body ?? "";
+    const configuration = this.settingsManager.getConfigurationFor(
+      source,
+      title,
+      body,
+    );
     const enabled =
-      this.settingsManager.followBannerAppearance &&
-      this.settingsManager.getConfigurationFor(source, title, body).enabled;
+      this.settingsManager.followBannerAppearance && configuration.enabled;
+    setNotificationBodyHidden(
+      appearance.widgets,
+      enabled && configuration.content.hideBody,
+    );
     this.setHeaderHidden(
       appearance,
       enabled &&
@@ -519,6 +529,7 @@ export class NotificationCenterManager {
     this.stackMasks.clear();
     for (const appearance of this.messages.values()) {
       this.setStackOpacity(appearance, 1);
+      restoreNotificationBody(appearance.widgets);
       this.setHeaderHidden(appearance, false);
       if (appearance.widgets.body)
         appearance.widgets.body.clip_to_allocation = appearance.bodyClipped;
