@@ -305,6 +305,11 @@ export class NotificationStack {
           this.remove(banner, false);
       }),
     );
+    for (const property of ["title", "body"]) {
+      banner.signals.push(
+        notification.connect_after(`notify::${property}`, () => this.update()),
+      );
+    }
     this.queue.push(banner);
     this.update();
   }
