@@ -179,6 +179,8 @@ class MediaCard {
   private clipping = new RoundedClip();
   private iconClipping = new RoundedClip();
   private coverClipping = new RoundedClip();
+  private textureCache = St.TextureCache.get_default();
+  private textureSignal: number;
   private loader?: Clutter.Actor;
   private loaderSignal = 0;
   private artwork = "";
@@ -210,6 +212,7 @@ class MediaCard {
       [
         message,
         this.foreground,
+        body,
         message.titleLabel,
         message._bodyLabel,
         message._mediaControls,
@@ -245,7 +248,15 @@ class MediaCard {
     this.allocationSignal = surface.connect("notify::allocation", () =>
       this.allocate(),
     );
+    this.textureSignal = this.textureCache.connect(
+      "texture-file-changed",
+      (_cache, file: Gio.File) => {
+        if (this.artwork && file.equal(Gio.File.new_for_uri(this.artwork)))
+          this.loadArtwork(this.artwork, true);
+      },
+    );
     this.destroySignal = message.connect("destroy", () => {
+      this.textureCache.disconnect(this.textureSignal);
       this.clearLoader();
       onDestroy();
     });
@@ -266,6 +277,11 @@ class MediaCard {
     message._header.visible =
       this.headerVisible &&
       !hideMediaSource(configuration, message._player.source.title);
+    this.body.set_style(
+      message._header.visible
+        ? (this.styles.get(this.body) ?? null)
+        : extendStyle(this.styles.get(this.body), "margin-top: 0;"),
+    );
     const originalStyle = this.styles.get(message) ?? "";
     message.set_style(
       extendStyle(originalStyle, "padding: 0; border: none; box-shadow: none;"),
@@ -290,8 +306,8 @@ class MediaCard {
     this.allocate();
   }
 
-  private loadArtwork(artwork: string) {
-    if (this.artwork === artwork) return;
+  private loadArtwork(artwork: string, reload = false) {
+    if (this.artwork === artwork && !reload) return;
     this.artwork = artwork;
     this.clearLoader();
     this.background.set_content(null);
@@ -301,7 +317,7 @@ class MediaCard {
     const scale = St.ThemeContext.get_for_stage(
       global.stage as Clutter.Stage,
     ).scale_factor;
-    const loader = St.TextureCache.get_default().load_file_async(
+    const loader = this.textureCache.load_file_async(
       Gio.File.new_for_uri(artwork) as unknown as Parameters<
         St.TextureCache["load_file_async"]
       >[0],
@@ -430,6 +446,7 @@ class MediaCard {
     this.message.disconnect(this.destroySignal);
     this.message._icon.disconnect(this.iconSignal);
     surface.disconnect(this.allocationSignal);
+    this.textureCache.disconnect(this.textureSignal);
     this.clearLoader();
     this.message._icon.remove_effect(this.iconClipping.effect);
     this.positionControls(false);
